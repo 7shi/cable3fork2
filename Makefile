@@ -206,3 +206,6 @@ magic: deep_magic
 	    echo "These aren't the primes you're looking for Paul Erdos!"; \
 	fi
 	@${TRUE}
+
+indent:
+	indent ${ENTRY}.c tmp.c -bap -br -ce -ci4 -cli0 -d0 -di0 -i8 -ip -l79 -nbc -ncdb -ndj -ei -nfc1 -nlp -npcs -psl -sc -sob && mv tmp.c ${ENTRY}.c
