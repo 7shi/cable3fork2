@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <SDL.h>
 
-uint8_t t, e, l[80186], *E, m, u, L, a, T, o, mem[1 << 21], X, *Y, b, Q = 0, R = 0;
+uint8_t t, l[80186], *E, m, u, L, a, T, o, mem[1 << 21], X, *Y, b, Q = 0, R = 0;
 uint16_t *r, M, p, q = 3;
 uint32_t *localtime(), f, S, kb = 0, h, W, U, c, g, d, V, A;
 N, O, P = 983040, j[5];
@@ -118,7 +118,7 @@ main(int BX, char **nE)
 		}
 		O = *Y;
 		O = u = D(51);
-		e = D(8);
+		uint8_t e = D(8);
 		m = D(14);
 		e-- || (O = *Y / 2 & 7, M += (char) c * (L ^ (D(m)[E] | D(22)[E] | D(23)[E] ^ D(24)[E])));
 		e-- || (L = *Y & 8, (S = L ? *(uint16_t *) & K(X)[mem] : K(X)[mem], N = L ? *(uint16_t *) & K(X)[mem] = (f = *(uint16_t *) & c) : (K(X)[mem] = (f = *(uint8_t *) & c))));
