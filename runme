@@ -1,0 +1,4 @@
+#!/bin/sh
+stty cbreak raw -echo min 0
+./cable3 bios fdboot.img
+stty cooked echo
