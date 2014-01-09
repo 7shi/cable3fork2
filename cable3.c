@@ -46,19 +46,7 @@ J(void)
 int
 H(int o)
 {
-	u = 76;
-	J();
-	S = N = L = 4;
-	int seg = r[10] << 4;
-	r[4] -= 2;
-	*(uint16_t *) & mem[seg + r[4]] = V;
-	r[4] -= 2;
-	*(uint16_t *) & mem[seg + r[4]] = r[9];
-	r[4] -= 2;
-	*(uint16_t *) & mem[seg + r[4]] = M;
-	*(uint16_t *) & mem[P + 18] = *(uint16_t *) & mem[4 * o + 2];
-	*(uint16_t *) & M = (f = *(uint16_t *) & mem[4 * o]);
-	return (E[46] = 0);
+	return (46[u = 76, J(), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & V) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & V))), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & 9[r]) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & 9[r]))), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & M) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & M))), (S = L ? *(uint16_t *) & mem[P + 18] : mem[P + 18], N = L ? *(uint16_t *) & mem[P + 18] = (f = *(uint16_t *) & mem[4 * o + 2]) : (mem[P + 18] = (f = *(uint8_t *) & mem[4 * o + 2]))), (S = L ? *(uint16_t *) & M : M, N = L ? *(uint16_t *) & M = (f = *(uint16_t *) & mem[4 * o]) : (M = (f = *(uint8_t *) & mem[4 * o]))), E] = 0);
 }
 
 int
