@@ -42,11 +42,24 @@ J(void)
 	for (O = 9; O--;)
 		V += 40[E + O] << D(25);
 }
+#define SN(addr, opr, var) \
+	if (L){S=*(uint16_t*)&mem[addr];N=*(uint16_t*)&mem[addr]opr(f=*(uint16_t*)&var);} \
+	else{S=mem[addr];N=mem[addr]opr(f=(uint8_t)var);}
+#define SNvar(var1, opr, var2) \
+	if(L){S=*(uint16_t*)&var1;N=*(uint16_t*)&var1 opr(f=*(uint16_t*)&var2);} \
+	else{S=(uint8_t)var1;N=var1 opr(f=(uint8_t)var2);}
 
 int
 H(int o)
 {
-	return (46[u = 76, J(), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & V) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & V))), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & 9[r]) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & 9[r]))), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & M) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & M))), (S = L ? *(uint16_t *) & mem[P + 18] : mem[P + 18], N = L ? *(uint16_t *) & mem[P + 18] = (f = *(uint16_t *) & mem[4 * o + 2]) : (mem[P + 18] = (f = *(uint8_t *) & mem[4 * o + 2]))), (S = L ? *(uint16_t *) & M : M, N = L ? *(uint16_t *) & M = (f = *(uint16_t *) & mem[4 * o]) : (M = (f = *(uint8_t *) & mem[4 * o]))), E] = 0);
+	u = 76;
+	J();
+	SN(16 * r[10] + (uint16_t) (--r[L = 4]), =, V);
+	SN(16 * r[10] + (uint16_t) (--r[L = 4]), =, r[9]);
+	SN(16 * r[10] + (uint16_t) (--r[L = 4]), =, M);
+	SN(P + 18, =, mem[4 * o + 2]);
+	SNvar(M, =, mem[4 * o]);
+	return (46[E] = 0);
 }
 
 int
