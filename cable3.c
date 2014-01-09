@@ -126,24 +126,79 @@ main(int argc, char *argv[])
 		m = D(14);
 		switch (e) {
 		case 0:
-			O = *Y / 2 & 7, M += (char) c *(L ^ (D(m)[E] | D(22)[E] | D(23)[E] ^ D(24)[E]));
+			O = *Y / 2 & 7;
+			M += (char) c *(L ^ (D(m)[E] | D(22)[E] | D(23)[E] ^ D(24)[E]));
 			break;
 		case 1:
-			L = *Y & 8, (S = L ? *(uint16_t *) & K(X)[mem] : K(X)[mem], N = L ? *(uint16_t *) & K(X)[mem] = (f = *(uint16_t *) & c) : (K(X)[mem] = (f = *(uint8_t *) & c)));
+			L = *Y & 8;
+			S = L ? *(uint16_t *) & K(X)[mem] : K(X)[mem];
+			N = L ? *(uint16_t *) & K(X)[mem] = (f = *(uint16_t *) & c)
+			    : (K(X)[mem] = (f = *(uint8_t *) & c));
 			break;
 		case 2:
-			L = 2, o = 0, a = X, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, a = m;
+			L = 2;
+			o = 0;
+			a = X;
+			A = 4 * !T;
+			O = t;
+			W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t);
+			U = V = K(a);
+			o ? U = h, W = V : V, a = m;
 		case 5:
-			a < 2 ? (S = L ? *(uint16_t *) & mem[U] : mem[U], N = L ? *(uint16_t *) & mem[U] += 1 - 2 * a + (f = *(uint16_t *) & mem[P + 24]) : (mem[U] += 1 - 2 * a + (f = *(uint8_t *) & mem[P + 24]))), v(f = 1), G(S + 1 - a == 1 << 8 * -~L - 1), u = u & 4 ? 19 : 57 : a - 6 ? M += (T % 3 + 2 * !(!T * t - 6)) + 2, a - 3 || (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & 9[r]) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & 9[r]))), a & 2 && (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & M) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & M))), a & 1 && (S = L ? *(uint16_t *) & mem[P + 18] : mem[P + 18], N = L ? *(uint16_t *) & mem[P + 18] = (f = *(uint16_t *) & mem[U + 2]) : (mem[P + 18] = (f = *(uint8_t *) & mem[U + 2]))), (S = L ? *(uint16_t *) & M : M, N = L ? *(uint16_t *) & M = (f = *(uint16_t *) & U[mem]) : (M = (f = *(uint8_t *) & U[mem]))), u = 67 : (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & h[mem]) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & h[mem])));
+			if (a < 2) {
+				S = L ? *(uint16_t *) & mem[U] : mem[U];
+				N = L ? *(uint16_t *) & mem[U] += 1 - 2 * a + (f = *(uint16_t *) & mem[P + 24])
+				    : (mem[U] += 1 - 2 * a + (f = *(uint8_t *) & mem[P + 24]));
+				v(f = 1);
+				G(S + 1 - a == 1 << 8 * -~L - 1);
+				u = u & 4 ? 19 : 57;
+			} else {
+				if (a - 6) {
+					M += (T % 3 + 2 * !(!T * t - 6)) + 2;
+					if (!(a - 3)) {
+						S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])]
+						    : mem[16 * r[10] + (uint16_t) (--r[L = 4])];
+						N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & 9[r])
+						    : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & 9[r]));
+					}
+					if (a & 2) {
+						S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])]
+						    : mem[16 * r[10] + (uint16_t) (--r[L = 4])];
+						N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & M)
+						    : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & M));
+					}
+					if (a & 1) {
+						S = L ? *(uint16_t *) & mem[P + 18] : mem[P + 18];
+						N = L ? *(uint16_t *) & mem[P + 18] = (f = *(uint16_t *) & mem[U + 2])
+						    : (mem[P + 18] = (f = *(uint8_t *) & mem[U + 2]));
+					}
+					S = L ? *(uint16_t *) & M : M;
+					N = L ? *(uint16_t *) & M = (f = *(uint16_t *) & U[mem])
+					    : (M = (f = *(uint8_t *) & U[mem]));
+					u = 67;
+				} else {
+					S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])]
+					    : mem[16 * r[10] + (uint16_t) (--r[L = 4])];
+					N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & h[mem])
+					    : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & h[mem]));
+				}
+			}
 			break;
 		case 3:
-			(S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & X[r]) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & X[r])));
+			S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])]
+			    : mem[16 * r[10] + (uint16_t) (--r[L = 4])];
+			N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & X[r])
+			    : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & X[r]));
 			break;
 		case 4:
-			(r[L = 4] += 2, (S = L ? *(uint16_t *) & X[r] : X[r], N = L ? *(uint16_t *) & X[r] = (f = *(uint16_t *) & mem[16 * r[10] + (uint16_t) (-2 + r[4])]) : (X[r] = (f = *(uint8_t *) & mem[16 * r[10] + (uint16_t) (-2 + r[4])]))));
+			r[L = 4] += 2;
+			S = L ? *(uint16_t *) & X[r] : X[r];
+			N = L ? *(uint16_t *) & X[r] = (f = *(uint16_t *) & mem[16 * r[10] + (uint16_t) (-2 + r[4])])
+			    : (X[r] = (f = *(uint8_t *) & mem[16 * r[10] + (uint16_t) (-2 + r[4])]));
 			break;
 		case 6:
-			(W = U), a-- || (u = m, M -= ~L, (S = L ? *(uint16_t *) & W[mem] : W[mem], N = L ? *(uint16_t *) & W[mem] & (f = *(uint16_t *) & d) : (W[mem] & (f = *(uint8_t *) & d)))), a-- || (0), a-- || ((S = L ? *(uint16_t *) & mem[W] : mem[W], N = L ? *(uint16_t *) & mem[W] = ~(f = *(uint16_t *) & mem[U]) : (mem[W] = ~(f = *(uint8_t *) & mem[U])))), a-- || ((S = L ? *(uint16_t *) & mem[W] : mem[W], N = L ? *(uint16_t *) & mem[W] = -(f = *(uint16_t *) & mem[U]) : (mem[W] = -(f = *(uint8_t *) & mem[U]))), S = 0, u = 22, F(N > S)), a-- || (L ? (1[u = 19, L + r] = (N = *(uint16_t *) & h[mem] * (uint16_t) * r) >> 16, *r = N, G(F(N - (uint16_t) N))) : (1[u = 19, L + E] = (N = *(uint8_t *) & h[mem] * (uint8_t) * E) >> 16, *r = N, G(F(N - (uint8_t) N)))), a-- || (L ? (1[u = 19, L + r] = (N = *(short *) &h[mem] * (short) *r) >> 16, *r = N, G(F(N - (short) N))) : (1[u = 19, L + E] = (N = *(char *) &h[mem] * (char) *E) >> 16, *r = N, G(F(N - (char) N)))), a-- || (L ? (O = *(uint16_t *) & h[mem]) && !(A = (uint32_t) (V = (1[r + L] << 16) + *r) / O, A - (uint16_t) A) ? 1[r + L] = V - O * (*r = A) : H(0) : (O = *(uint8_t *) & h[mem]) && !(A = (uint16_t) (V = (1[E + L] << 16) + *r) / O, A - (uint8_t) A) ? 1[E + L] = V - O * (*E = A) : H(0)), a-- || (L ? (O = *(short *) &h[mem]) && !(A = (int) (V = (1[r + L] << 16) + *r) / O, A - (short) A) ? 1[r + L] = V - O * (*r = A) : H(0) : (O = *(char *) &h[mem]) && !(A = (short) (V = (1[E + L] << 16) + *r) / O, A - (char) A) ? 1[E + L] = V - O * (*E = A) : H(0));
+			W = U;
+			a-- || (u = m, M -= ~L, (S = L ? *(uint16_t *) & W[mem] : W[mem], N = L ? *(uint16_t *) & W[mem] & (f = *(uint16_t *) & d) : (W[mem] & (f = *(uint8_t *) & d)))), a-- || (0), a-- || ((S = L ? *(uint16_t *) & mem[W] : mem[W], N = L ? *(uint16_t *) & mem[W] = ~(f = *(uint16_t *) & mem[U]) : (mem[W] = ~(f = *(uint8_t *) & mem[U])))), a-- || ((S = L ? *(uint16_t *) & mem[W] : mem[W], N = L ? *(uint16_t *) & mem[W] = -(f = *(uint16_t *) & mem[U]) : (mem[W] = -(f = *(uint8_t *) & mem[U]))), S = 0, u = 22, F(N > S)), a-- || (L ? (1[u = 19, L + r] = (N = *(uint16_t *) & h[mem] * (uint16_t) * r) >> 16, *r = N, G(F(N - (uint16_t) N))) : (1[u = 19, L + E] = (N = *(uint8_t *) & h[mem] * (uint8_t) * E) >> 16, *r = N, G(F(N - (uint8_t) N)))), a-- || (L ? (1[u = 19, L + r] = (N = *(short *) &h[mem] * (short) *r) >> 16, *r = N, G(F(N - (short) N))) : (1[u = 19, L + E] = (N = *(char *) &h[mem] * (char) *E) >> 16, *r = N, G(F(N - (char) N)))), a-- || (L ? (O = *(uint16_t *) & h[mem]) && !(A = (uint32_t) (V = (1[r + L] << 16) + *r) / O, A - (uint16_t) A) ? 1[r + L] = V - O * (*r = A) : H(0) : (O = *(uint8_t *) & h[mem]) && !(A = (uint16_t) (V = (1[E + L] << 16) + *r) / O, A - (uint8_t) A) ? 1[E + L] = V - O * (*E = A) : H(0)), a-- || (L ? (O = *(short *) &h[mem]) && !(A = (int) (V = (1[r + L] << 16) + *r) / O, A - (short) A) ? 1[r + L] = V - O * (*r = A) : H(0) : (O = *(char *) &h[mem]) && !(A = (short) (V = (1[E + L] << 16) + *r) / O, A - (char) A) ? 1[E + L] = V - O * (*E = A) : H(0));
 			break;
 		case 7:
 			h = P, d = c, T = 3, a = m, M--;
