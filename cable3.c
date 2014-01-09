@@ -89,11 +89,11 @@ DX(void)
 }
 
 int
-main(int BX, char **nE)
+main(int argc, char *argv[])
 {
 	r[9] = P >> 4;
 	for (O = 9; q;)
-		j[--q] = *++nE ? open(*nE, 32898) : 0;
+		j[--q] = *++argv ? open(*argv, 32898) : 0;
 	read(2[*(uint32_t *) & *r = *j ? lseek(*j, 0, 2) >> 9 : 0, j], E + (M = 256), P);
 	for (O = 9; Y = mem + 16 * 9[r] + M, Y - mem; Q | R || kb & 46[E] && KB) {
 		L = (X = *Y & 7) & 1;
@@ -103,7 +103,7 @@ main(int BX, char **nE)
 		a = c / 8 & 7;
 		T = 1[Y] >> 6;
 		g = ~-T ? *(short *) &Y[++O] : (char) *(short *) &Y[++O];
-		d = BX = *(short *) &Y[++O];
+		d = argc = *(short *) &Y[++O];
 		--64[l];
 		if (!T * t - 6 && T - 2) {
 			if (T - 1)
@@ -138,7 +138,7 @@ main(int BX, char **nE)
 		e-- || (T = a = 0, t = 6, g = c, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, (S = L ? *(uint16_t *) & mem[U] : mem[U], N = L ? *(uint16_t *) & mem[U] = (f = *(uint16_t *) & mem[W]) : (mem[U] = (f = *(uint8_t *) & mem[W]))));
 		e-- || ((A = (1 & (L ? *(short *) &h[mem] : h[mem]) >> 8 * -~L - 1), V = m ? ++M, (char) g : o ? 31 & 2[E] : 1) && (a < 4 ? V %= a / 2 + 8 * -~L, (S = L ? *(uint16_t *) & A : A, N = L ? *(uint16_t *) & A = (f = *(uint16_t *) & h[mem]) : (A = (f = *(uint8_t *) & h[mem]))) : 0, a & 1 ? (S = L ? *(uint16_t *) & h[mem] : h[mem], N = L ? *(uint16_t *) & h[mem] >>= (f = *(uint16_t *) & V) : (h[mem] >>= (f = *(uint8_t *) & V))) : (S = L ? *(uint16_t *) & h[mem] : h[mem], N = L ? *(uint16_t *) & h[mem] <<= (f = *(uint16_t *) & V) : (h[mem] <<= (f = *(uint8_t *) & V))), a > 3 ? u = 19 : 0, a < 5 ? 0 : F(S >> V - 1 & 1)), a-- || ((S = L ? *(uint16_t *) & h[mem] : h[mem], N = L ? *(uint16_t *) & h[mem] += (f = *(uint16_t *) & A >> 8 * -~L - V) : (h[mem] += (f = *(uint8_t *) & A >> 8 * -~L - V))), G((1 & (L ? *(short *) &N : N) >> 8 * -~L - 1) ^ F(N & 1))), a-- || (A &= (1 << V) - 1, (S = L ? *(uint16_t *) & h[mem] : h[mem], N = L ? *(uint16_t *) & h[mem] += (f = *(uint16_t *) & A << 8 * -~L - V) : (h[mem] += (f = *(uint8_t *) & A << 8 * -~L - V))), G((1 & (L ? *(short *) &N * 2 : N * 2) >> 8 * -~L - 1) ^ F((1 & (L ? *(short *) &N : N) >> 8 * -~L - 1)))), a-- || ((S = L ? *(uint16_t *) & h[mem] : h[mem], N = L ? *(uint16_t *) & h[mem] += (40[E] << V - 1) + (f = *(uint16_t *) & A >> 1 + 8 * -~L - V) : (h[mem] += (40[E] << V - 1) + (f = *(uint8_t *) & A >> 1 + 8 * -~L - V))), G((1 & (L ? *(short *) &N : N) >> 8 * -~L - 1) ^ F(A & 1 << 8 * -~L - V))), a-- || ((S = L ? *(uint16_t *) & h[mem] : h[mem], N = L ? *(uint16_t *) & h[mem] += (40[E] << 8 * -~L - V) + (f = *(uint16_t *) & A << 1 + 8 * -~L - V) : (h[mem] += (40[E] << 8 * -~L - V) + (f = *(uint8_t *) & A << 1 + 8 * -~L - V))), F(A & 1 << V - 1), G((1 & (L ? *(short *) &N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(short *) &N * 2 : N * 2) >> 8 * -~L - 1))), a-- || (G((1 & (L ? *(short *) &N : N) >> 8 * -~L - 1) ^ F((1 & (L ? *(short *) &S << V - 1 : S << V - 1) >> 8 * -~L - 1)))), a-- || (G((1 & (L ? *(short *) &S : S) >> 8 * -~L - 1))), a-- || (0), a-- || (V < 8 * -~L || F(A), G(0), (S = L ? *(uint16_t *) & h[mem] : h[mem], N = L ? *(uint16_t *) & h[mem] += (f = *(uint16_t *) & A *= ~((1 << 8 * -~L) - 1 >> V)) : (h[mem] += (f = *(uint8_t *) & A *= ~((1 << 8 * -~L) - 1 >> V))))));
 		e-- || ((V = !!--1[a = X, r]), a-- || (V &= !m[E]), a-- || (V &= m[E]), a-- || (0), a-- || (V = !++1[r]), M += V * (char) c);
-		e-- || (M += 3 - o, L ? 0 : o ? 9[M = 0, r] = BX : (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & M) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & M))), M += o * L ? (char) c : c);
+		e-- || (M += 3 - o, L ? 0 : o ? 9[M = 0, r] = argc : (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & M) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & M))), M += o * L ? (char) c : c);
 		e-- || ((S = L ? *(uint16_t *) & mem[U] : mem[U], N = L ? *(uint16_t *) & mem[U] & (f = *(uint16_t *) & mem[W]) : (mem[U] & (f = *(uint8_t *) & mem[W]))));
 		e-- || (L = e += 8, W = P, U = K(X));
 		e-- || (!R || 1[r] ? (S = L ? *(uint16_t *) & mem[m < 2 ? 16 * r[8] + (uint16_t) (r[7]) : P] : mem[m < 2 ? 16 * r[8] + (uint16_t) (r[7]) : P], N = L ? *(uint16_t *) & mem[m < 2 ? 16 * r[8] + (uint16_t) (r[7]) : P] = (f = *(uint16_t *) & mem[m & 1 ? P : 16 * r[Q ? p : 11] + (uint16_t) (r[6])]) : (mem[m < 2 ? 16 * r[8] + (uint16_t) (r[7]) : P] = (f = *(uint8_t *) & mem[m & 1 ? P : 16 * r[Q ? p : 11] + (uint16_t) (r[6])]))), m & 1 || w(6), m & 2 || SP(1) : 0);
@@ -156,7 +156,7 @@ main(int BX, char **nE)
 		e-- || (N = BP(m - 1));
 		e-- || (1[E] = -(1 & (L ? *(short *) &*E : *E) >> 8 * -~L - 1));
 		e-- || (2[r] = -(1 & (L ? *(short *) &*r : *r) >> 8 * -~L - 1));
-		e-- || (9[(S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & 9[r]) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & 9[r]))), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & M + 5) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & M + 5))), r] = BX, M = c);
+		e-- || (9[(S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & 9[r]) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & 9[r]))), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & M + 5) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & M + 5))), r] = argc, M = c);
 		e-- || (J(), (S = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] : mem[16 * r[10] + (uint16_t) (--r[L = 4])], N = L ? *(uint16_t *) & mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint16_t *) & V) : (mem[16 * r[10] + (uint16_t) (--r[L = 4])] = (f = *(uint8_t *) & V))));
 		e-- || (s((r[L = 4] += 2, (S = L ? *(uint16_t *) & V : V, N = L ? *(uint16_t *) & V = (f = *(uint16_t *) & mem[16 * r[10] + (uint16_t) (-2 + r[4])]) : (V = (f = *(uint8_t *) & mem[16 * r[10] + (uint16_t) (-2 + r[4])]))))));
 		e-- || (J(), s((V & ~m) + 1[E]));
