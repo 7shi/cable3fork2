@@ -1,10 +1,14 @@
 #include <stdint.h>
 #include <SDL.h>
 
-uint8_t t, l[80186], *E, m, u, L, a, T, o, mem[1 << 21], X, *Y, b, Q = 0, R = 0;
-uint16_t *r, M, p, q = 3;
+#define P 0xf0000
+uint8_t mem[1 << 21];
+uint8_t *E = &mem[P];
+uint16_t *r = &mem[P];
+uint8_t t, l[80186], m, u, L, a, T, o, X, *Y, b, Q = 0, R = 0;
+uint16_t M, p, q = 3;
 uint32_t *localtime(), f, S, kb = 0, h, W, U, c, g, d, V, A;
-N, O, P = 983040, j[5];
+int N, O, j[5];
 SDL_Surface *k = 0;
 
 int
@@ -87,7 +91,7 @@ DX(void)
 int
 main(int BX, char **nE)
 {
-	9[r = E = mem + P] = P >> 4;
+	r[9] = P >> 4;
 	for (O = 9; q;)
 		j[--q] = *++nE ? open(*nE, 32898) : 0;
 	read(2[*(uint32_t *) & *r = *j ? lseek(*j, 0, 2) >> 9 : 0, j], E + (M = 256), P);
