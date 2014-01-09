@@ -1,2 +1,5 @@
 syntax: glob
 cable3
+*~
+*.o
+*core
