@@ -77,7 +77,7 @@ OPT= -O3
 LIBS=`sdl-config --cflags --libs`
 
 # Defines
-DEFS=-DKB='(kb=read(H(8),r+1190,1))&&H(7)'
+DEFS=-DKB='(kb=read(H(8),mem+1190,1))&&H(7)'
 
 # default flags for ANSI C compilation
 #
