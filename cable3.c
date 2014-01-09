@@ -1,7 +1,7 @@
 #include <SDL.h>
 
-unsigned char t, e, l[80186], *E, m, u, L, a, T, o, r[1 << 21], X, *Y, b, Q = 0,
-     R = 0;
+unsigned char t, e, l[80186], *E, m, u, L, a, T, o, r[1 << 21], X, *Y, b,
+     Q = 0, R = 0;
 unsigned short *i, M, p, q = 3;
 unsigned *localtime(), f, S, kb = 0, h, W, U, c, g, d, V, A;
 N, O, P = 983040, j[5];
@@ -45,12 +45,13 @@ H(int o)
 	u = 76;
 	J();
 	S = N = L = 4;
-	--i[4];
-	*(unsigned short *) &r[16 * i[10] + (unsigned short) (--i[4])] = V;
-	--i[4];
-	*(unsigned short *) &r[16 * i[10] + (unsigned short) (--i[4])] = i[9];
-	--i[4];
-	*(unsigned short *) &r[16 * i[10] + (unsigned short) (--i[4])] = M;
+	int seg = i[10] << 4;
+	i[4] -= 2;
+	*(unsigned short *) &r[seg + i[4]] = V;
+	i[4] -= 2;
+	*(unsigned short *) &r[seg + i[4]] = i[9];
+	i[4] -= 2;
+	*(unsigned short *) &r[seg + i[4]] = M;
 	*(unsigned short *) &r[P + 18] = *(unsigned short *) &r[4 * o + 2];
 	*(unsigned short *) &M = (f = *(unsigned short *) &r[4 * o]);
 	return (E[46] = 0);
