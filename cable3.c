@@ -77,14 +77,6 @@ SP(int o)
 }
 
 int
-DX(void)
-{
-	for (O = 9, O *= 27840; O--;)
-		O[(uint32_t *) k->pixels] = -!!(1 << 7 - O % 8 & r[O / 2880 * 90 + O % 720 / 8 + (88 + 952[l] / 128 * 4 + O / 720 % 4 << 13)]);
-	SDL_Flip(k);
-}
-
-int
 main(int argc, char *argv[])
 {
 	9[i = E = r + P] = P >> 4;
@@ -166,7 +158,20 @@ main(int argc, char *argv[])
 		D(16) ? v(0) : D(17) && G(F(0));
 		M += (T % 3 + 2 * !(!T * t - 6)) * D(20) + D(18) - D(19) * ~!!L;
 		D(15) ? O = m = N, 41[43[44[E] = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1), E] = !N, E] = D(50) : 0;
-		!++q ? kb = 1, *l ? SDL_PumpEvents(), k = k ? k : SDL_SetVideoMode(720, 348, 32, 0), DX() : k ? SDL_Quit(), k = 0 : 0 : 0;
+		if (!++q) {
+			kb = 1;
+			if (*l) {
+				SDL_PumpEvents();
+				if (!k)
+					k = SDL_SetVideoMode(720, 348, 32, 0);
+				for (O = 9, O *= 27840; O--;)
+					O[(uint32_t *) k->pixels] = -!!(1 << 7 - O % 8 & r[O / 2880 * 90 + O % 720 / 8 + (88 + 952[l] / 128 * 4 + O / 720 % 4 << 13)]);
+				SDL_Flip(k);
+			} else if (k) {
+				SDL_Quit();
+				k = 0;
+			}
+		}
 	}
 }
 
