@@ -3,10 +3,15 @@
 
 #define R(O,M,_)(S=L?*(uint16_t*)&O:O,N=L?*(uint16_t*)&O M(f=*(uint16_t*)&_):(O M(f=*(uint8_t*)&_)))
 
-uint8_t t, l[80186], *E, m, u, L, a, T, o, r[1 << 21], X, *Y, b, Q = 0, R = 0;
-uint16_t *i, M, p, q = 3;
+#define P 0xf0000
+uint8_t r[1 << 21];
+uint8_t *const E = &r[P];
+uint16_t *const i = &r[P];
+
+uint8_t t, l[80186], m, u, L, a, T, o, X, *Y, b, Q = 0, R = 0;
+uint16_t M, p, q = 3;
 uint32_t *localtime(), f, S, kb = 0, h, W, U, c, g, d, V, A;
-int N, O, P = 0xf0000, j[5];
+int N, O, j[5];
 SDL_Surface *k = 0;
 
 int
@@ -79,7 +84,7 @@ SP(int o)
 int
 main(int argc, char *argv[])
 {
-	9[i = E = r + P] = P >> 4;
+	i[9] = P >> 4;
 	for (O = 9; q;)
 		j[--q] = *++argv ? open(*argv, 0x8082) : 0;
 	read(2[*(uint32_t *) & *i = *j ? lseek(*j, 0, 2) >> 9 : 0, j], E + (M = 256), P);
