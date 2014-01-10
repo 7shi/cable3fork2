@@ -60,12 +60,15 @@ v(int o)
 	return G(N - S && 1 & (r8[40] ^ f >> 8 * -~L - 1));
 }
 
-void
-setflags(void)
+int fbits[] = {0, 2, 4, 6, 7, 8, 9, 10, 11};
+
+int
+getflags(void)
 {
-	flags = 0xf002;
-	for (O = 9; O--;)
-		flags += r8[40 + O] << D(25);
+	int f = 0xf002;
+	for (int i = 0; i < 9; ++i)
+		f += r8[40 + i] << fbits[i];
+	return f;
 }
 
 int
@@ -73,7 +76,7 @@ intr(int n)
 {
 	u = 76;
 	L = 4;
-	setflags();
+	flags = getflags();
 	SP -= 2;
 	POKE(mem[16 * SS + SP], =, flags);
 	SP -= 2;
@@ -254,7 +257,7 @@ main(int argc, char *argv[])
 			9[POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, CS), POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, ip + 5), r] = argc, ip = c;
 			break;
 		case 33:
-			setflags();
+			flags = getflags();
 			POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, flags);
 			break;
 		case 34:
@@ -262,11 +265,11 @@ main(int argc, char *argv[])
 			s(POKE(flags, =, mem[16 * SS + (uint16_t) (-2 + SP)]));
 			break;
 		case 35:
-			setflags();
+			flags = getflags();
 			s((flags & ~m) + CL);
 			break;
 		case 36:
-			setflags();
+			flags = getflags();
 			CL = flags;
 			break;
 		case 37:
