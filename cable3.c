@@ -73,13 +73,6 @@ s(int o)
 }
 
 int
-SP(int o)
-{
-	w(7);
-	return (R && --r[1] && o ? R++, Q && Q++, M-- : 0);
-}
-
-int
 main(int argc, char *argv[])
 {
 	CS = P >> 4;
@@ -162,10 +155,37 @@ main(int argc, char *argv[])
 			W - U ? POKE(mem[W], ^=, mem[U]), POKE(mem[U], ^=, mem[W]), POKE(mem[W], ^=, mem[U]) : 0;
 			break;
 		case 17:
-			!R || r[1] ? POKE(mem[m < 2 ? 16 * ES + (uint16_t) (r[7]) : P], =, mem[m & 1 ? P : 16 * r[Q ? p : 11] + (uint16_t) (r[6])]), m & 1 || w(6), m & 2 || SP(1) : 0;
+			if (!R || r[1]) {
+				POKE(mem[m < 2 ? 16 * ES + (uint16_t) (r[7]) : P], =, mem[m & 1 ? P : 16 * r[Q ? p : 11] + (uint16_t) (r[6])]);
+				if (!(m & 1))
+					w(6);
+				if (!(m & 2)) {
+					w(7);
+					if (R && --r[1]) {
+						R++;
+						if (Q)
+							Q++;
+						M--;
+					};
+				}
+			}
 			break;
 		case 18:
-			!R || r[1] ? POKE(mem[m ? P : 16 * r[Q ? p : 11] + (uint16_t) (r[6])], -, mem[16 * ES + (uint16_t) (r[7])]), 43[u = 92, r8] = !N, F(N > S), m || w(6), SP(!N == b) : 0;
+			if (!R || r[1]) {
+				POKE(mem[m ? P : 16 * r[Q ? p : 11] + (uint16_t) (r[6])], -, mem[16 * ES + (uint16_t) (r[7])]);
+				u = 92;
+				r8[43] = !N;
+				F(N > S);
+				if (!m)
+					w(6);
+				w(7);
+				if (R && --r[1] && !N == b) {
+					R++;
+					if (Q)
+						Q++;
+					M--;
+				}
+			}
 			break;
 		case 19:
 			o = L, (r[L = 4] += 2, POKE(M, =, mem[16 * SS + (uint16_t) (-2 + r[4])])), m && (r[L = 4] += 2, POKE(CS, =, mem[16 * SS + (uint16_t) (-2 + r[4])])), m & 2 ? s((r[L = 4] += 2, POKE(V, =, mem[16 * SS + (uint16_t) (-2 + r[4])]))) : o || (r[4] += c);
