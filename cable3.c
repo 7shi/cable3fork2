@@ -73,13 +73,6 @@ s(int o)
 }
 
 int
-BP(int o)
-{
-	*r += 262 * o * z(F((*r8 & 15) > 9 | r8[42]));
-	return (*r8 &= 15);
-}
-
-int
 SP(int o)
 {
 	w(7);
@@ -202,7 +195,8 @@ main(int argc, char *argv[])
 			L = 0, O = *r8, F(D(m += 3 * r8[42] + 6 * r8[40])), z(D(1 + m)), N = *r8 = D(m - 1);
 			break;
 		case 29:
-			N = BP(m - 1);
+			*r += 262 * (m - 1) * z(F((*r8 & 15) > 9 | r8[42]));
+			N = *r8 &= 15;
 			break;
 		case 30:
 			r8[1] = -(1 & (L ? *(int16_t *) r8 : *r8) >> 8 * -~L - 1);
