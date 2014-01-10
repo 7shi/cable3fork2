@@ -9,10 +9,15 @@ uint8_t *const E = &r[P];
 uint16_t *const i = &r[P];
 
 uint8_t t, l[80186], m, u, L, a, T, o, X, *Y, b, Q = 0, R = 0;
-uint16_t M, p, q = 3;
+uint16_t M, p;
 uint32_t *localtime(), f, S, kb = 0, h, W, U, c, g, d, V, A;
 int N, O, j[5];
 SDL_Surface *k = 0;
+
+#define ES i[8]
+#define CS i[9]
+#define SS i[10]
+#define DS i[11]
 
 int
 K(int o)
@@ -52,9 +57,9 @@ H(int o)
 {
 	u = 76;
 	J();
-	R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, V);
-	R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, i[9]);
-	R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, M);
+	R(r[16 * SS + (uint16_t) (--i[L = 4])], =, V);
+	R(r[16 * SS + (uint16_t) (--i[L = 4])], =, CS);
+	R(r[16 * SS + (uint16_t) (--i[L = 4])], =, M);
 	R(r[P + 18], =, r[4 * o + 2]);
 	R(M, =, r[4 * o]);
 	return (E[46] = 0);
@@ -84,11 +89,13 @@ SP(int o)
 int
 main(int argc, char *argv[])
 {
-	i[9] = P >> 4;
+	CS = P >> 4;
+	uint16_t q = 3;
 	for (O = 9; q;)
 		j[--q] = *++argv ? open(*argv, 0x8082) : 0;
-	read(2[*(uint32_t *) i = *j ? lseek(*j, 0, 2) >> 9 : 0, j], E + (M = 256), P);
-	for (O = 9; Y = r + 16 * i[9] + M, Y - r; Q | R || kb & E[46] && KB) {
+	*(uint32_t *) i = *j ? lseek(*j, 0, 2) >> 9 : 0;
+	read(j[2], E + (M = 256), P);
+	for (O = 9; Y = r + 16 * CS + M, Y - r; Q | R || kb & E[46] && KB) {
 		L = (X = *Y & 7) & 1;
 		o = X / 2 & 1;
 		O = l[32] = 0;
@@ -120,13 +127,13 @@ main(int argc, char *argv[])
 		case 2:
 			L = 2, o = 0, a = X, A = 4 * !T, O = t, W = h = T < 3 ? 16 * i[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[i] + D(A + 2) * g + i[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, a = m;
 		case 5:
-			a < 2 ? R(r[U], +=1 - 2 * a +, r[P + 24]), v(f = 1), G(S + 1 - a == 1 << 8 * -~L - 1), u = u & 4 ? 19 : 57 : a - 6 ? M += (T % 3 + 2 * !(!T * t - 6)) + 2, a - 3 || R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, i[9]), a & 2 && R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, M), a & 1 && R(r[P + 18], =, r[U + 2]), R(M, =, U[r]), u = 67 : R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, h[r]);
+			a < 2 ? R(r[U], +=1 - 2 * a +, r[P + 24]), v(f = 1), G(S + 1 - a == 1 << 8 * -~L - 1), u = u & 4 ? 19 : 57 : a - 6 ? M += (T % 3 + 2 * !(!T * t - 6)) + 2, a - 3 || R(r[16 * SS + (uint16_t) (--i[L = 4])], =, CS), a & 2 && R(r[16 * SS + (uint16_t) (--i[L = 4])], =, M), a & 1 && R(r[P + 18], =, r[U + 2]), R(M, =, U[r]), u = 67 : R(r[16 * SS + (uint16_t) (--i[L = 4])], =, h[r]);
 			break;
 		case 3:
-			R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, X[i]);
+			R(r[16 * SS + (uint16_t) (--i[L = 4])], =, X[i]);
 			break;
 		case 4:
-			(i[L = 4] += 2, R(X[i], =, r[16 * i[10] + (uint16_t) (-2 + i[4])]));
+			(i[L = 4] += 2, R(X[i], =, r[16 * SS + (uint16_t) (-2 + i[4])]));
 			break;
 		case 6:
 			(W = U), a-- || (u = m, M -= ~L, R(W[r], &, d)), a-- || (0), a-- || (R(r[W], = ~, r[U])), a-- || (R(r[W], = -, r[U]), S = 0, u = 22, F(N > S)), a-- || (L ? (1[u = 19, L + i] = (N = *(uint16_t *) & h[r] * (uint16_t) * i) >> 16, *i = N, G(F(N - (uint16_t) N))) : (1[u = 19, L + E] = (N = *(uint8_t *) & h[r] * (uint8_t) * E) >> 16, *i = N, G(F(N - (uint8_t) N)))), a-- || (L ? (1[u = 19, L + i] = (N = *(int16_t *) & h[r] * (int16_t) * i) >> 16, *i = N, G(F(N - (int16_t) N))) : (1[u = 19, L + E] = (N = *(int8_t *) & h[r] * (int8_t) * E) >> 16, *i = N, G(F(N - (int8_t) N)))), a-- || (L ? (O = *(uint16_t *) & h[r]) && !(A = (uint32_t) (V = (1[i + L] << 16) + *i) / O, A - (uint16_t) A) ? 1[i + L] = V - O * (*i = A) : H(0) : (O = *(uint8_t *) & h[r]) && !(A = (uint16_t) (V = (1[E + L] << 16) + *i) / O, A - (uint8_t) A) ? 1[E + L] = V - O * (*E = A) : H(0)), a-- || (L ? (O = *(int16_t *) & h[r]) && !(A = (int) (V = (1[i + L] << 16) + *i) / O, A - (int16_t) A) ? 1[i + L] = V - O * (*i = A) : H(0) : (O = *(int8_t *) & h[r]) && !(A = (int16_t) (V = (1[E + L] << 16) + *i) / O, A - (int8_t) A) ? 1[E + L] = V - O * (*E = A) : H(0));
@@ -139,7 +146,7 @@ main(int argc, char *argv[])
 			(a = m), a-- || (R(r[W], +=, r[U]), F(N < S)), a-- || (R(r[W], |=, r[U])), a-- || (v(F(40[R(r[W], +=E[40] +, r[U]), E] & N == S | +N < +(int) S))), a-- || (v(F(40[R(r[W], -=E[40] +, r[U]), E] & N == S | -N < -(int) S))), a-- || (R(r[W], &=, r[U])), a-- || (R(r[W], -=, r[U]), F(N > S)), a-- || (R(r[W], ^=, r[U])), a-- || (R(r[W], -, r[U]), F(N > S)), a-- || (R(r[W], =, r[U]));
 			break;
 		case 10:
-			!L ? L = a += 8, A = 4 * !T, O = t, W = h = T < 3 ? 16 * i[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[i] + D(A + 2) * g + i[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, R(r[W], =, r[U]) : !o ? Q = 1, R((r[p = m, A = 4 * !T, O = t, W = h = T < 3 ? 16 * i[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[i] + D(A + 2) * g + i[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, V]), =, h) : (i[L = 4] += 2, R(h[r], =, r[16 * i[10] + (uint16_t) (-2 + i[4])]));
+			!L ? L = a += 8, A = 4 * !T, O = t, W = h = T < 3 ? 16 * i[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[i] + D(A + 2) * g + i[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, R(r[W], =, r[U]) : !o ? Q = 1, R((r[p = m, A = 4 * !T, O = t, W = h = T < 3 ? 16 * i[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[i] + D(A + 2) * g + i[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, V]), =, h) : (i[L = 4] += 2, R(h[r], =, r[16 * SS + (uint16_t) (-2 + i[4])]));
 			break;
 		case 11:
 			T = a = 0, t = 6, g = c, A = 4 * !T, O = t, W = h = T < 3 ? 16 * i[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[i] + D(A + 2) * g + i[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, R(r[U], =, r[W]);
@@ -151,7 +158,7 @@ main(int argc, char *argv[])
 			(V = !!--1[a = X, i]), a-- || (V &= !m[E]), a-- || (V &= m[E]), a-- || (0), a-- || (V = !++i[1]), M += V * (int8_t) c;
 			break;
 		case 14:
-			M += 3 - o, L ? 0 : o ? 9[M = 0, i] = argc : R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, M), M += o * L ? (int8_t) c : c;
+			M += 3 - o, L ? 0 : o ? 9[M = 0, i] = argc : R(r[16 * SS + (uint16_t) (--i[L = 4])], =, M), M += o * L ? (int8_t) c : c;
 			break;
 		case 15:
 			R(r[U], &, r[W]);
@@ -162,13 +169,13 @@ main(int argc, char *argv[])
 			W - U ? R(r[W], ^=, r[U]), R(r[U], ^=, r[W]), R(r[W], ^=, r[U]) : 0;
 			break;
 		case 17:
-			!R || i[1] ? R(r[m < 2 ? 16 * i[8] + (uint16_t) (i[7]) : P], =, r[m & 1 ? P : 16 * i[Q ? p : 11] + (uint16_t) (i[6])]), m & 1 || w(6), m & 2 || SP(1) : 0;
+			!R || i[1] ? R(r[m < 2 ? 16 * ES + (uint16_t) (i[7]) : P], =, r[m & 1 ? P : 16 * i[Q ? p : 11] + (uint16_t) (i[6])]), m & 1 || w(6), m & 2 || SP(1) : 0;
 			break;
 		case 18:
-			!R || i[1] ? R(r[m ? P : 16 * i[Q ? p : 11] + (uint16_t) (i[6])], -, r[16 * i[8] + (uint16_t) (i[7])]), 43[u = 92, E] = !N, F(N > S), m || w(6), SP(!N == b) : 0;
+			!R || i[1] ? R(r[m ? P : 16 * i[Q ? p : 11] + (uint16_t) (i[6])], -, r[16 * ES + (uint16_t) (i[7])]), 43[u = 92, E] = !N, F(N > S), m || w(6), SP(!N == b) : 0;
 			break;
 		case 19:
-			o = L, (i[L = 4] += 2, R(M, =, r[16 * i[10] + (uint16_t) (-2 + i[4])])), m && (i[L = 4] += 2, R(i[9], =, r[16 * i[10] + (uint16_t) (-2 + i[4])])), m & 2 ? s((i[L = 4] += 2, R(V, =, r[16 * i[10] + (uint16_t) (-2 + i[4])]))) : o || (i[4] += c);
+			o = L, (i[L = 4] += 2, R(M, =, r[16 * SS + (uint16_t) (-2 + i[4])])), m && (i[L = 4] += 2, R(CS, =, r[16 * SS + (uint16_t) (-2 + i[4])])), m & 2 ? s((i[L = 4] += 2, R(V, =, r[16 * SS + (uint16_t) (-2 + i[4])]))) : o || (i[4] += c);
 			break;
 		case 20:
 			R(U[r], =, d);
@@ -183,10 +190,10 @@ main(int argc, char *argv[])
 			R = 2, b = L, Q && Q++;
 			break;
 		case 25:
-			R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, m[i]);
+			R(r[16 * SS + (uint16_t) (--i[L = 4])], =, m[i]);
 			break;
 		case 26:
-			(i[L = 4] += 2, R(m[i], =, r[16 * i[10] + (uint16_t) (-2 + i[4])]));
+			(i[L = 4] += 2, R(m[i], =, r[16 * SS + (uint16_t) (-2 + i[4])]));
 			break;
 		case 27:
 			Q = 2, p = m, R && R++;
@@ -204,13 +211,13 @@ main(int argc, char *argv[])
 			i[2] = -(1 & (L ? *(int16_t *) i : *i) >> 8 * -~L - 1);
 			break;
 		case 32:
-			9[R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, i[9]), R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, M + 5), i] = argc, M = c;
+			9[R(r[16 * SS + (uint16_t) (--i[L = 4])], =, CS), R(r[16 * SS + (uint16_t) (--i[L = 4])], =, M + 5), i] = argc, M = c;
 			break;
 		case 33:
-			J(), R(r[16 * i[10] + (uint16_t) (--i[L = 4])], =, V);
+			J(), R(r[16 * SS + (uint16_t) (--i[L = 4])], =, V);
 			break;
 		case 34:
-			s((i[L = 4] += 2, R(V, =, r[16 * i[10] + (uint16_t) (-2 + i[4])])));
+			s((i[L = 4] += 2, R(V, =, r[16 * SS + (uint16_t) (-2 + i[4])])));
 			break;
 		case 35:
 			J(), s((V & ~m) + E[1]);
@@ -252,7 +259,7 @@ main(int argc, char *argv[])
 			R(*E, &, c);
 			break;
 		case 48:
-			(a = c), a-- || (write(1, E, 1)), a-- || (time(j + 3), memcpy(r + 16 * i[8] + (uint16_t) (i[3]), localtime(j + 3), m)), a < 2 ? *E = ~lseek(O = E[4][j], *(uint32_t *) & i[5] << 9, 0) ? (a ? write : read) (O, r + 16 * i[8] + (uint16_t) (i[3]), *i) : 0 : 0;
+			(a = c), a-- || (write(1, E, 1)), a-- || (time(j + 3), memcpy(r + 16 * ES + (uint16_t) (i[3]), localtime(j + 3), m)), a < 2 ? *E = ~lseek(O = E[4][j], *(uint32_t *) & i[5] << 9, 0) ? (a ? write : read) (O, r + 16 * ES + (uint16_t) (i[3]), *i) : 0 : 0;
 			break;
 		}
 		O = u;
