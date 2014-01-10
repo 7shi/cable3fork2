@@ -63,9 +63,9 @@ v(int o)
 int
 J(void)
 {
-	V = 61442;
+	V = 0xf002;
 	for (O = 9; O--;)
-		V += 40[r8 + O] << D(25);
+		V += r8[40 + O] << D(25);
 }
 
 int
@@ -85,7 +85,7 @@ int
 s(int o)
 {
 	for (O = 9; O--;)
-		40[r8 + O] = 1 && 1 << D(25) & o;
+		r8[40 + O] = 1 && 1 << D(25) & o;
 }
 
 int
@@ -108,13 +108,18 @@ main(int argc, char *argv[])
 		d = argc = *(int16_t *) & Y[++O];
 		--l[64];
 		!T * t - 6 && T - 2 ? T - 1 ? d = g : 0 : (d = *(int16_t *) & Y[++O]);
-		Q && Q--;
-		R && R--;
+		if (Q)
+			Q--;
+		if (R)
+			R--;
 		A = 4 * !T;
 		O = t;
 		W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t);
 		U = V = K(a);
-		o ? U = h, W = V : V;
+		if (o) {
+			U = h;
+			W = V;
+		}
 		O = *Y;
 		O = u = D(51);
 		uint8_t e = D(8);
