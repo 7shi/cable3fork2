@@ -1,2 +1,9 @@
 syntax: glob
 cable3
+*.exe
+*.o
+*.orig
+*~
+*core
+stdout.txt
+stderr.txt
