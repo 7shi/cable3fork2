@@ -10,7 +10,7 @@ uint16_t *const r = &mem[P];
 
 uint8_t t, l[80186], m, u, L, a, T, o, X, *Y, b, Q = 0, R = 0;
 uint16_t ip, p;
-uint32_t *localtime(), f, S, kb = 0, h, W, U, c, g, d, V, A;
+uint32_t *localtime(), f, S, kb = 0, h, W, U, c, g, d, flags, A;
 int N, O, j[5];
 SDL_Surface *k = 0;
 
@@ -60,20 +60,20 @@ v(int o)
 	return G(N - S && 1 & (r8[40] ^ f >> 8 * -~L - 1));
 }
 
-int
-J(void)
+void
+setflags(void)
 {
-	V = 0xf002;
+	flags = 0xf002;
 	for (O = 9; O--;)
-		V += r8[40 + O] << D(25);
+		flags += r8[40 + O] << D(25);
 }
 
 int
 H(int o)
 {
 	u = 76;
-	J();
-	POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, V);
+	setflags();
+	POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, flags);
 	POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, CS);
 	POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, ip);
 	POKE(mem[P + 18], =, mem[4 * o + 2]);
@@ -116,10 +116,10 @@ main(int argc, char *argv[])
 		A = 4 * !T;
 		O = t;
 		W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t);
-		U = V = K(a);
+		U = flags = K(a);
 		if (o) {
 			U = h;
-			W = V;
+			W = flags;
 		}
 		O = *Y;
 		O = u = D(51);
@@ -133,7 +133,7 @@ main(int argc, char *argv[])
 			L = *Y & 8, POKE(K(X)[mem], =, c);
 			break;
 		case 2:
-			L = 2, o = 0, a = X, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, a = m;
+			L = 2, o = 0, a = X, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, a = m;
 		case 5:
 			a < 2 ? POKE(mem[U], +=1 - 2 * a +, mem[P + 24]), v(f = 1), G(S + 1 - a == 1 << 8 * -~L - 1), u = u & 4 ? 19 : 57 : a - 6 ? ip += (T % 3 + 2 * !(!T * t - 6)) + 2, a - 3 || POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, CS), a & 2 && POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, ip), a & 1 && POKE(mem[P + 18], =, mem[U + 2]), POKE(ip, =, U[mem]), u = 67 : POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, h[mem]);
 			break;
@@ -144,7 +144,7 @@ main(int argc, char *argv[])
 			(r[L = 4] += 2, POKE(X[r], =, mem[16 * SS + (uint16_t) (-2 + SP)]));
 			break;
 		case 6:
-			(W = U), a-- || (u = m, ip -= ~L, POKE(W[mem], &, d)), a-- || (0), a-- || (POKE(mem[W], = ~, mem[U])), a-- || (POKE(mem[W], = -, mem[U]), S = 0, u = 22, F(N > S)), a-- || (L ? (1[u = 19, L + r] = (N = *(uint16_t *) & h[mem] * (uint16_t) * r) >> 16, AX = N, G(F(N - (uint16_t) N))) : (1[u = 19, L + r8] = (N = *(uint8_t *) & h[mem] * (uint8_t) * r8) >> 16, AX = N, G(F(N - (uint8_t) N)))), a-- || (L ? (1[u = 19, L + r] = (N = *(int16_t *) & h[mem] * (int16_t) * r) >> 16, AX = N, G(F(N - (int16_t) N))) : (1[u = 19, L + r8] = (N = *(int8_t *) & h[mem] * (int8_t) * r8) >> 16, AX = N, G(F(N - (int8_t) N)))), a-- || (L ? (O = *(uint16_t *) & h[mem]) && !(A = (uint32_t) (V = (1[r + L] << 16) + AX) / O, A - (uint16_t) A) ? 1[r + L] = V - O * (AX = A) : H(0) : (O = *(uint8_t *) & h[mem]) && !(A = (uint16_t) (V = (1[r8 + L] << 16) + AX) / O, A - (uint8_t) A) ? 1[r8 + L] = V - O * (AL = A) : H(0)), a-- || (L ? (O = *(int16_t *) & h[mem]) && !(A = (int) (V = (1[r + L] << 16) + AX) / O, A - (int16_t) A) ? 1[r + L] = V - O * (AX = A) : H(0) : (O = *(int8_t *) & h[mem]) && !(A = (int16_t) (V = (1[r8 + L] << 16) + AX) / O, A - (int8_t) A) ? 1[r8 + L] = V - O * (AL = A) : H(0));
+			(W = U), a-- || (u = m, ip -= ~L, POKE(W[mem], &, d)), a-- || (0), a-- || (POKE(mem[W], = ~, mem[U])), a-- || (POKE(mem[W], = -, mem[U]), S = 0, u = 22, F(N > S)), a-- || (L ? (1[u = 19, L + r] = (N = *(uint16_t *) & h[mem] * (uint16_t) * r) >> 16, AX = N, G(F(N - (uint16_t) N))) : (1[u = 19, L + r8] = (N = *(uint8_t *) & h[mem] * (uint8_t) * r8) >> 16, AX = N, G(F(N - (uint8_t) N)))), a-- || (L ? (1[u = 19, L + r] = (N = *(int16_t *) & h[mem] * (int16_t) * r) >> 16, AX = N, G(F(N - (int16_t) N))) : (1[u = 19, L + r8] = (N = *(int8_t *) & h[mem] * (int8_t) * r8) >> 16, AX = N, G(F(N - (int8_t) N)))), a-- || (L ? (O = *(uint16_t *) & h[mem]) && !(A = (uint32_t) (flags = (1[r + L] << 16) + AX) / O, A - (uint16_t) A) ? 1[r + L] = flags - O * (AX = A) : H(0) : (O = *(uint8_t *) & h[mem]) && !(A = (uint16_t) (flags = (1[r8 + L] << 16) + AX) / O, A - (uint8_t) A) ? 1[r8 + L] = flags - O * (AL = A) : H(0)), a-- || (L ? (O = *(int16_t *) & h[mem]) && !(A = (int) (flags = (1[r + L] << 16) + AX) / O, A - (int16_t) A) ? 1[r + L] = flags - O * (AX = A) : H(0) : (O = *(int8_t *) & h[mem]) && !(A = (int16_t) (flags = (1[r8 + L] << 16) + AX) / O, A - (int8_t) A) ? 1[r8 + L] = flags - O * (AL = A) : H(0));
 			break;
 		case 7:
 			h = P, d = c, T = 3, a = m, ip--;
@@ -154,16 +154,16 @@ main(int argc, char *argv[])
 			(a = m), a-- || (POKE(mem[W], +=, mem[U]), F(N < S)), a-- || (POKE(mem[W], |=, mem[U])), a-- || (v(F(40[POKE(mem[W], +=r8[40] +, mem[U]), r8] & N == S | +N < +(int) S))), a-- || (v(F(40[POKE(mem[W], -=r8[40] +, mem[U]), r8] & N == S | -N < -(int) S))), a-- || (POKE(mem[W], &=, mem[U])), a-- || (POKE(mem[W], -=, mem[U]), F(N > S)), a-- || (POKE(mem[W], ^=, mem[U])), a-- || (POKE(mem[W], -, mem[U]), F(N > S)), a-- || (POKE(mem[W], =, mem[U]));
 			break;
 		case 10:
-			!L ? L = a += 8, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, POKE(mem[W], =, mem[U]) : !o ? Q = 1, POKE((mem[p = m, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, V]), =, h) : (r[L = 4] += 2, POKE(h[mem], =, mem[16 * SS + (uint16_t) (-2 + SP)]));
+			!L ? L = a += 8, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, POKE(mem[W], =, mem[U]) : !o ? Q = 1, POKE((mem[p = m, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, flags]), =, h) : (r[L = 4] += 2, POKE(h[mem], =, mem[16 * SS + (uint16_t) (-2 + SP)]));
 			break;
 		case 11:
-			T = a = 0, t = 6, g = c, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, POKE(mem[U], =, mem[W]);
+			T = a = 0, t = 6, g = c, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, POKE(mem[U], =, mem[W]);
 			break;
 		case 12:
-			(A = (1 & (L ? *(int16_t *) & h[mem] : h[mem]) >> 8 * -~L - 1), V = m ? ++ip, (int8_t) g : o ? 31 & DL : 1) && (a < 4 ? V %= a / 2 + 8 * -~L, POKE(A, =, h[mem]) : 0, a & 1 ? POKE(h[mem], >>=, V) : POKE(h[mem], <<=, V), a > 3 ? u = 19 : 0, a < 5 ? 0 : F(S >> V - 1 & 1)), a-- || (POKE(h[mem], +=, A >> 8 * -~L - V), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(N & 1))), a-- || (A &= (1 << V) - 1, POKE(h[mem], +=, A << 8 * -~L - V), G((1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1)))), a-- || (POKE(h[mem], +=(r8[40] << V - 1) +, A >> 1 + 8 * -~L - V), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(A & 1 << 8 * -~L - V))), a-- || (POKE(h[mem], +=(r8[40] << 8 * -~L - V) +, A << 1 + 8 * -~L - V), F(A & 1 << V - 1), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1))), a-- || (G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & S << V - 1 : S << V - 1) >> 8 * -~L - 1)))), a-- || (G((1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1))), a-- || (0), a-- || (V < 8 * -~L || F(A), G(0), POKE(h[mem], +=, A *= ~((1 << 8 * -~L) - 1 >> V)));
+			(A = (1 & (L ? *(int16_t *) & h[mem] : h[mem]) >> 8 * -~L - 1), flags = m ? ++ip, (int8_t) g : o ? 31 & DL : 1) && (a < 4 ? flags %= a / 2 + 8 * -~L, POKE(A, =, h[mem]) : 0, a & 1 ? POKE(h[mem], >>=, flags) : POKE(h[mem], <<=, flags), a > 3 ? u = 19 : 0, a < 5 ? 0 : F(S >> flags - 1 & 1)), a-- || (POKE(h[mem], +=, A >> 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(N & 1))), a-- || (A &= (1 << flags) - 1, POKE(h[mem], +=, A << 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1)))), a-- || (POKE(h[mem], +=(r8[40] << flags - 1) +, A >> 1 + 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(A & 1 << 8 * -~L - flags))), a-- || (POKE(h[mem], +=(r8[40] << 8 * -~L - flags) +, A << 1 + 8 * -~L - flags), F(A & 1 << flags - 1), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1))), a-- || (G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & S << flags - 1 : S << flags - 1) >> 8 * -~L - 1)))), a-- || (G((1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1))), a-- || (0), a-- || (flags < 8 * -~L || F(A), G(0), POKE(h[mem], +=, A *= ~((1 << 8 * -~L) - 1 >> flags)));
 			break;
 		case 13:
-			(V = !!--1[a = X, r]), a-- || (V &= !m[r8]), a-- || (V &= m[r8]), a-- || (0), a-- || (V = !++CX), ip += V * (int8_t) c;
+			(flags = !!--1[a = X, r]), a-- || (flags &= !m[r8]), a-- || (flags &= m[r8]), a-- || (0), a-- || (flags = !++CX), ip += flags * (int8_t) c;
 			break;
 		case 14:
 			ip += 3 - o, L ? 0 : o ? 9[ip = 0, r] = argc : POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, ip), ip += o * L ? (int8_t) c : c;
@@ -210,7 +210,7 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 19:
-			o = L, (r[L = 4] += 2, POKE(ip, =, mem[16 * SS + (uint16_t) (-2 + SP)])), m && (r[L = 4] += 2, POKE(CS, =, mem[16 * SS + (uint16_t) (-2 + SP)])), m & 2 ? s((r[L = 4] += 2, POKE(V, =, mem[16 * SS + (uint16_t) (-2 + SP)]))) : o || (SP += c);
+			o = L, (r[L = 4] += 2, POKE(ip, =, mem[16 * SS + (uint16_t) (-2 + SP)])), m && (r[L = 4] += 2, POKE(CS, =, mem[16 * SS + (uint16_t) (-2 + SP)])), m & 2 ? s((r[L = 4] += 2, POKE(flags, =, mem[16 * SS + (uint16_t) (-2 + SP)]))) : o || (SP += c);
 			break;
 		case 20:
 			POKE(U[mem], =, d);
@@ -250,19 +250,23 @@ main(int argc, char *argv[])
 			9[POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, CS), POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, ip + 5), r] = argc, ip = c;
 			break;
 		case 33:
-			J(), POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, V);
+			setflags();
+			POKE(mem[16 * SS + (uint16_t) (--r[L = 4])], =, flags);
 			break;
 		case 34:
-			s((r[L = 4] += 2, POKE(V, =, mem[16 * SS + (uint16_t) (-2 + SP)])));
+			r[L = 4] += 2;
+			s(POKE(flags, =, mem[16 * SS + (uint16_t) (-2 + SP)]));
 			break;
 		case 35:
-			J(), s((V & ~m) + CL);
+			setflags();
+			s((flags & ~m) + CL);
 			break;
 		case 36:
-			J(), CL = V;
+			setflags();
+			CL = flags;
 			break;
 		case 37:
-			L = o = 1, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = V = K(a), o ? U = h, W = V : V, POKE(mem[W], =, mem[U]), POKE(mem[P + m], =, mem[h + 2]);
+			L = o = 1, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, POKE(mem[W], =, mem[U]), POKE(mem[P + m], =, mem[h + 2]);
 			break;
 		case 38:
 			++ip, H(3);
