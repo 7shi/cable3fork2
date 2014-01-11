@@ -17,12 +17,12 @@ int N, O, j[5];
 SDL_Surface *k = 0;
 
 #define AL r8[0]
-#define CL r8[1]
-#define DL r8[2]
-#define BL r8[3]
-#define AH r8[4]
-#define CH r8[5]
-#define DH r8[6]
+#define AH r8[1]
+#define CL r8[2]
+#define CH r8[3]
+#define DL r8[4]
+#define DH r8[5]
+#define BL r8[6]
 #define BH r8[7]
 
 #define AX r[0]
@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 			T = a = 0, t = 6, g = c, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, POKE(mem[U], =, mem[W]);
 			break;
 		case 12:
-			(A = (1 & (L ? *(int16_t *) & h[mem] : h[mem]) >> 8 * -~L - 1), flags = m ? ++ip, (int8_t) g : o ? 31 & DL : 1) && (a < 4 ? flags %= a / 2 + 8 * -~L, POKE(A, =, h[mem]) : 0, a & 1 ? POKE(h[mem], >>=, flags) : POKE(h[mem], <<=, flags), a > 3 ? u = 19 : 0, a < 5 ? 0 : F(S >> flags - 1 & 1)), a-- || (POKE(h[mem], +=, A >> 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(N & 1))), a-- || (A &= (1 << flags) - 1, POKE(h[mem], +=, A << 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1)))), a-- || (POKE(h[mem], +=(CF << flags - 1) +, A >> 1 + 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(A & 1 << 8 * -~L - flags))), a-- || (POKE(h[mem], +=(CF << 8 * -~L - flags) +, A << 1 + 8 * -~L - flags), F(A & 1 << flags - 1), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1))), a-- || (G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & S << flags - 1 : S << flags - 1) >> 8 * -~L - 1)))), a-- || (G((1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1))), a-- || (0), a-- || (flags < 8 * -~L || F(A), G(0), POKE(h[mem], +=, A *= ~((1 << 8 * -~L) - 1 >> flags)));
+			(A = (1 & (L ? *(int16_t *) & h[mem] : h[mem]) >> 8 * -~L - 1), flags = m ? ++ip, (int8_t) g : o ? 31 & CL : 1) && (a < 4 ? flags %= a / 2 + 8 * -~L, POKE(A, =, h[mem]) : 0, a & 1 ? POKE(h[mem], >>=, flags) : POKE(h[mem], <<=, flags), a > 3 ? u = 19 : 0, a < 5 ? 0 : F(S >> flags - 1 & 1)), a-- || (POKE(h[mem], +=, A >> 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(N & 1))), a-- || (A &= (1 << flags) - 1, POKE(h[mem], +=, A << 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1)))), a-- || (POKE(h[mem], +=(CF << flags - 1) +, A >> 1 + 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(A & 1 << 8 * -~L - flags))), a-- || (POKE(h[mem], +=(CF << 8 * -~L - flags) +, A << 1 + 8 * -~L - flags), F(A & 1 << flags - 1), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1))), a-- || (G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & S << flags - 1 : S << flags - 1) >> 8 * -~L - 1)))), a-- || (G((1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1))), a-- || (0), a-- || (flags < 8 * -~L || F(A), G(0), POKE(h[mem], +=, A *= ~((1 << 8 * -~L) - 1 >> flags)));
 			break;
 		case 13:
 			(flags = !!--1[a = X, r]), a-- || (flags &= !m[r8]), a-- || (flags &= m[r8]), a-- || (0), a-- || (flags = !++CX), ip += flags * (int8_t) c;
@@ -258,7 +258,7 @@ main(int argc, char *argv[])
 			N = AL &= 15;
 			break;
 		case 30:
-			CL = -(1 & (L ? *(int16_t *) r8 : AL) >> 8 * -~L - 1);
+			AH = -(1 & (L ? *(int16_t *) r8 : AL) >> 8 * -~L - 1);
 			break;
 		case 31:
 			DX = -(1 & (L ? *(int16_t *) r : AX) >> 8 * -~L - 1);
@@ -278,11 +278,11 @@ main(int argc, char *argv[])
 			break;
 		case 35:
 			flags = getflags();
-			setflags((flags & ~m) + CL);
+			setflags((flags & ~m) + AH);
 			break;
 		case 36:
 			flags = getflags();
-			CL = flags;
+			AH = flags;
 			break;
 		case 37:
 			L = o = 1, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : D(A + 3)] + (uint16_t) (D(A + 1)[r] + D(A + 2) * g + r[D(A)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, POKE(mem[W], =, mem[U]), POKE(mem[P + m], =, mem[h + 2]);
@@ -302,13 +302,13 @@ main(int argc, char *argv[])
 			break;
 		case 41:
 			if (c &= m) {
-				CL = AL / c;
+				AH = AL / c;
 				N = AL %= c;
 			} else
 				intr(0);
 			break;
 		case 42:
-			AX = N = m & r8[L = 0] + c * CL;
+			AX = N = m & r8[L = 0] + c * AH;
 			break;
 		case 43:
 			AL = -m[r8];
@@ -326,7 +326,7 @@ main(int argc, char *argv[])
 			POKE(AL, &, c);
 			break;
 		case 48:
-			(a = c), a-- || (write(1, r8, 1)), a-- || (time(j + 3), memcpy(mem + 16 * ES + (uint16_t) (BX), localtime(j + 3), m)), a < 2 ? AL = ~lseek(O = AH[j], *(uint32_t *) & BP << 9, 0) ? (a ? write : read) (O, mem + 16 * ES + (uint16_t) (BX), AX) : 0 : 0;
+			(a = c), a-- || (write(1, r8, 1)), a-- || (time(j + 3), memcpy(mem + 16 * ES + (uint16_t) (BX), localtime(j + 3), m)), a < 2 ? AL = ~lseek(O = DL[j], *(uint32_t *) & BP << 9, 0) ? (a ? write : read) (O, mem + 16 * ES + (uint16_t) (BX), AX) : 0 : 0;
 			break;
 		}
 		O = u;
