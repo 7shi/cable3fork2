@@ -74,14 +74,12 @@ v(int o)
 	return G(N - S && 1 & (CF ^ f >> 8 * -~L - 1));
 }
 
-int fbits[] = {0, 2, 4, 6, 7, 8, 9, 10, 11};
-
 int
 getflags(void)
 {
 	int f = 0xf002;
 	for (int i = 0; i < 9; ++i)
-		f += r8[40 + i] << fbits[i];
+		f += r8[40 + i] << lookup(25, i);
 	return f;
 }
 
@@ -89,7 +87,7 @@ void
 setflags(int f)
 {
 	for (int i = 0; i < 9; ++i)
-		r8[40 + i] = !!(f & (1 << fbits[i]));
+		r8[40 + i] = !!(f & (1 << lookup(25, i)));
 }
 
 int
