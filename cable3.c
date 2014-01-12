@@ -200,26 +200,26 @@ main(int argc, char *argv[])
 			case 3:
 				POKE(mem[W], = -, mem[U]);
 				S = 0, u = 22;
-				F(N > S);
+				CF = N > S;
 				break;
 			case 4:
 				u = 19;
 				if (L) {
 					DX = (AX = N = *(uint16_t *) & mem[h] * (uint16_t) * r) >> 16;
-					G(F(N - (uint16_t) N));
+					G(CF = !!(N - (uint16_t) N));
 				} else {
 					AX = N = *(uint8_t *) & mem[h] * (uint8_t) * r8;
-					G(F(N - (uint8_t) N));
+					G(CF = !!(N - (uint8_t) N));
 				}
 				break;
 			case 5:
 				u = 19;
 				if (L) {
 					DX = (AX = N = *(int16_t *) & mem[h] * (int16_t) * r) >> 16;
-					G(F(N - (int16_t) N));
+					G(CF = !!(N - (int16_t) N));
 				} else {
 					AX = N = *(int8_t *) & mem[h] * (int8_t) * r8;
-					G(F(N - (int8_t) N));
+					G(CF = !!(N - (int8_t) N));
 				}
 				break;
 			case 6:
@@ -272,30 +272,30 @@ main(int argc, char *argv[])
 			switch (m) {
 			case 0:
 				POKE(mem[W], +=, mem[U]);
-				F(N < S);
+				CF = N < S;
 				break;
 			case 1:
 				POKE(mem[W], |=, mem[U]);
 				break;
 			case 2:
-				v(F(40[POKE(mem[W], +=CF +, mem[U]), r8] & N == S | +N < +(int) S));
+				v(CF = !!(40[POKE(mem[W], +=CF +, mem[U]), r8] & N == S | +N < +(int) S));
 				break;
 			case 3:
-				v(F(40[POKE(mem[W], -=CF +, mem[U]), r8] & N == S | -N < -(int) S));
+				v(CF = !!(40[POKE(mem[W], -=CF +, mem[U]), r8] & N == S | -N < -(int) S));
 				break;
 			case 4:
 				POKE(mem[W], &=, mem[U]);
 				break;
 			case 5:
 				POKE(mem[W], -=, mem[U]);
-				F(N > S);
+				CF = N > S;
 				break;
 			case 6:
 				POKE(mem[W], ^=, mem[U]);
 				break;
 			case 7:
 				POKE(mem[W], -, mem[U]);
-				F(N > S);
+				CF = N > S;
 				break;
 			case 8:
 				POKE(mem[W], =, mem[U]);
@@ -344,36 +344,36 @@ main(int argc, char *argv[])
 				if (a > 3)
 					u = 19;
 				if (a >= 5)
-					F(S >> flags - 1 & 1);
+					CF = S >> flags - 1 & 1;
 			}
 			switch (a) {
 			case 0:
 				POKE(mem[h], +=, A >> 8 * -~L - flags);
-				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(N & 1));
+				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = N & 1));
 				break;
 			case 1:
 				A &= (1 << flags) - 1;
 				POKE(mem[h], +=, A << 8 * -~L - flags);
-				G((1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1)));
+				G((1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1)));
 				break;
 			case 2:
 				POKE(mem[h], +=(CF << flags - 1) +, A >> 1 + 8 * -~L - flags);
-				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(A & 1 << 8 * -~L - flags));
+				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = !!(A & 1 << 8 * -~L - flags)));
 				break;
 			case 3:
 				POKE(mem[h], +=(CF << 8 * -~L - flags) +, A << 1 + 8 * -~L - flags);
-				F(A & 1 << flags - 1);
+				CF = !!(A & 1 << flags - 1);
 				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1));
 				break;
 			case 4:
-				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & S << flags - 1 : S << flags - 1) >> 8 * -~L - 1)));
+				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & S << flags - 1 : S << flags - 1) >> 8 * -~L - 1)));
 				break;
 			case 5:
 				G((1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1));
 				break;
 			case 7:
 				if (flags >= 8 * -~L)
-					F(A);
+					CF = !!A;
 				G(0);
 				POKE(mem[h], +=, A *= ~((1 << 8 * -~L) - 1 >> flags));
 				break;
@@ -437,7 +437,7 @@ main(int argc, char *argv[])
 				POKE(mem[m ? P : 16 * r[Q ? p : 11] + (uint16_t) (SI)], -, mem[16 * ES + (uint16_t) (DI)]);
 				u = 92;
 				ZF = !N;
-				F(N > S);
+				CF = N > S;
 				if (!m)
 					w(6);
 				w(7);
@@ -482,12 +482,12 @@ main(int argc, char *argv[])
 			break;
 		case 28:
 			L = 0;
-			F(lookup(m += 3 * AF + 6 * CF, AL));
+			CF = !!lookup(m += 3 * AF + 6 * CF, AL);
 			z(lookup(1 + m, AL));
 			N = AL = lookup(m - 1, AL);
 			break;
 		case 29:
-			AX += 262 * (m - 1) * z(F((AL & 15) > 9 | AF));
+			AX += 262 * (m - 1) * z(CF = !!((AL & 15) > 9 | AF));
 			N = AL &= 15;
 			break;
 		case 30:
@@ -593,7 +593,7 @@ main(int argc, char *argv[])
 		if (lookup(16, u))
 			v(0);
 		else if (lookup(17, u))
-			G(F(0));
+			G(CF = 0);
 		ip += (T % 3 + 2 * !(!T * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
 		if (lookup(15, u)) {
 			m = N;
@@ -615,12 +615,6 @@ main(int argc, char *argv[])
 			}
 		}
 	}
-}
-
-int
-F(int o)
-{
-	return CF = !!o;
 }
 
 int
