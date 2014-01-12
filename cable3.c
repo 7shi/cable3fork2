@@ -108,16 +108,16 @@ main(int argc, char *argv[])
 {
 	CS = P >> 4;
 	ip = 0x100;
-	uint16_t q = 3, opr;
-	int O;
-	for (O = 9; q;)
-		j[--q] = *++argv ? open(*argv, 0x8082) : 0;
-	*(uint32_t *) r = *j ? lseek(*j, 0, 2) >> 9 : 0;
+	for (int i = 1; i <= 3 && i < argc; ++i)
+		j[3 - i] = open(argv[i], 0x8082);
+	if (j[0])
+		*(uint32_t *) r = lseek(*j, 0, 2) >> 9;
 	read(j[2], &mem[P + ip], P);
-	for (O = 9; Y = mem + 16 * CS + ip, Y - mem; Q | R || kb & IF && KB) {
+	uint16_t q = 0, opr;
+	for (; Y = mem + 16 * CS + ip, Y - mem; Q | R || kb & IF && KB) {
 		L = (X = *Y & 7) & 1;
 		o = X / 2 & 1;
-		O = l[32] = 0;
+		int O = l[32] = 0;
 		t = (c = *(int16_t *) & Y[++O]) & 7;
 		a = c / 8 & 7;
 		T = Y[1] >> 6;
