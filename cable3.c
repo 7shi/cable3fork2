@@ -153,7 +153,7 @@ main(int argc, char *argv[])
 			break;
 		case 1:
 			L = *Y & 8;
-			POKE(K(X)[mem], =, c);
+			POKE(mem[K(X)], =, c);
 			break;
 		case 2:
 			L = 2, o = 0, a = X, A = 4 * !T;
@@ -176,7 +176,7 @@ main(int argc, char *argv[])
 					PUSH(ip);
 				if (a & 1)
 					POKE(mem[ROMBASE + 18], =, mem[U + 2]);
-				POKE(ip, =, U[mem]);
+				POKE(ip, =, mem[U]);
 				u = 67;
 			} else
 				PUSH(mem[h]);
@@ -192,7 +192,7 @@ main(int argc, char *argv[])
 			switch (a) {
 			case 0:
 				u = m, ip -= ~L;
-				POKE(W[mem], &, d);
+				POKE(mem[W], &, d);
 				break;
 			case 2:
 				POKE(mem[W], = ~, mem[U]);
@@ -460,7 +460,7 @@ main(int argc, char *argv[])
 				SP += c;
 			break;
 		case 20:
-			POKE(U[mem], =, d);
+			POKE(mem[U], =, d);
 			break;
 		case 21:
 			l[986] ^= 9, POKE(AL, =, l[m ? DX : (int8_t) c]);
