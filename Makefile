@@ -77,7 +77,7 @@ OPT= -O3
 LIBS=`sdl-config --cflags --libs`
 
 # Defines
-DEFS=-DKB='(kb=read(intr(8),&mem[0x4a6],1))&&intr(7)'
+DEFS=
 
 # default flags for ANSI C compilation
 #

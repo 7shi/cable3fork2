@@ -6,6 +6,7 @@
 #define POKE(dst,opr,src) (S=L?*(uint16_t*)&dst:dst,N=L?*(uint16_t*)&dst opr(f=*(uint16_t*)&src):(dst opr(f=*(uint8_t*)&src)))
 #define PUSH(src) (L=4,SP-=2,POKE(mem[16*SS+SP],=,src))
 #define POP(dst) (L=4,SP+=2,POKE(dst,=,mem[16*SS+SP-2]))
+#define KB (kb=read(intr(8),&mem[0x4a6],1))&&intr(7)
 
 #define P 0xf0000
 uint8_t mem[1 << 21];
@@ -116,7 +117,7 @@ main(int argc, char *argv[])
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[P + ip], 1, P, files[2]);	/* read BIOS */
 	uint16_t q = 0, opr;
-	for (; Y = mem + 16 * CS + ip, Y - mem; Q | R || kb & IF && KB) {
+	for (; Y = &mem[16 * CS + ip], Y - mem; Q | R || kb & IF && KB) {
 		L = (X = *Y & 7) & 1;
 		o = X / 2 & 1;
 		int O = l[32] = 0;
