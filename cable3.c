@@ -9,7 +9,7 @@
 #define KB (kb=read(intr(8),&mem[0x4a6],1))&&intr(7)
 
 #define ROMBASE 0xf0000
-uint8_t mem[1 << 21];
+uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) & mem[ROMBASE];
 uint32_t *const table = (uint32_t *) & mem[ROMBASE + 0x103];
@@ -108,10 +108,10 @@ intr(int n)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, l[80186], a, T, o, X, *Y, b = 0, Q = 0, R = 0;
+	uint8_t t, a, T, o, X, *Y, b = 0, Q = 0, R = 0;
 	uint16_t p = 0, q = 0, opr;
 	uint32_t kb = 0, h, W, U, c, g, d, A;
-	SDL_Surface *k = 0;
+	SDL_Surface *surface = 0;
 	CS = ROMBASE >> 4;
 	ip = 0x100;
 	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
@@ -123,13 +123,13 @@ main(int argc, char *argv[])
 	for (; Y = &mem[16 * CS + ip], Y != mem; Q | R || kb & IF && KB) {
 		L = (X = *Y & 7) & 1;
 		o = X / 2 & 1;
-		l[32] = 0;
+		ioport[32] = 0;
 		t = (c = *(int16_t *) & Y[1]) & 7;
 		a = c / 8 & 7;
 		T = Y[1] >> 6;
 		g = ~-T ? *(int16_t *) & Y[2] : (int8_t) * (int16_t *) & Y[2];
 		d = opr = *(int16_t *) & Y[3];
-		--l[64];
+		--ioport[64];
 		if (!T * t != 6 && T != 2) {
 			if (T != 1)
 				d = g;
@@ -462,11 +462,12 @@ main(int argc, char *argv[])
 		case 20:
 			POKE(mem[U], =, d);
 			break;
-		case 21:
-			l[986] ^= 9, POKE(AL, =, l[m ? DX : (int8_t) c]);
+		case 21:	/* in */
+			ioport[986] ^= 9;
+			POKE(AL, =, ioport[m ? DX : (int8_t) c]);
 			break;
-		case 22:
-			POKE(l[m ? DX : (int8_t) c], =, AL);
+		case 22:	/* out */
+			POKE(ioport[m ? DX : (int8_t) c], =, AL);
 			break;
 		case 23:
 			R = 2, b = L, Q && Q++;
@@ -601,17 +602,17 @@ main(int argc, char *argv[])
 		}
 		if (!++q) {
 			kb = 1;
-			if (*l) {
+			if (ioport[0]) {
 				SDL_PumpEvents();
-				if (!k)
-					k = SDL_SetVideoMode(720, 348, 32, 0);
-				uint32_t *pix = (uint32_t *) k->pixels;
+				if (!surface)
+					surface = SDL_SetVideoMode(720, 348, 32, 0);
+				uint32_t *pix = (uint32_t *) surface->pixels;
 				for (int i = 720 * 348; i--;)
-					pix[i] = -!!(1 << 7 - i % 8 & mem[i / 2880 * 90 + i % 720 / 8 + (88 + l[952] / 128 * 4 + i / 720 % 4 << 13)]);
-				SDL_Flip(k);
-			} else if (k) {
+					pix[i] = -!!(1 << 7 - i % 8 & mem[i / 2880 * 90 + i % 720 / 8 + (88 + ioport[952] / 128 * 4 + i / 720 % 4 << 13)]);
+				SDL_Flip(surface);
+			} else if (surface) {
 				SDL_Quit();
-				k = 0;
+				surface = 0;
 			}
 		}
 	}
