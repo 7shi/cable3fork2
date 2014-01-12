@@ -108,7 +108,7 @@ intr(int n)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, l[80186], m, a, T, o, X, *Y, b = 0, Q = 0, R = 0;
+	uint8_t t, l[80186], a, T, o, X, *Y, b = 0, Q = 0, R = 0;
 	uint16_t p = 0, q = 0, opr;
 	uint32_t kb = 0, h, W, U, c, g, d, A;
 	SDL_Surface *k = 0;
@@ -136,17 +136,12 @@ main(int argc, char *argv[])
 		if (R)
 			R--;
 		A = 4 * !T;
-		O = t;
-		W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, O)] + (uint16_t) (lookup(A + 1, O)[r] + lookup(A + 2, O) * g + r[lookup(A, O)]) : K(t);
+		W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
 		U = flags = K(a);
-		if (o) {
-			U = h;
-			W = flags;
-		}
-		O = *Y;
-		O = u = lookup(51, O);
-		uint8_t e = lookup(8, O);
-		m = lookup(14, O);
+		if (o)
+			U = h, W = flags;
+		u = lookup(51, *Y);
+		uint8_t e = lookup(8, u), m = lookup(14, u);
 		switch (e) {
 		case 0:
 			O = *Y / 2 & 7;
