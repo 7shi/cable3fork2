@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <stdint.h>
+#include <time.h>
 #include <SDL.h>
 
 #define POKE(dst,opr,src) (S=L?*(uint16_t*)&dst:dst,N=L?*(uint16_t*)&dst opr(f=*(uint16_t*)&src):(dst opr(f=*(uint8_t*)&src)))
@@ -12,8 +14,7 @@ uint16_t *const r = &mem[P];
 
 uint8_t t, l[80186], m, u, L, a, T, o, X, *Y, b, Q = 0, R = 0;
 uint16_t ip, p;
-uint32_t *localtime(), f, S, kb = 0, h, W, U, c, g, d, flags, A;
-int N, j[5];
+uint32_t f, S, N, kb = 0, h, W, U, c, g, d, flags, A;
 SDL_Surface *k = 0;
 
 #define AL r8[0]
@@ -108,11 +109,12 @@ main(int argc, char *argv[])
 {
 	CS = P >> 4;
 	ip = 0x100;
+	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
 	for (int i = 1; i <= 3 && i < argc; ++i)
-		j[3 - i] = open(argv[i], 0x8082);
-	if (j[0])
-		*(uint32_t *) r = lseek(*j, 0, 2) >> 9;
-	read(j[2], &mem[P + ip], P);
+		files[3 - i] = fopen(argv[i], "r+");
+	if (files[0])		/* CX:AX = HDD sectors */
+		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
+	fread(&mem[P + ip], 1, P, files[2]);	/* read BIOS */
 	uint16_t q = 0, opr;
 	for (; Y = mem + 16 * CS + ip, Y - mem; Q | R || kb & IF && KB) {
 		L = (X = *Y & 7) & 1;
@@ -324,8 +326,30 @@ main(int argc, char *argv[])
 		case 47:
 			POKE(AL, &, c);
 			break;
-		case 48:
-			(a = c), a-- || (write(1, r8, 1)), a-- || (time(j + 3), memcpy(mem + 16 * ES + (uint16_t) (BX), localtime(j + 3), m)), a < 2 ? AL = ~lseek(O = DL[j], *(uint32_t *) & BP << 9, 0) ? (a ? write : read) (O, mem + 16 * ES + (uint16_t) (BX), AX) : 0 : 0;
+		case 48:	/* hyper call */
+			switch ((uint8_t) c) {
+				time_t t;
+			case 0:
+				putchar(AL);
+				fflush(stdout);
+				break;
+			case 1:
+				time(&t);
+				memcpy(&mem[16 * ES + BX], localtime(&t), m);
+				break;
+			case 2:
+				if (fseek(files[DL], (*(uint32_t *) & BP) << 9, SEEK_SET) != -1)
+					AL = fread(&mem[16 * ES + BX], 1, AX, files[DL]);
+				else
+					AL = 0;
+				break;
+			case 3:
+				if (fseek(files[DL], (*(uint32_t *) & BP) << 9, SEEK_SET) != -1)
+					AL = fwrite(&mem[16 * ES + BX], 1, AX, files[DL]);
+				else
+					AL = 0;
+				break;
+			}
 			break;
 		}
 		O = u;
