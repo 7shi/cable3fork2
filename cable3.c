@@ -72,7 +72,7 @@ w(int o)
 int
 v(int o)
 {
-	z((f ^= S ^ N) & 16);
+	AF = !!((f ^= S ^ N) & 16);
 	return G(N - S && 1 & (CF ^ f >> 8 * -~L - 1));
 }
 
@@ -483,11 +483,11 @@ main(int argc, char *argv[])
 		case 28:
 			L = 0;
 			CF = !!lookup(m += 3 * AF + 6 * CF, AL);
-			z(lookup(1 + m, AL));
+			AF = !!(lookup(1 + m, AL));
 			N = AL = lookup(m - 1, AL);
 			break;
 		case 29:
-			AX += 262 * (m - 1) * z(CF = !!((AL & 15) > 9 | AF));
+			AX += 262 * (m - 1) * (AF = CF = !!((AL & 15) > 9 | AF));
 			N = AL &= 15;
 			break;
 		case 30:
@@ -615,12 +615,6 @@ main(int argc, char *argv[])
 			}
 		}
 	}
-}
-
-int
-z(int o)
-{
-	return AF = !!o;
 }
 
 int
