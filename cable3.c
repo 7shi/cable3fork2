@@ -108,7 +108,7 @@ intr(int n)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, a, T, o, X, *Y, b = 0, Q = 0, R = 0;
+	uint8_t t, a, T, o, X, *ipptr, b = 0, Q = 0, R = 0;
 	uint16_t p = 0, q = 0, opr;
 	uint32_t kb = 0, h, W, U, c, g, d, A;
 	SDL_Surface *surface = 0;
@@ -120,21 +120,21 @@ main(int argc, char *argv[])
 	if (files[0])		/* CX:AX = HDD sectors */
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
-	for (; Y = &mem[16 * CS + ip], Y != mem; Q | R || kb & IF && KB) {
-		L = (X = *Y & 7) & 1;
+	for (; (ipptr = &mem[16 * CS + ip]) != mem; Q | R || kb & IF && KB) {
+		L = (X = *ipptr & 7) & 1;
 		o = X / 2 & 1;
 		ioport[32] = 0;
-		t = (c = *(int16_t *) & Y[1]) & 7;
+		t = (c = *(int16_t *) & ipptr[1]) & 7;
 		a = c / 8 & 7;
-		T = Y[1] >> 6;
-		g = ~-T ? *(int16_t *) & Y[2] : (int8_t) * (int16_t *) & Y[2];
-		d = opr = *(int16_t *) & Y[3];
+		T = ipptr[1] >> 6;
+		g = ~-T ? *(int16_t *) & ipptr[2] : (int8_t) * (int16_t *) & ipptr[2];
+		d = opr = *(int16_t *) & ipptr[3];
 		--ioport[64];
 		if (!T * t != 6 && T != 2) {
 			if (T != 1)
 				d = g;
 		} else
-			d = *(int16_t *) & Y[4];
+			d = *(int16_t *) & ipptr[4];
 		if (Q)
 			Q--;
 		if (R)
@@ -144,15 +144,15 @@ main(int argc, char *argv[])
 		U = flags = K(a);
 		if (o)
 			U = h, W = flags;
-		uint8_t m = lookup(14, u = lookup(51, *Y));
+		uint8_t m = lookup(14, u = lookup(51, *ipptr));
 		switch (lookup(8, u)) {
 			int O;
 		case 0:
-			O = *Y / 2 & 7;
+			O = *ipptr / 2 & 7;
 			ip += (int8_t) c *(L ^ (r8[lookup(m, O)] | r8[lookup(22, O)] | r8[lookup(23, O)] ^ r8[lookup(24, O)]));
 			break;
 		case 1:
-			L = *Y & 8;
+			L = *ipptr & 8;
 			POKE(mem[K(X)], =, c);
 			break;
 		case 2:
