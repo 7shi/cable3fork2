@@ -13,10 +13,9 @@ uint8_t mem[1 << 21];
 uint8_t *const r8 = &mem[P];
 uint16_t *const r = &mem[P];
 
-uint8_t t, l[80186], m, u, L, a, T, o, X, *Y, b, Q = 0, R = 0;
-uint16_t ip, p;
-uint32_t f, S, N, kb = 0, h, W, U, c, g, d, flags, A;
-SDL_Surface *k = 0;
+uint8_t u, L;
+uint16_t ip;
+uint32_t f, S, N, flags;
 
 #define AL r8[0]
 #define AH r8[1]
@@ -108,6 +107,10 @@ intr(int n)
 int
 main(int argc, char *argv[])
 {
+	uint8_t t, l[80186], m, a, T, o, X, *Y, b = 0, Q = 0, R = 0;
+	uint16_t p = 0, q = 0, opr;
+	uint32_t kb = 0, h, W, U, c, g, d, A;
+	SDL_Surface *k = 0;
 	CS = P >> 4;
 	ip = 0x100;
 	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
@@ -116,7 +119,6 @@ main(int argc, char *argv[])
 	if (files[0])		/* CX:AX = HDD sectors */
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[P + ip], 1, P, files[2]);	/* read BIOS */
-	uint16_t q = 0, opr;
 	for (; Y = &mem[16 * CS + ip], Y - mem; Q | R || kb & IF && KB) {
 		L = (X = *Y & 7) & 1;
 		o = X / 2 & 1;
