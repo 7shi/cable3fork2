@@ -327,7 +327,14 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 19:
-			o = L, POP(ip), m && POP(CS), m & 2 ? setflags(POP(flags)) : o || (SP += c);
+			o = L;
+			POP(ip);
+			if (m)
+				POP(CS);
+			if (m & 2)
+				setflags(POP(flags));
+			else if (!o)
+				SP += c;
 			break;
 		case 20:
 			POKE(U[mem], =, d);
