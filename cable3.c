@@ -8,11 +8,11 @@
 #define POP(dst) (L=4,SP+=2,POKE(dst,=,mem[16*SS+SP-2]))
 #define KB (kb=read(intr(8),&mem[0x4a6],1))&&intr(7)
 
-#define P 0xf0000
+#define ROMBASE 0xf0000
 uint8_t mem[1 << 21];
-uint8_t *const r8 = &mem[P];
-uint16_t *const r = (uint16_t *) & mem[P];
-uint32_t *const table = (uint32_t *) & mem[P + 0x103];
+uint8_t *const r8 = &mem[ROMBASE];
+uint16_t *const r = (uint16_t *) & mem[ROMBASE];
+uint32_t *const table = (uint32_t *) & mem[ROMBASE + 0x103];
 
 uint8_t u, L;
 uint16_t ip;
@@ -54,7 +54,7 @@ uint32_t f, S, N, flags;
 int
 K(int o)
 {
-	return P + (L ? 2 * o : 2 * o + o / 4 & 7);
+	return ROMBASE + (L ? 2 * o : 2 * o + o / 4 & 7);
 }
 
 int
@@ -112,14 +112,14 @@ main(int argc, char *argv[])
 	uint16_t p = 0, q = 0, opr;
 	uint32_t kb = 0, h, W, U, c, g, d, A;
 	SDL_Surface *k = 0;
-	CS = P >> 4;
+	CS = ROMBASE >> 4;
 	ip = 0x100;
 	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
 	for (int i = 1; i <= 3 && i < argc; ++i)
 		files[3 - i] = fopen(argv[i], "r+");
 	if (files[0])		/* CX:AX = HDD sectors */
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
-	fread(&mem[P + ip], 1, P, files[2]);	/* read BIOS */
+	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
 	for (; Y = &mem[16 * CS + ip], Y != mem; Q | R || kb & IF && KB) {
 		L = (X = *Y & 7) & 1;
 		o = X / 2 & 1;
@@ -164,7 +164,7 @@ main(int argc, char *argv[])
 			a = m;
 		case 5:
 			if (a < 2) {
-				POKE(mem[U], +=1 - 2 * a +, mem[P + 24]);
+				POKE(mem[U], +=1 - 2 * a +, mem[ROMBASE + 24]);
 				v(f = 1);
 				OF = (S + 1 - a == 1 << 8 * -~L - 1);
 				u = u & 4 ? 19 : 57;
@@ -175,7 +175,7 @@ main(int argc, char *argv[])
 				if (a & 2)
 					PUSH(ip);
 				if (a & 1)
-					POKE(mem[P + 18], =, mem[U + 2]);
+					POKE(mem[ROMBASE + 18], =, mem[U + 2]);
 				POKE(ip, =, U[mem]);
 				u = 67;
 			} else
@@ -263,10 +263,10 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 7:
-			h = P, d = c, T = 3, a = m, ip--;
+			h = ROMBASE, d = c, T = 3, a = m, ip--;
 		case 8:
 			W = h;
-			r[13] = (o |= !L) ? (int8_t) d : d, U = P + 26, ip -= ~!o;
+			r[13] = (o |= !L) ? (int8_t) d : d, U = ROMBASE + 26, ip -= ~!o;
 			u = 17 + (m = a);
 		case 9:
 			switch (m) {
@@ -408,7 +408,7 @@ main(int argc, char *argv[])
 			POKE(mem[U], &, mem[W]);
 			break;
 		case 16:
-			L = 7, W = P, U = K(X);
+			L = 7, W = ROMBASE, U = K(X);
 		case 24:
 			if (W != U) {
 				POKE(mem[W], ^=, mem[U]);
@@ -418,7 +418,7 @@ main(int argc, char *argv[])
 			break;
 		case 17:
 			if (!R || CX) {
-				POKE(mem[m < 2 ? 16 * ES + (uint16_t) (DI) : P], =, mem[m & 1 ? P : 16 * r[Q ? p : 11] + (uint16_t) (SI)]);
+				POKE(mem[m < 2 ? 16 * ES + (uint16_t) (DI) : ROMBASE], =, mem[m & 1 ? ROMBASE : 16 * r[Q ? p : 11] + (uint16_t) (SI)]);
 				if (!(m & 1))
 					w(6);
 				if (!(m & 2)) {
@@ -434,7 +434,7 @@ main(int argc, char *argv[])
 			break;
 		case 18:
 			if (!R || CX) {
-				POKE(mem[m ? P : 16 * r[Q ? p : 11] + (uint16_t) (SI)], -, mem[16 * ES + (uint16_t) (DI)]);
+				POKE(mem[m ? ROMBASE : 16 * r[Q ? p : 11] + (uint16_t) (SI)], -, mem[16 * ES + (uint16_t) (DI)]);
 				u = 92;
 				ZF = !N;
 				CF = N > S;
@@ -524,7 +524,7 @@ main(int argc, char *argv[])
 			if (o)
 				U = h, W = flags;
 			POKE(mem[W], =, mem[U]);
-			POKE(mem[P + m], =, mem[h + 2]);
+			POKE(mem[ROMBASE + m], =, mem[h + 2]);
 			break;
 		case 38:	/* int3 */
 			++ip;
