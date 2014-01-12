@@ -11,7 +11,8 @@
 #define P 0xf0000
 uint8_t mem[1 << 21];
 uint8_t *const r8 = &mem[P];
-uint16_t *const r = &mem[P];
+uint16_t *const r = (uint16_t *) & mem[P];
+uint32_t *const table = (uint32_t *) & mem[P + 0x103];
 
 uint8_t u, L;
 uint16_t ip;
@@ -59,7 +60,7 @@ K(int o)
 int
 lookup(int no, int offset)
 {
-	return mem[(*(uint32_t *) & r8[259 + 4 * no]) + offset];
+	return mem[table[no] + offset];
 }
 
 int
