@@ -268,7 +268,38 @@ main(int argc, char *argv[])
 			r[13] = (o |= !L) ? (int8_t) d : d, U = P + 26, ip -= ~!o;
 			u = 17 + (m = a);
 		case 9:
-			(a = m), a-- || (POKE(mem[W], +=, mem[U]), F(N < S)), a-- || (POKE(mem[W], |=, mem[U])), a-- || (v(F(40[POKE(mem[W], +=CF +, mem[U]), r8] & N == S | +N < +(int) S))), a-- || (v(F(40[POKE(mem[W], -=CF +, mem[U]), r8] & N == S | -N < -(int) S))), a-- || (POKE(mem[W], &=, mem[U])), a-- || (POKE(mem[W], -=, mem[U]), F(N > S)), a-- || (POKE(mem[W], ^=, mem[U])), a-- || (POKE(mem[W], -, mem[U]), F(N > S)), a-- || (POKE(mem[W], =, mem[U]));
+			switch (m) {
+			case 0:
+				POKE(mem[W], +=, mem[U]);
+				F(N < S);
+				break;
+			case 1:
+				POKE(mem[W], |=, mem[U]);
+				break;
+			case 2:
+				v(F(40[POKE(mem[W], +=CF +, mem[U]), r8] & N == S | +N < +(int) S));
+				break;
+			case 3:
+				v(F(40[POKE(mem[W], -=CF +, mem[U]), r8] & N == S | -N < -(int) S));
+				break;
+			case 4:
+				POKE(mem[W], &=, mem[U]);
+				break;
+			case 5:
+				POKE(mem[W], -=, mem[U]);
+				F(N > S);
+				break;
+			case 6:
+				POKE(mem[W], ^=, mem[U]);
+				break;
+			case 7:
+				POKE(mem[W], -, mem[U]);
+				F(N > S);
+				break;
+			case 8:
+				POKE(mem[W], =, mem[U]);
+				break;
+			}
 			break;
 		case 10:
 			!L ? L = a += 8, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, O)] + (uint16_t) (lookup(A + 1, O)[r] + lookup(A + 2, O) * g + r[lookup(A, O)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, POKE(mem[W], =, mem[U]) : !o ? Q = 1, POKE((mem[p = m, A = 4 * !T, O = t, W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, O)] + (uint16_t) (lookup(A + 1, O)[r] + lookup(A + 2, O) * g + r[lookup(A, O)]) : K(t), U = flags = K(a), o ? U = h, W = flags : flags, flags]), =, h) : POP(mem[h]);
@@ -280,10 +311,29 @@ main(int argc, char *argv[])
 			(A = (1 & (L ? *(int16_t *) & mem[h] : mem[h]) >> 8 * -~L - 1), flags = m ? ++ip, (int8_t) g : o ? 31 & CL : 1) && (a < 4 ? flags %= a / 2 + 8 * -~L, POKE(A, =, mem[h]) : 0, a & 1 ? POKE(mem[h], >>=, flags) : POKE(mem[h], <<=, flags), a > 3 ? u = 19 : 0, a < 5 ? 0 : F(S >> flags - 1 & 1)), a-- || (POKE(mem[h], +=, A >> 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(N & 1))), a-- || (A &= (1 << flags) - 1, POKE(mem[h], +=, A << 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1)))), a-- || (POKE(mem[h], +=(CF << flags - 1) +, A >> 1 + 8 * -~L - flags), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F(A & 1 << 8 * -~L - flags))), a-- || (POKE(mem[h], +=(CF << 8 * -~L - flags) +, A << 1 + 8 * -~L - flags), F(A & 1 << flags - 1), G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1))), a-- || (G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ F((1 & (L ? *(int16_t *) & S << flags - 1 : S << flags - 1) >> 8 * -~L - 1)))), a-- || (G((1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1))), a-- || (0), a-- || (flags < 8 * -~L || F(A), G(0), POKE(mem[h], +=, A *= ~((1 << 8 * -~L) - 1 >> flags)));
 			break;
 		case 13:
-			(flags = !!--1[a = X, r]), a-- || (flags &= !r8[m]), a-- || (flags &= r8[m]), a-- || (0), a-- || (flags = !++CX), ip += flags * (int8_t) c;
+			flags = !!--CX;
+			switch (X) {
+			case 0:
+				flags &= !r8[m];
+				break;
+			case 1:
+				flags &= r8[m];
+				break;
+			case 3:
+				flags = !++CX;
+				break;
+			}
+			ip += flags * (int8_t) c;
 			break;
 		case 14:
-			ip += 3 - o, L ? 0 : o ? CS = opr, ip = 0 : PUSH(ip), ip += o * L ? (int8_t) c : c;
+			ip += 3 - o;
+			if (!L) {
+				if (o)
+					CS = opr, ip = 0;
+				else
+					PUSH(ip);
+			}
+			ip += o * L ? (int8_t) c : c;
 			break;
 		case 15:
 			POKE(mem[U], &, mem[W]);
@@ -291,7 +341,11 @@ main(int argc, char *argv[])
 		case 16:
 			L = 7, W = P, U = K(X);
 		case 24:
-			W - U ? POKE(mem[W], ^=, mem[U]), POKE(mem[U], ^=, mem[W]), POKE(mem[W], ^=, mem[U]) : 0;
+			if (W != U) {
+				POKE(mem[W], ^=, mem[U]);
+				POKE(mem[U], ^=, mem[W]);
+				POKE(mem[W], ^=, mem[U]);
+			}
 			break;
 		case 17:
 			if (!R || CX) {
