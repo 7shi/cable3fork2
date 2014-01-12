@@ -140,9 +140,8 @@ main(int argc, char *argv[])
 		U = flags = K(a);
 		if (o)
 			U = h, W = flags;
-		u = lookup(51, *Y);
-		uint8_t e = lookup(8, u), m = lookup(14, u);
-		switch (e) {
+		uint8_t m = lookup(14, u = lookup(51, *Y));
+		switch (lookup(8, u)) {
 		case 0:
 			O = *Y / 2 & 7;
 			ip += (int8_t) c *(L ^ (r8[lookup(m, O)] | r8[lookup(22, O)] | r8[lookup(23, O)] ^ r8[lookup(24, O)]));
