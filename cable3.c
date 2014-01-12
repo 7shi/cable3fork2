@@ -123,7 +123,7 @@ main(int argc, char *argv[])
 	for (; Y = &mem[16 * CS + ip], Y != mem; Q | R || kb & IF && KB) {
 		L = (X = *Y & 7) & 1;
 		o = X / 2 & 1;
-		int O = l[32] = 0;
+		l[32] = 0;
 		t = (c = *(int16_t *) & Y[1]) & 7;
 		a = c / 8 & 7;
 		T = Y[1] >> 6;
@@ -146,6 +146,7 @@ main(int argc, char *argv[])
 			U = h, W = flags;
 		uint8_t m = lookup(14, u = lookup(51, *Y));
 		switch (lookup(8, u)) {
+			int O;
 		case 0:
 			O = *Y / 2 & 7;
 			ip += (int8_t) c *(L ^ (r8[lookup(m, O)] | r8[lookup(22, O)] | r8[lookup(23, O)] ^ r8[lookup(24, O)]));
@@ -604,8 +605,9 @@ main(int argc, char *argv[])
 				SDL_PumpEvents();
 				if (!k)
 					k = SDL_SetVideoMode(720, 348, 32, 0);
-				for (O = 9, O *= 27840; O--;)
-					O[(uint32_t *) k->pixels] = -!!(1 << 7 - O % 8 & mem[O / 2880 * 90 + O % 720 / 8 + (88 + l[952] / 128 * 4 + O / 720 % 4 << 13)]);
+				uint32_t *pix = (uint32_t *) k->pixels;
+				for (int i = 720 * 348; i--;)
+					pix[i] = -!!(1 << 7 - i % 8 & mem[i / 2880 * 90 + i % 720 / 8 + (88 + l[952] / 128 * 4 + i / 720 % 4 << 13)]);
 				SDL_Flip(k);
 			} else if (k) {
 				SDL_Quit();
