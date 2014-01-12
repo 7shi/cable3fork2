@@ -73,7 +73,7 @@ int
 v(int o)
 {
 	AF = !!((f ^= S ^ N) & 16);
-	return G(N - S && 1 & (CF ^ f >> 8 * -~L - 1));
+	return OF = (N - S && 1 & (CF ^ f >> 8 * -~L - 1));
 }
 
 int
@@ -166,7 +166,7 @@ main(int argc, char *argv[])
 			if (a < 2) {
 				POKE(mem[U], +=1 - 2 * a +, mem[P + 24]);
 				v(f = 1);
-				G(S + 1 - a == 1 << 8 * -~L - 1);
+				OF = (S + 1 - a == 1 << 8 * -~L - 1);
 				u = u & 4 ? 19 : 57;
 			} else if (a != 6) {
 				ip += (T % 3 + 2 * !(!T * t - 6)) + 2;
@@ -206,20 +206,20 @@ main(int argc, char *argv[])
 				u = 19;
 				if (L) {
 					DX = (AX = N = *(uint16_t *) & mem[h] * (uint16_t) * r) >> 16;
-					G(CF = !!(N - (uint16_t) N));
+					OF = CF = !!(N - (uint16_t) N);
 				} else {
 					AX = N = *(uint8_t *) & mem[h] * (uint8_t) * r8;
-					G(CF = !!(N - (uint8_t) N));
+					OF = CF = !!(N - (uint8_t) N);
 				}
 				break;
 			case 5:
 				u = 19;
 				if (L) {
 					DX = (AX = N = *(int16_t *) & mem[h] * (int16_t) * r) >> 16;
-					G(CF = !!(N - (int16_t) N));
+					OF = CF = !!(N - (int16_t) N);
 				} else {
 					AX = N = *(int8_t *) & mem[h] * (int8_t) * r8;
-					G(CF = !!(N - (int8_t) N));
+					OF = CF = !!(N - (int8_t) N);
 				}
 				break;
 			case 6:
@@ -349,32 +349,32 @@ main(int argc, char *argv[])
 			switch (a) {
 			case 0:
 				POKE(mem[h], +=, A >> 8 * -~L - flags);
-				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = N & 1));
+				OF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = N & 1);
 				break;
 			case 1:
 				A &= (1 << flags) - 1;
 				POKE(mem[h], +=, A << 8 * -~L - flags);
-				G((1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1)));
+				OF = (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1));
 				break;
 			case 2:
 				POKE(mem[h], +=(CF << flags - 1) +, A >> 1 + 8 * -~L - flags);
-				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = !!(A & 1 << 8 * -~L - flags)));
+				OF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = !!(A & 1 << 8 * -~L - flags));
 				break;
 			case 3:
 				POKE(mem[h], +=(CF << 8 * -~L - flags) +, A << 1 + 8 * -~L - flags);
 				CF = !!(A & 1 << flags - 1);
-				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1));
+				OF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1);
 				break;
 			case 4:
-				G((1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & S << flags - 1 : S << flags - 1) >> 8 * -~L - 1)));
+				OF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & S << flags - 1 : S << flags - 1) >> 8 * -~L - 1));
 				break;
 			case 5:
-				G((1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1));
+				OF = (1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1);
 				break;
 			case 7:
 				if (flags >= 8 * -~L)
 					CF = !!A;
-				G(0);
+				OF = 0;
 				POKE(mem[h], +=, A *= ~((1 << 8 * -~L) - 1 >> flags));
 				break;
 			}
@@ -593,7 +593,7 @@ main(int argc, char *argv[])
 		if (lookup(16, u))
 			v(0);
 		else if (lookup(17, u))
-			G(CF = 0);
+			OF = CF = 0;
 		ip += (T % 3 + 2 * !(!T * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
 		if (lookup(15, u)) {
 			m = N;
@@ -615,10 +615,4 @@ main(int argc, char *argv[])
 			}
 		}
 	}
-}
-
-int
-G(int o)
-{
-	return OF = o;
 }
