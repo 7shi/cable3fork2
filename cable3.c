@@ -3,7 +3,7 @@
 #include <time.h>
 #include <SDL.h>
 
-#define POKE(dst,opr,src) (S=L?*(uint16_t*)&dst:dst,N=L?*(uint16_t*)&dst opr(f=*(uint16_t*)&src):(dst opr(f=*(uint8_t*)&src)))
+#define POKE(dst,opr,src) (oldv=L?*(uint16_t*)&dst:dst,newv=L?*(uint16_t*)&dst opr(srcv=*(uint16_t*)&src):(dst opr(srcv=*(uint8_t*)&src)))
 #define PUSH(src) (L=4,SP-=2,POKE(mem[16*SS+SP],=,src))
 #define POP(dst) (L=4,SP+=2,POKE(dst,=,mem[16*SS+SP-2]))
 #define KB (kb=read(intr(8),&mem[0x4a6],1))&&intr(7)
@@ -15,8 +15,7 @@ uint16_t *const r = (uint16_t *) & mem[ROMBASE];
 uint32_t *const table = (uint32_t *) & mem[ROMBASE + 0x103];
 
 uint8_t u, L;
-uint16_t ip;
-uint32_t f, S, N;
+uint16_t ip, srcv, oldv, newv;
 
 #define AL r8[0]
 #define AH r8[1]
@@ -66,8 +65,8 @@ lookup(int no, int offset)
 void
 setafof(void)
 {
-	AF = !!((f ^= S ^ N) & 16);
-	OF = (N - S && 1 & (CF ^ f >> 8 * -~L - 1));
+	AF = !!((srcv ^= oldv ^ newv) & 16);
+	OF = (newv - oldv && 1 & (CF ^ srcv >> 8 * -~L - 1));
 }
 
 int
@@ -161,9 +160,9 @@ main(int argc, char *argv[])
 		case 5:
 			if (a < 2) {
 				POKE(mem[U], +=1 - 2 * a +, mem[ROMBASE + 24]);
-				f = 1;
+				srcv = 1;
 				setafof();
-				OF = (S + 1 - a == 1 << 8 * -~L - 1);
+				OF = (oldv + 1 - a == 1 << 8 * -~L - 1);
 				u = u & 4 ? 19 : 57;
 			} else if (a != 6) {
 				ip += (T % 3 + 2 * !(!T * t - 6)) + 2;
@@ -196,27 +195,27 @@ main(int argc, char *argv[])
 				break;
 			case 3:
 				POKE(mem[W], = -, mem[U]);
-				S = 0, u = 22;
-				CF = N > S;
+				oldv = 0, u = 22;
+				CF = newv > oldv;
 				break;
 			case 4:
 				u = 19;
 				if (L) {
-					DX = (AX = N = *(uint16_t *) & mem[h] * (uint16_t) * r) >> 16;
-					OF = CF = !!(N - (uint16_t) N);
+					DX = (AX = newv = *(uint16_t *) & mem[h] * (uint16_t) * r) >> 16;
+					OF = CF = !!(newv - (uint16_t) newv);
 				} else {
-					AX = N = *(uint8_t *) & mem[h] * (uint8_t) * r8;
-					OF = CF = !!(N - (uint8_t) N);
+					AX = newv = *(uint8_t *) & mem[h] * (uint8_t) * r8;
+					OF = CF = !!(newv - (uint8_t) newv);
 				}
 				break;
 			case 5:
 				u = 19;
 				if (L) {
-					DX = (AX = N = *(int16_t *) & mem[h] * (int16_t) * r) >> 16;
-					OF = CF = !!(N - (int16_t) N);
+					DX = (AX = newv = *(int16_t *) & mem[h] * (int16_t) * r) >> 16;
+					OF = CF = !!(newv - (int16_t) newv);
 				} else {
-					AX = N = *(int8_t *) & mem[h] * (int8_t) * r8;
-					OF = CF = !!(N - (int8_t) N);
+					AX = newv = *(int8_t *) & mem[h] * (int8_t) * r8;
+					OF = CF = !!(newv - (int8_t) newv);
 				}
 				break;
 			case 6:
@@ -269,19 +268,19 @@ main(int argc, char *argv[])
 			switch (m) {
 			case 0:
 				POKE(mem[W], +=, mem[U]);
-				CF = N < S;
+				CF = newv < oldv;
 				break;
 			case 1:
 				POKE(mem[W], |=, mem[U]);
 				break;
 			case 2:
 				POKE(mem[W], +=CF +, mem[U]);
-				CF = !!(CF & N == S | +N < +(int) S);
+				CF = !!(CF & newv == oldv | +newv < +(int) oldv);
 				setafof();
 				break;
 			case 3:
 				POKE(mem[W], -=CF +, mem[U]);
-				CF = !!(CF & N == S | -N < -(int) S);
+				CF = !!(CF & newv == oldv | -newv < -(int) oldv);
 				setafof();
 				break;
 			case 4:
@@ -289,14 +288,14 @@ main(int argc, char *argv[])
 				break;
 			case 5:
 				POKE(mem[W], -=, mem[U]);
-				CF = N > S;
+				CF = newv > oldv;
 				break;
 			case 6:
 				POKE(mem[W], ^=, mem[U]);
 				break;
 			case 7:
 				POKE(mem[W], -, mem[U]);
-				CF = N > S;
+				CF = newv > oldv;
 				break;
 			case 8:
 				POKE(mem[W], =, mem[U]);
@@ -345,32 +344,32 @@ main(int argc, char *argv[])
 				if (a > 3)
 					u = 19;
 				if (a >= 5)
-					CF = S >> tmp - 1 & 1;
+					CF = oldv >> tmp - 1 & 1;
 			}
 			switch (a) {
 			case 0:
 				POKE(mem[h], +=, A >> 8 * -~L - tmp);
-				OF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = N & 1);
+				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (CF = newv & 1);
 				break;
 			case 1:
 				A &= (1 << tmp) - 1;
 				POKE(mem[h], +=, A << 8 * -~L - tmp);
-				OF = (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1));
+				OF = (1 & (L ? *(int16_t *) & newv * 2 : newv * 2) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1));
 				break;
 			case 2:
 				POKE(mem[h], +=(CF << tmp - 1) +, A >> 1 + 8 * -~L - tmp);
-				OF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = !!(A & 1 << 8 * -~L - tmp));
+				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (CF = !!(A & 1 << 8 * -~L - tmp));
 				break;
 			case 3:
 				POKE(mem[h], +=(CF << 8 * -~L - tmp) +, A << 1 + 8 * -~L - tmp);
 				CF = !!(A & 1 << tmp - 1);
-				OF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & N * 2 : N * 2) >> 8 * -~L - 1);
+				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & newv * 2 : newv * 2) >> 8 * -~L - 1);
 				break;
 			case 4:
-				OF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & S << tmp - 1 : S << tmp - 1) >> 8 * -~L - 1));
+				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & oldv << tmp - 1 : oldv << tmp - 1) >> 8 * -~L - 1));
 				break;
 			case 5:
-				OF = (1 & (L ? *(int16_t *) & S : S) >> 8 * -~L - 1);
+				OF = (1 & (L ? *(int16_t *) & oldv : oldv) >> 8 * -~L - 1);
 				break;
 			case 7:
 				if (tmp >= 8 * -~L)
@@ -438,13 +437,13 @@ main(int argc, char *argv[])
 			if (!R || CX) {
 				POKE(mem[m ? ROMBASE : 16 * r[Q ? p : 11] + SI], -, mem[16 * ES + DI]);
 				u = 92;
-				ZF = !N;
-				CF = N > S;
+				ZF = !newv;
+				CF = newv > oldv;
 				tmp = ~(-2 * DF) * ~L;
 				if (!m)
 					SI += tmp;
 				DI += tmp;
-				if (R && --CX && !N == b) {
+				if (R && --CX && !newv == b) {
 					R++;
 					if (Q)
 						Q++;
@@ -492,11 +491,11 @@ main(int argc, char *argv[])
 			L = 0;
 			CF = !!lookup(m += 3 * AF + 6 * CF, AL);
 			AF = !!(lookup(1 + m, AL));
-			N = AL = lookup(m - 1, AL);
+			newv = AL = lookup(m - 1, AL);
 			break;
 		case 29:
 			AX += 262 * (m - 1) * (AF = CF = !!((AL & 15) > 9 | AF));
-			N = AL &= 15;
+			newv = AL &= 15;
 			break;
 		case 30:
 			AH = -(1 & (L ? *(int16_t *) r8 : AL) >> 8 * -~L - 1);
@@ -547,12 +546,12 @@ main(int argc, char *argv[])
 		case 41:
 			if (c &= m) {
 				AH = AL / c;
-				N = AL %= c;
+				newv = AL %= c;
 			} else
 				intr(0);
 			break;
 		case 42:
-			L = 0, AX = N = m & AL + c * AH;
+			L = 0, AX = newv = m & AL + c * AH;
 			break;
 		case 43:
 			AL = -r8[m];
@@ -601,9 +600,9 @@ main(int argc, char *argv[])
 			OF = CF = 0;
 		ip += (T % 3 + 2 * !(!T * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
 		if (lookup(15, u)) {
-			SF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1);
-			ZF = !N;
-			PF = lookup(50, (uint8_t) N);
+			SF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1);
+			ZF = !newv;
+			PF = lookup(50, (uint8_t) newv);
 		}
 		if (!++q) {
 			kb = 1;
