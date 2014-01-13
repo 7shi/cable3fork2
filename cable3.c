@@ -101,7 +101,7 @@ intr(int n)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, a, T, o, X, *ipptr, b = 0, Q = 0, R = 0;
+	uint8_t t, a, T, o, rno, *ipptr, b = 0, Q = 0, R = 0;
 	uint16_t p = 0, q = 0;
 	uint32_t kb = 0, h, W, U, c, g, d, A, tmp;
 	SDL_Surface *surface = 0;
@@ -116,8 +116,8 @@ main(int argc, char *argv[])
 	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
 
 	for (; (ipptr = &mem[16 * CS + ip]) != mem; Q | R || kb & IF && KB) {
-		L = (X = *ipptr & 7) & 1;
-		o = X / 2 & 1;
+		L = (rno = *ipptr & 7) & 1;
+		o = rno / 2 & 1;
 		ioport[32] = 0;
 		t = (c = *(int16_t *) & ipptr[1]) & 7;
 		a = c / 8 & 7;
@@ -148,10 +148,10 @@ main(int argc, char *argv[])
 			break;
 		case 1:
 			L = *ipptr & 8;
-			POKE(mem[K(X)], =, c);
+			POKE(mem[K(rno)], =, c);
 			break;
 		case 2:
-			L = 2, o = 0, a = X, A = 4 * !T;
+			L = 2, o = 0, a = rno, A = 4 * !T;
 			W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
 			U = tmp = K(a);
 			if (o)
@@ -178,10 +178,10 @@ main(int argc, char *argv[])
 				PUSH(mem[h]);
 			break;
 		case 3:
-			PUSH(r[X]);
+			PUSH(r[rno]);
 			break;
 		case 4:
-			POP(r[X]);
+			POP(r[rno]);
 			break;
 		case 6:
 			W = U;
@@ -381,7 +381,7 @@ main(int argc, char *argv[])
 			break;
 		case 13:
 			tmp = !!--CX;
-			switch (X) {
+			switch (rno) {
 			case 0:
 				tmp &= !r8[m];
 				break;
@@ -408,7 +408,7 @@ main(int argc, char *argv[])
 			POKE(mem[U], &, mem[W]);
 			break;
 		case 16:
-			L = 7, W = ROMBASE, U = K(X);
+			L = 7, W = ROMBASE, U = K(rno);
 		case 24:
 			if (W != U) {
 				POKE(mem[W], ^=, mem[U]);
