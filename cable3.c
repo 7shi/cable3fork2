@@ -100,6 +100,19 @@ intr(int n)
 }
 
 int
+modrm(int mode, int t, int disp)
+{
+	if (mode == 3)
+		return regmap(t);
+	int tno = 4 * !mode;
+	int seg = r[hassegpfx ? segpfx : lookup(tno + 3, t)];
+	int r1 = r[lookup(tno + 1, t)];
+	int hasdisp = lookup(tno + 2, t);
+	int r2 = r[lookup(tno, t)];
+	return 16 * seg + (uint16_t) (r1 + hasdisp * disp + r2);
+}
+
+int
 main(int argc, char *argv[])
 {
 	uint8_t t, a, mode, o, rno, *ipptr, b = 0, R = 0;
@@ -135,8 +148,7 @@ main(int argc, char *argv[])
 			hassegpfx--;
 		if (R)
 			R--;
-		A = 4 * !mode;
-		W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
+		W = h = modrm(mode, t, disp);
 		tmp = U = regmap(a);
 		if (o)
 			U = h, W = tmp;
@@ -152,8 +164,8 @@ main(int argc, char *argv[])
 			POKE(mem[regmap(rno)], =, c);
 			break;
 		case 2:
-			L = 2, o = 0, a = rno, A = 4 * !mode;
-			W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
+			L = 2, o = 0, a = rno;
+			W = h = modrm(mode, t, disp);
 			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
@@ -305,16 +317,16 @@ main(int argc, char *argv[])
 			break;
 		case 10:
 			if (!L) {
-				L = a += 8, A = 4 * !mode;
-				W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
+				L = a += 8;
+				W = h = modrm(mode, t, disp);
 				U = tmp = regmap(a);
 				if (o)
 					U = h, W = tmp;
 				POKE(mem[W], =, mem[U]);
 			} else {
 				if (!o) {
-					hassegpfx = 1, segpfx = m, A = 4 * !mode;
-					W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
+					hassegpfx = 1, segpfx = m;
+					W = h = modrm(mode, t, disp);
 					U = tmp = regmap(a);
 					if (o)
 						U = h, W = tmp;
@@ -324,8 +336,8 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 11:
-			mode = a = 0, t = 6, disp = c, A = 4 * !mode;
-			W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
+			a = 0;
+			W = h = modrm(0, 6, c);
 			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
@@ -523,8 +535,8 @@ main(int argc, char *argv[])
 			AH = getflags();
 			break;
 		case 37:
-			L = o = 1, A = 4 * !mode;
-			W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
+			L = o = 1;
+			W = h = modrm(mode, t, disp);
 			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
