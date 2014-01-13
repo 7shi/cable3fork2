@@ -69,11 +69,11 @@ w(int o)
 	return r[o] += ~(-2 * DF) * ~L;
 }
 
-int
-v(int o)
+void
+setafof(void)
 {
 	AF = !!((f ^= S ^ N) & 16);
-	return OF = (N - S && 1 & (CF ^ f >> 8 * -~L - 1));
+	OF = (N - S && 1 & (CF ^ f >> 8 * -~L - 1));
 }
 uint16_t
 getflags(void)
@@ -166,7 +166,8 @@ main(int argc, char *argv[])
 		case 5:
 			if (a < 2) {
 				POKE(mem[U], +=1 - 2 * a +, mem[ROMBASE + 24]);
-				v(f = 1);
+				f = 1;
+				setafof();
 				OF = (S + 1 - a == 1 << 8 * -~L - 1);
 				u = u & 4 ? 19 : 57;
 			} else if (a != 6) {
@@ -279,10 +280,12 @@ main(int argc, char *argv[])
 				POKE(mem[W], |=, mem[U]);
 				break;
 			case 2:
-				v(CF = !!(40[POKE(mem[W], +=CF +, mem[U]), r8] & N == S | +N < +(int) S));
+				CF = !!(40[POKE(mem[W], +=CF +, mem[U]), r8] & N == S | +N < +(int) S);
+				setafof();
 				break;
 			case 3:
-				v(CF = !!(40[POKE(mem[W], -=CF +, mem[U]), r8] & N == S | -N < -(int) S));
+				CF = !!(40[POKE(mem[W], -=CF +, mem[U]), r8] & N == S | -N < -(int) S);
+				setafof();
 				break;
 			case 4:
 				POKE(mem[W], &=, mem[U]);
@@ -590,7 +593,7 @@ main(int argc, char *argv[])
 			break;
 		}
 		if (lookup(16, u))
-			v(0);
+			setafof();
 		else if (lookup(17, u))
 			OF = CF = 0;
 		ip += (T % 3 + 2 * !(!T * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
