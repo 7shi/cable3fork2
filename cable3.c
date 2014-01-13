@@ -102,9 +102,9 @@ intr(int n)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, a, T, o, rno, *ipptr, b = 0, R = 0;
+	uint8_t t, a, mode, o, rno, *ipptr, b = 0, R = 0;
 	uint16_t counter = 0;
-	uint32_t kb = 0, h, W, U, c, g, d, A, tmp;
+	uint32_t kb = 0, h, W, U, c, disp, d, A, tmp;
 	SDL_Surface *surface = 0;
 
 	CS = ROMBASE >> 4, ip = 0x100;
@@ -122,21 +122,21 @@ main(int argc, char *argv[])
 		ioport[32] = 0;
 		t = (c = *(int16_t *) & ipptr[1]) & 7;
 		a = c / 8 & 7;
-		T = ipptr[1] >> 6;
-		g = ~-T ? *(int16_t *) & ipptr[2] : (int8_t) * (int16_t *) & ipptr[2];
+		mode = ipptr[1] >> 6;
+		disp = ~-mode ? *(int16_t *) & ipptr[2] : (int8_t) * (int16_t *) & ipptr[2];
 		uint16_t w3 = d = *(int16_t *) & ipptr[3];
 		--ioport[64];
-		if (!T * t != 6 && T != 2) {
-			if (T != 1)
-				d = g;
+		if (!mode * t != 6 && mode != 2) {
+			if (mode != 1)
+				d = disp;
 		} else
 			d = *(int16_t *) & ipptr[4];
 		if (hassegpfx)
 			hassegpfx--;
 		if (R)
 			R--;
-		A = 4 * !T;
-		W = h = T < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+		A = 4 * !mode;
+		W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
 		tmp = U = regmap(a);
 		if (o)
 			U = h, W = tmp;
@@ -152,8 +152,8 @@ main(int argc, char *argv[])
 			POKE(mem[regmap(rno)], =, c);
 			break;
 		case 2:
-			L = 2, o = 0, a = rno, A = 4 * !T;
-			W = h = T < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+			L = 2, o = 0, a = rno, A = 4 * !mode;
+			W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
 			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
@@ -166,7 +166,7 @@ main(int argc, char *argv[])
 				OF = (oldv + 1 - a == 1 << 8 * -~L - 1);
 				u = u & 4 ? 19 : 57;
 			} else if (a != 6) {
-				ip += (T % 3 + 2 * !(!T * t - 6)) + 2;
+				ip += (mode % 3 + 2 * !(!mode * t - 6)) + 2;
 				if (a == 3)
 					PUSH(CS);
 				if (a & 2)
@@ -260,7 +260,7 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 7:
-			h = ROMBASE, d = c, T = 3, a = m, ip--;
+			h = ROMBASE, d = c, mode = 3, a = m, ip--;
 		case 8:
 			W = h;
 			r[13] = (o |= !L) ? (int8_t) d : d, U = ROMBASE + 26, ip -= ~!o;
@@ -305,16 +305,16 @@ main(int argc, char *argv[])
 			break;
 		case 10:
 			if (!L) {
-				L = a += 8, A = 4 * !T;
-				W = h = T < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+				L = a += 8, A = 4 * !mode;
+				W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
 				U = tmp = regmap(a);
 				if (o)
 					U = h, W = tmp;
 				POKE(mem[W], =, mem[U]);
 			} else {
 				if (!o) {
-					hassegpfx = 1, segpfx = m, A = 4 * !T;
-					W = h = T < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+					hassegpfx = 1, segpfx = m, A = 4 * !mode;
+					W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
 					U = tmp = regmap(a);
 					if (o)
 						U = h, W = tmp;
@@ -324,8 +324,8 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 11:
-			T = a = 0, t = 6, g = c, A = 4 * !T;
-			W = h = T < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+			mode = a = 0, t = 6, disp = c, A = 4 * !mode;
+			W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
 			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
@@ -333,7 +333,7 @@ main(int argc, char *argv[])
 			break;
 		case 12:
 			A = (1 & (L ? *(int16_t *) & mem[h] : mem[h]) >> 8 * -~L - 1);
-			if (tmp = m ? ++ip, (int8_t) g : o ? 31 & CL : 1) {
+			if (tmp = m ? ++ip, (int8_t) disp : o ? 31 & CL : 1) {
 				if (a < 4) {
 					tmp %= a / 2 + 8 * -~L;
 					POKE(A, =, mem[h]);
@@ -523,8 +523,8 @@ main(int argc, char *argv[])
 			AH = getflags();
 			break;
 		case 37:
-			L = o = 1, A = 4 * !T;
-			W = h = T < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+			L = o = 1, A = 4 * !mode;
+			W = h = mode < 3 ? 16 * r[hassegpfx ? segpfx : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * disp + r[lookup(A, t)]) : regmap(t);
 			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
@@ -599,7 +599,7 @@ main(int argc, char *argv[])
 			setafof();
 		else if (lookup(17, u))
 			OF = CF = 0;
-		ip += (T % 3 + 2 * !(!T * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
+		ip += (mode % 3 + 2 * !(!mode * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
 		if (lookup(15, u)) {
 			SF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1);
 			ZF = !newv;
