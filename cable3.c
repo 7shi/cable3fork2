@@ -35,8 +35,8 @@ uint32_t f, S, N;
 #define BP r[5]
 #define SI r[6]
 #define DI r[7]
-#define ES r[8]
 
+#define ES r[8]
 #define CS r[9]
 #define SS r[10]
 #define DS r[11]
