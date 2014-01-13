@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 {
 	uint8_t t, a, T, o, X, *ipptr, b = 0, Q = 0, R = 0;
 	uint16_t p = 0, q = 0;
-	uint32_t kb = 0, h, W, U, c, g, d, A;
+	uint32_t kb = 0, h, W, U, c, g, d, A, tmp;
 	SDL_Surface *surface = 0;
 
 	CS = ROMBASE >> 4, ip = 0x100;
@@ -137,7 +137,7 @@ main(int argc, char *argv[])
 			R--;
 		A = 4 * !T;
 		W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
-		int tmp = U = K(a);
+		tmp = U = K(a);
 		if (o)
 			U = h, W = tmp;
 		uint8_t m = lookup(14, u = lookup(51, *ipptr));
@@ -275,11 +275,13 @@ main(int argc, char *argv[])
 				POKE(mem[W], |=, mem[U]);
 				break;
 			case 2:
-				CF = !!(40[POKE(mem[W], +=CF +, mem[U]), r8] & N == S | +N < +(int) S);
+				POKE(mem[W], +=CF +, mem[U]);
+				CF = !!(CF & N == S | +N < +(int) S);
 				setafof();
 				break;
 			case 3:
-				CF = !!(40[POKE(mem[W], -=CF +, mem[U]), r8] & N == S | -N < -(int) S);
+				POKE(mem[W], -=CF +, mem[U]);
+				CF = !!(CF & N == S | -N < -(int) S);
 				setafof();
 				break;
 			case 4:
@@ -471,7 +473,9 @@ main(int argc, char *argv[])
 			POKE(ioport[m ? DX : (int8_t) c], =, AL);
 			break;
 		case 23:
-			R = 2, b = L, Q && Q++;
+			R = 2, b = L;
+			if (Q)
+				Q++;
 			break;
 		case 25:
 			PUSH(r[m]);
@@ -480,7 +484,9 @@ main(int argc, char *argv[])
 			POP(r[m]);
 			break;
 		case 27:
-			Q = 2, p = m, R && R++;
+			Q = 2, p = m;
+			if (R)
+				R++;
 			break;
 		case 28:
 			L = 0;
@@ -546,7 +552,7 @@ main(int argc, char *argv[])
 				intr(0);
 			break;
 		case 42:
-			AX = N = m & r8[L = 0] + c * AH;
+			L = 0, AX = N = m & AL + c * AH;
 			break;
 		case 43:
 			AL = -r8[m];
@@ -595,10 +601,9 @@ main(int argc, char *argv[])
 			OF = CF = 0;
 		ip += (T % 3 + 2 * !(!T * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
 		if (lookup(15, u)) {
-			m = N;
 			SF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1);
 			ZF = !N;
-			PF = lookup(50, m);
+			PF = lookup(50, (uint8_t) N);
 		}
 		if (!++q) {
 			kb = 1;
