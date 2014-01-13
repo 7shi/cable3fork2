@@ -51,9 +51,9 @@ uint16_t ip, srcv, oldv, newv;
 #define OF r8[48]
 
 int
-K(int o)
+regmap(int rno)
 {
-	return ROMBASE + (L ? 2 * o : 2 * o + o / 4 & 7);
+	return ROMBASE + (L ? 2 * rno : (2 * rno + rno / 4) & 7);
 }
 
 int
@@ -135,8 +135,8 @@ main(int argc, char *argv[])
 		if (R)
 			R--;
 		A = 4 * !T;
-		W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
-		tmp = U = K(a);
+		W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+		tmp = U = regmap(a);
 		if (o)
 			U = h, W = tmp;
 		uint8_t m = lookup(14, u = lookup(51, *ipptr));
@@ -148,12 +148,12 @@ main(int argc, char *argv[])
 			break;
 		case 1:
 			L = *ipptr & 8;
-			POKE(mem[K(rno)], =, c);
+			POKE(mem[regmap(rno)], =, c);
 			break;
 		case 2:
 			L = 2, o = 0, a = rno, A = 4 * !T;
-			W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
-			U = tmp = K(a);
+			W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
 			a = m;
@@ -305,16 +305,16 @@ main(int argc, char *argv[])
 		case 10:
 			if (!L) {
 				L = a += 8, A = 4 * !T;
-				W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
-				U = tmp = K(a);
+				W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+				U = tmp = regmap(a);
 				if (o)
 					U = h, W = tmp;
 				POKE(mem[W], =, mem[U]);
 			} else {
 				if (!o) {
 					Q = 1, p = m, A = 4 * !T;
-					W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
-					U = tmp = K(a);
+					W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+					U = tmp = regmap(a);
 					if (o)
 						U = h, W = tmp;
 					POKE(mem[tmp], =, h);
@@ -324,8 +324,8 @@ main(int argc, char *argv[])
 			break;
 		case 11:
 			T = a = 0, t = 6, g = c, A = 4 * !T;
-			W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
-			U = tmp = K(a);
+			W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
 			POKE(mem[U], =, mem[W]);
@@ -408,7 +408,7 @@ main(int argc, char *argv[])
 			POKE(mem[U], &, mem[W]);
 			break;
 		case 16:
-			L = 7, W = ROMBASE, U = K(rno);
+			L = 7, W = ROMBASE, U = regmap(rno);
 		case 24:
 			if (W != U) {
 				POKE(mem[W], ^=, mem[U]);
@@ -523,8 +523,8 @@ main(int argc, char *argv[])
 			break;
 		case 37:
 			L = o = 1, A = 4 * !T;
-			W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : K(t);
-			U = tmp = K(a);
+			W = h = T < 3 ? 16 * r[Q ? p : lookup(A + 3, t)] + (uint16_t) (r[lookup(A + 1, t)] + lookup(A + 2, t) * g + r[lookup(A, t)]) : regmap(t);
+			U = tmp = regmap(a);
 			if (o)
 				U = h, W = tmp;
 			POKE(mem[W], =, mem[U]);
