@@ -73,17 +73,17 @@ setafof(void)
 int
 getflags(void)
 {
-	int f = 0xf002;
+	int flags = 0xf002;
 	for (int i = 0; i < 9; ++i)
-		f += r8[40 + i] << lookup(25, i);
-	return f;
+		flags += r8[40 + i] << lookup(25, i);
+	return flags;
 }
 
 void
-setflags(int f)
+setflags(int flags)
 {
 	for (int i = 0; i < 9; ++i)
-		r8[40 + i] = !!(f & (1 << lookup(25, i)));
+		r8[40 + i] = !!(flags & (1 << lookup(25, i)));
 }
 
 int
