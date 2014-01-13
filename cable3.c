@@ -102,7 +102,7 @@ int
 main(int argc, char *argv[])
 {
 	uint8_t t, a, T, o, rno, *ipptr, b = 0, Q = 0, R = 0;
-	uint16_t p = 0, q = 0;
+	uint16_t p = 0, counter = 0;
 	uint32_t kb = 0, h, W, U, c, g, d, A, tmp;
 	SDL_Surface *surface = 0;
 
@@ -604,7 +604,7 @@ main(int argc, char *argv[])
 			ZF = !newv;
 			PF = lookup(50, (uint8_t) newv);
 		}
-		if (!++q) {
+		if (!++counter) {
 			kb = 1;
 			if (ioport[0]) {
 				SDL_PumpEvents();
