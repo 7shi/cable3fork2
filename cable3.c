@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 {
 	uint8_t t, a, mode, o, rno, *ipptr, b = 0, R = 0;
 	uint16_t counter = 0;
-	uint32_t kb = 0, h, W, U, c, disp, d, tmp, tmp2;
+	uint32_t kb = 0, h, W, U, c, disp, d, tmp;
 	SDL_Surface *surface = 0;
 
 	CS = ROMBASE >> 4, ip = 0x100;
@@ -154,10 +154,11 @@ main(int argc, char *argv[])
 			U = h, W = tmp;
 		uint8_t m = lookup(14, u = lookup(51, *ipptr));
 		switch (lookup(8, u)) {
-			int O;
+			uint32_t tmp2;
+			int tmp3;
 		case 0:
-			O = *ipptr / 2 & 7;
-			ip += (int8_t) c *(L ^ (r8[lookup(m, O)] | r8[lookup(22, O)] | r8[lookup(23, O)] ^ r8[lookup(24, O)]));
+			tmp = *ipptr / 2 & 7;
+			ip += (int8_t) c *(L ^ (r8[lookup(m, tmp)] | r8[lookup(22, tmp)] | r8[lookup(23, tmp)] ^ r8[lookup(24, tmp)]));
 			break;
 		case 1:
 			L = *ipptr & 8;
@@ -233,18 +234,18 @@ main(int argc, char *argv[])
 				break;
 			case 6:
 				if (L) {
-					if (O = *(uint16_t *) & mem[h]) {
-						tmp2 = (uint32_t) (tmp = (DX << 16) + AX) / O;
+					if (tmp3 = *(uint16_t *) & mem[h]) {
+						tmp2 = (uint32_t) (tmp = (DX << 16) + AX) / tmp3;
 						if (!(tmp2 - (uint16_t) tmp2))
-							DX = tmp - O * (AX = tmp2);
+							DX = tmp - tmp3 * (AX = tmp2);
 						else
 							intr(0);
 					}
 				} else {
-					if (O = *(uint8_t *) & mem[h]) {
-						tmp2 = (uint16_t) (tmp = (AH << 16) + AX) / O;
+					if (tmp3 = *(uint8_t *) & mem[h]) {
+						tmp2 = (uint16_t) (tmp = (AH << 16) + AX) / tmp3;
 						if (!(tmp2 - (uint8_t) tmp2))
-							AH = tmp - O * (AL = tmp2);
+							AH = tmp - tmp3 * (AL = tmp2);
 						else
 							intr(0);
 					}
@@ -252,18 +253,18 @@ main(int argc, char *argv[])
 				break;
 			case 7:
 				if (L) {
-					if (O = *(int16_t *) & mem[h]) {
-						tmp2 = (int) (tmp = (DX << 16) + AX) / O;
+					if (tmp3 = *(int16_t *) & mem[h]) {
+						tmp2 = (int) (tmp = (DX << 16) + AX) / tmp3;
 						if (!(tmp2 - (int16_t) tmp2))
-							DX = tmp - O * (AX = tmp2);
+							DX = tmp - tmp3 * (AX = tmp2);
 						else
 							intr(0);
 					}
 				} else {
-					if (O = *(int8_t *) & mem[h]) {
-						tmp2 = (int16_t) (tmp = (AH << 16) + AX) / O;
+					if (tmp3 = *(int8_t *) & mem[h]) {
+						tmp2 = (int16_t) (tmp = (AH << 16) + AX) / tmp3;
 						if (!(tmp2 - (int8_t) tmp2))
-							AH = tmp - O * (AL = tmp2);
+							AH = tmp - tmp3 * (AL = tmp2);
 						else
 							intr(0);
 					}
