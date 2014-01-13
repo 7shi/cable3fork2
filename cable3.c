@@ -63,19 +63,14 @@ lookup(int no, int offset)
 	return mem[table[no] + offset];
 }
 
-int
-w(int o)
-{
-	return r[o] += ~(-2 * DF) * ~L;
-}
-
 void
 setafof(void)
 {
 	AF = !!((f ^= S ^ N) & 16);
 	OF = (N - S && 1 & (CF ^ f >> 8 * -~L - 1));
 }
-uint16_t
+
+int
 getflags(void)
 {
 	int f = 0xf002;
@@ -85,7 +80,7 @@ getflags(void)
 }
 
 void
-setflags(uint16_t f)
+setflags(int f)
 {
 	for (int i = 0; i < 9; ++i)
 		r8[40 + i] = !!(f & (1 << lookup(25, i)));
@@ -423,10 +418,11 @@ main(int argc, char *argv[])
 		case 17:
 			if (!R || CX) {
 				POKE(mem[m < 2 ? 16 * ES + DI : ROMBASE], =, mem[m & 1 ? ROMBASE : 16 * r[Q ? p : 11] + SI]);
+				tmp = ~(-2 * DF) * ~L;
 				if (!(m & 1))
-					w(6);
+					SI += tmp;
 				if (!(m & 2)) {
-					w(7);
+					DI += tmp;
 					if (R && --CX) {
 						R++;
 						if (Q)
@@ -442,9 +438,10 @@ main(int argc, char *argv[])
 				u = 92;
 				ZF = !N;
 				CF = N > S;
+				tmp = ~(-2 * DF) * ~L;
 				if (!m)
-					w(6);
-				w(7);
+					SI += tmp;
+				DI += tmp;
 				if (R && --CX && !N == b) {
 					R++;
 					if (Q)
