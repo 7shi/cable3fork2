@@ -95,7 +95,7 @@ int
 intr(int n)
 {
 	u = 76;
-	int flags =getflags();
+	uint16_t flags = getflags();
 	PUSH(flags);
 	PUSH(CS);
 	PUSH(ip);
@@ -108,17 +108,19 @@ int
 main(int argc, char *argv[])
 {
 	uint8_t t, a, T, o, X, *ipptr, b = 0, Q = 0, R = 0;
-	uint16_t p = 0, q = 0, opr;
+	uint16_t p = 0, q = 0;
 	uint32_t kb = 0, h, W, U, c, g, d, A;
 	SDL_Surface *surface = 0;
-	CS = ROMBASE >> 4;
-	ip = 0x100;
+
+	CS = ROMBASE >> 4, ip = 0x100;
+
 	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
 	for (int i = 1; i <= 3 && i < argc; ++i)
 		files[3 - i] = fopen(argv[i], "r+");
 	if (files[0])		/* CX:AX = HDD sectors */
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
+
 	for (; (ipptr = &mem[16 * CS + ip]) != mem; Q | R || kb & IF && KB) {
 		L = (X = *ipptr & 7) & 1;
 		o = X / 2 & 1;
@@ -127,7 +129,7 @@ main(int argc, char *argv[])
 		a = c / 8 & 7;
 		T = ipptr[1] >> 6;
 		g = ~-T ? *(int16_t *) & ipptr[2] : (int8_t) * (int16_t *) & ipptr[2];
-		d = opr = *(int16_t *) & ipptr[3];
+		uint16_t w3 = d = *(int16_t *) & ipptr[3];
 		--ioport[64];
 		if (!T * t != 6 && T != 2) {
 			if (T != 1)
@@ -397,7 +399,7 @@ main(int argc, char *argv[])
 			ip += 3 - o;
 			if (!L) {
 				if (o)
-					CS = opr, ip = 0;
+					CS = w3, ip = 0;
 				else
 					PUSH(ip);
 			}
@@ -417,7 +419,7 @@ main(int argc, char *argv[])
 			break;
 		case 17:
 			if (!R || CX) {
-				POKE(mem[m < 2 ? 16 * ES + (uint16_t) (DI) : ROMBASE], =, mem[m & 1 ? ROMBASE : 16 * r[Q ? p : 11] + (uint16_t) (SI)]);
+				POKE(mem[m < 2 ? 16 * ES + DI : ROMBASE], =, mem[m & 1 ? ROMBASE : 16 * r[Q ? p : 11] + SI]);
 				if (!(m & 1))
 					w(6);
 				if (!(m & 2)) {
@@ -433,7 +435,7 @@ main(int argc, char *argv[])
 			break;
 		case 18:
 			if (!R || CX) {
-				POKE(mem[m ? ROMBASE : 16 * r[Q ? p : 11] + (uint16_t) (SI)], -, mem[16 * ES + (uint16_t) (DI)]);
+				POKE(mem[m ? ROMBASE : 16 * r[Q ? p : 11] + SI], -, mem[16 * ES + DI]);
 				u = 92;
 				ZF = !N;
 				CF = N > S;
@@ -496,14 +498,14 @@ main(int argc, char *argv[])
 		case 31:
 			DX = -(1 & (L ? *(int16_t *) r : AX) >> 8 * -~L - 1);
 			break;
-		case 32:
+		case 32:	/* callf */
 			PUSH(CS);
 			PUSH(ip + 5);
-			CS = opr;
-			ip = c;
+			CS = w3, ip = c;
 			break;
 		case 33:	/* pushf */
-			PUSH(tmp = getflags());
+			tmp = getflags();
+			PUSH(tmp);
 			break;
 		case 34:	/* popf */
 			setflags(POP(tmp));
@@ -594,7 +596,9 @@ main(int argc, char *argv[])
 		ip += (T % 3 + 2 * !(!T * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
 		if (lookup(15, u)) {
 			m = N;
-			41[43[SF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1), r8] = !N, r8] = lookup(50, m);
+			SF = (1 & (L ? *(int16_t *) & N : N) >> 8 * -~L - 1);
+			ZF = !N;
+			PF = lookup(50, m);
 		}
 		if (!++q) {
 			kb = 1;
