@@ -115,7 +115,7 @@ modrm(int mode, int t, int disp)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, a, mode, o, rno, *ipptr, b = 0, R = 0;
+	uint8_t t, a, mode, o, rno, *ipptr, b = 0, rep = 0;
 	uint16_t counter = 0;
 	uint32_t kb = 0, h, W, U, c, disp, d, tmp;
 	SDL_Surface *surface = 0;
@@ -129,7 +129,7 @@ main(int argc, char *argv[])
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
 
-	for (; (ipptr = &mem[16 * CS + ip]) != mem; hassegpfx | R || kb & IF && KB) {
+	for (; (ipptr = &mem[16 * CS + ip]) != mem; hassegpfx | rep || kb & IF && KB) {
 		L = (rno = *ipptr & 7) & 1;
 		o = rno / 2 & 1;
 		ioport[32] = 0;
@@ -146,8 +146,8 @@ main(int argc, char *argv[])
 			d = *(int16_t *) & ipptr[4];
 		if (hassegpfx)
 			hassegpfx--;
-		if (R)
-			R--;
+		if (rep)
+			rep--;
 		W = h = modrm(mode, t, disp);
 		tmp = U = regmap(a);
 		if (o)
@@ -431,15 +431,15 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 17:
-			if (!R || CX) {
+			if (!rep || CX) {
 				POKE(mem[m < 2 ? 16 * ES + DI : ROMBASE], =, mem[m & 1 ? ROMBASE : 16 * r[hassegpfx ? segpfx : 11] + SI]);
 				tmp = ~(-2 * DF) * ~L;
 				if (!(m & 1))
 					SI += tmp;
 				if (!(m & 2)) {
 					DI += tmp;
-					if (R && --CX) {
-						R++;
+					if (rep && --CX) {
+						rep++;
 						if (hassegpfx)
 							hassegpfx++;
 						ip--;
@@ -448,7 +448,7 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 18:
-			if (!R || CX) {
+			if (!rep || CX) {
 				POKE(mem[m ? ROMBASE : 16 * r[hassegpfx ? segpfx : 11] + SI], -, mem[16 * ES + DI]);
 				u = 92;
 				ZF = !newv;
@@ -457,8 +457,8 @@ main(int argc, char *argv[])
 				if (!m)
 					SI += tmp;
 				DI += tmp;
-				if (R && --CX && !newv == b) {
-					R++;
+				if (rep && --CX && !newv == b) {
+					rep++;
 					if (hassegpfx)
 						hassegpfx++;
 					ip--;
@@ -486,7 +486,7 @@ main(int argc, char *argv[])
 			POKE(ioport[m ? DX : (int8_t) c], =, AL);
 			break;
 		case 23:
-			R = 2, b = L;
+			rep = 2, b = L;
 			if (hassegpfx)
 				hassegpfx++;
 			break;
@@ -498,8 +498,8 @@ main(int argc, char *argv[])
 			break;
 		case 27:
 			hassegpfx = 2, segpfx = m;
-			if (R)
-				R++;
+			if (rep)
+				rep++;
 			break;
 		case 28:
 			L = 0;
