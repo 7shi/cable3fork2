@@ -85,7 +85,7 @@ setflags(int flags)
 		r8[40 + i] = !!(flags & (1 << lookup(25, i)));
 }
 
-int
+void
 intr(int n)
 {
 	u = 76;
@@ -95,7 +95,7 @@ intr(int n)
 	PUSH(ip);
 	POKE(CS, =, mem[4 * n + 2]);
 	POKE(ip, =, mem[4 * n]);
-	return (IF = 0);
+	IF = 0;
 }
 
 int
