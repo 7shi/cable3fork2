@@ -10,8 +10,8 @@
 #define ROMBASE 0xf0000
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint8_t *const r8 = &mem[ROMBASE];
-uint16_t *const r = (uint16_t *) & mem[ROMBASE];
-uint32_t *const table = (uint32_t *) & mem[ROMBASE + 0x103];
+uint16_t *const r = (uint16_t *) &mem[ROMBASE];
+uint32_t *const table = (uint32_t *) &mem[ROMBASE + 0x103];
 
 uint8_t u, L;
 uint16_t ip, srcv, oldv, newv;
@@ -54,14 +54,14 @@ void
 push(void *src)
 {
 	L = 4;
-	*(uint16_t *) & mem[16 * SS + (SP -= 2)] = *(uint16_t *) src;
+	*(uint16_t *) &mem[16 * SS + (SP -= 2)] = *(uint16_t *) src;
 }
 
 int
 pop(void)
 {
 	L = 4;
-	int ret = *(uint16_t *) & mem[16 * SS + SP];
+	int ret = *(uint16_t *) &mem[16 * SS + SP];
 	SP += 2;
 	return ret;
 }
@@ -163,17 +163,17 @@ main(int argc, char *argv[])
 		L = (rno = *ipptr & 7) & 1;
 		o = rno / 2 & 1;
 		ioport[32] = 0;
-		t = (c = *(int16_t *) & ipptr[1]) & 7;
+		t = (c = *(int16_t *) &ipptr[1]) & 7;
 		a = c / 8 & 7;
 		mode = ipptr[1] >> 6;
-		disp = ~-mode ? *(int16_t *) & ipptr[2] : (int8_t) * (int16_t *) & ipptr[2];
-		uint16_t w3 = d = *(int16_t *) & ipptr[3];
+		disp = ~-mode ? *(int16_t *) &ipptr[2] : (int8_t) *(int16_t *) &ipptr[2];
+		uint16_t w3 = d = *(int16_t *) &ipptr[3];
 		--ioport[64];
 		if (!mode * t != 6 && mode != 2) {
 			if (mode != 1)
 				d = disp;
 		} else
-			d = *(int16_t *) & ipptr[4];
+			d = *(int16_t *) &ipptr[4];
 		if (hassegpfx)
 			hassegpfx--;
 		if (rep)
@@ -245,26 +245,26 @@ main(int argc, char *argv[])
 			case 4:
 				u = 19;
 				if (L) {
-					DX = (AX = newv = *(uint16_t *) & mem[h] * (uint16_t) * r) >> 16;
+					DX = (AX = newv = *(uint16_t *) &mem[h] * (uint16_t) *r) >> 16;
 					OF = CF = !!(newv - (uint16_t) newv);
 				} else {
-					AX = newv = *(uint8_t *) & mem[h] * (uint8_t) * r8;
+					AX = newv = *(uint8_t *) &mem[h] * (uint8_t) *r8;
 					OF = CF = !!(newv - (uint8_t) newv);
 				}
 				break;
 			case 5:
 				u = 19;
 				if (L) {
-					DX = (AX = newv = *(int16_t *) & mem[h] * (int16_t) * r) >> 16;
+					DX = (AX = newv = *(int16_t *) &mem[h] * (int16_t) *r) >> 16;
 					OF = CF = !!(newv - (int16_t) newv);
 				} else {
-					AX = newv = *(int8_t *) & mem[h] * (int8_t) * r8;
+					AX = newv = *(int8_t *) &mem[h] * (int8_t) *r8;
 					OF = CF = !!(newv - (int8_t) newv);
 				}
 				break;
 			case 6:
 				if (L) {
-					if (tmp3 = *(uint16_t *) & mem[h]) {
+					if (tmp3 = *(uint16_t *) &mem[h]) {
 						tmp2 = (uint32_t) (tmp = (DX << 16) + AX) / tmp3;
 						if (!(tmp2 - (uint16_t) tmp2))
 							DX = tmp - tmp3 * (AX = tmp2);
@@ -272,7 +272,7 @@ main(int argc, char *argv[])
 							intr(0);
 					}
 				} else {
-					if (tmp3 = *(uint8_t *) & mem[h]) {
+					if (tmp3 = *(uint8_t *) &mem[h]) {
 						tmp2 = (uint16_t) (tmp = (AH << 16) + AX) / tmp3;
 						if (!(tmp2 - (uint8_t) tmp2))
 							AH = tmp - tmp3 * (AL = tmp2);
@@ -283,7 +283,7 @@ main(int argc, char *argv[])
 				break;
 			case 7:
 				if (L) {
-					if (tmp3 = *(int16_t *) & mem[h]) {
+					if (tmp3 = *(int16_t *) &mem[h]) {
 						tmp2 = (int) (tmp = (DX << 16) + AX) / tmp3;
 						if (!(tmp2 - (int16_t) tmp2))
 							DX = tmp - tmp3 * (AX = tmp2);
@@ -291,7 +291,7 @@ main(int argc, char *argv[])
 							intr(0);
 					}
 				} else {
-					if (tmp3 = *(int8_t *) & mem[h]) {
+					if (tmp3 = *(int8_t *) &mem[h]) {
 						tmp2 = (int16_t) (tmp = (AH << 16) + AX) / tmp3;
 						if (!(tmp2 - (int8_t) tmp2))
 							AH = tmp - tmp3 * (AL = tmp2);
@@ -375,7 +375,7 @@ main(int argc, char *argv[])
 			POKE(mem[U], =, mem[W]);
 			break;
 		case 12:
-			tmp2 = (1 & (L ? *(int16_t *) & mem[h] : mem[h]) >> 8 * -~L - 1);
+			tmp2 = (1 & (L ? *(int16_t *) &mem[h] : mem[h]) >> 8 * -~L - 1);
 			if (tmp = m ? ++ip, (int8_t) disp : o ? 31 & CL : 1) {
 				if (a < 4) {
 					tmp %= a / 2 + 8 * -~L;
@@ -393,30 +393,30 @@ main(int argc, char *argv[])
 			switch (a) {
 			case 0:
 				POKE(mem[h], +=, tmp2 >> 8 * -~L - tmp);
-				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (CF = newv & 1);
+				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ (CF = newv & 1);
 				break;
 			case 1:
 				tmp2 &= (1 << tmp) - 1;
 				POKE(mem[h], +=, tmp2 << 8 * -~L - tmp);
-				CF = !!(1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1);
-				OF = (1 & (L ? *(int16_t *) & newv * 2 : newv * 2) >> 8 * -~L - 1) ^ CF;
+				CF = !!(1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1);
+				OF = (1 & (L ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 2:
 				POKE(mem[h], +=(CF << tmp - 1) +, tmp2 >> 1 + 8 * -~L - tmp);
 				CF = !!(tmp2 & 1 << 8 * -~L - tmp);
-				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ CF;
+				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 3:
 				POKE(mem[h], +=(CF << 8 * -~L - tmp) +, tmp2 << 1 + 8 * -~L - tmp);
 				CF = !!(tmp2 & 1 << tmp - 1);
-				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & newv * 2 : newv * 2) >> 8 * -~L - 1);
+				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~L - 1);
 				break;
 			case 4:
-				CF = !!(1 & (L ? *(int16_t *) & oldv << tmp - 1 : oldv << tmp - 1) >> 8 * -~L - 1);
-				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ CF;
+				CF = !!(1 & (L ? *(int16_t *) &oldv << tmp - 1 : oldv << tmp - 1) >> 8 * -~L - 1);
+				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 5:
-				OF = (1 & (L ? *(int16_t *) & oldv : oldv) >> 8 * -~L - 1);
+				OF = (1 & (L ? *(int16_t *) &oldv : oldv) >> 8 * -~L - 1);
 				break;
 			case 7:
 				if (tmp >= 8 * -~L)
@@ -635,13 +635,13 @@ main(int argc, char *argv[])
 				memcpy(&mem[16 * ES + BX], localtime(&t), m);
 				break;
 			case 2:
-				if (fseek(files[DL], (*(uint32_t *) & BP) << 9, SEEK_SET) != -1)
+				if (fseek(files[DL], (*(uint32_t *) &BP) << 9, SEEK_SET) != -1)
 					AL = fread(&mem[16 * ES + BX], 1, AX, files[DL]);
 				else
 					AL = 0;
 				break;
 			case 3:
-				if (fseek(files[DL], (*(uint32_t *) & BP) << 9, SEEK_SET) != -1)
+				if (fseek(files[DL], (*(uint32_t *) &BP) << 9, SEEK_SET) != -1)
 					AL = fwrite(&mem[16 * ES + BX], 1, AX, files[DL]);
 				else
 					AL = 0;
@@ -655,7 +655,7 @@ main(int argc, char *argv[])
 			OF = CF = 0;
 		ip += (mode % 3 + 2 * !(!mode * t - 6)) * lookup(20, u) + lookup(18, u) - lookup(19, u) * ~!!L;
 		if (lookup(15, u)) {
-			SF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1);
+			SF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1);
 			ZF = !newv;
 			PF = lookup(50, (uint8_t) newv);
 		}
