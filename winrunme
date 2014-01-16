@@ -1,0 +1,2 @@
+#!/bin/sh
+start cable3.exe bios fdboot.img
