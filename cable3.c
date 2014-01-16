@@ -501,7 +501,7 @@ main(int argc, char *argv[])
 			POKE(mem[opr2], =, d);
 			break;
 		case 21:	/* in */
-			ioport[986] ^= 9;
+			ioport[0x3da] ^= 9;
 			POKE(AL, =, ioport[m ? DX : (int8_t) c]);
 			break;
 		case 22:	/* out */
@@ -650,9 +650,10 @@ main(int argc, char *argv[])
 				SDL_PumpEvents();
 				if (!surface)
 					surface = SDL_SetVideoMode(720, 348, 32, 0);
-				uint32_t *pix = (uint32_t *) surface->pixels;
+				uint32_t *pix = (uint32_t *) surface->pixels,
+				         io = 88 + ioport[0x3b8] / 128 * 4;
 				for (int i = 720 * 348; i--;)
-					pix[i] = -!!(1 << 7 - i % 8 & mem[i / 2880 * 90 + i % 720 / 8 + (88 + ioport[952] / 128 * 4 + i / 720 % 4 << 13)]);
+					pix[i] = -!!(1 << 7 - i % 8 & mem[i / 2880 * 90 + i % 720 / 8 + (io + i / 720 % 4 << 13)]);
 				SDL_Flip(surface);
 			} else if (surface) {
 				SDL_Quit();
