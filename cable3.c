@@ -114,7 +114,7 @@ intr(int n)
 }
 
 uint32_t
-modrm(int mode, int t, int disp)
+modrm(int mode, int t, int16_t disp)
 {
 	if (mode == 3)
 		return regmap(t);
@@ -176,7 +176,7 @@ main(int argc, char *argv[])
 		uint32_t w3 = *(int16_t *) &ipptr[3];
 		int t = w1 & 7, a = w1 / 8 & 7;
 		int mode = ipptr[1] >> 6;
-		int disp = ~-mode ? w2 : (int8_t) w2;
+		int16_t disp = ~-mode ? w2 : (int8_t) w2;
 		uint32_t d = w3;
 		if (!mode * t != 6 && mode != 2) {
 			if (mode != 1)
