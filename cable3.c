@@ -202,7 +202,7 @@ main(int argc, char *argv[])
 			break;
 		case 2:
 			L = 2, a = m;
-			getoprs(0, reg, addr = modrm(mode, t, disp), &opr1, &opr2);
+			opr1 = addr = modrm(mode, t, disp), opr2 = regmap(reg);
 		case 5:
 			if (a < 2) {
 				POKE(mem[opr2], +=1 - 2 * a +, mem[ROMBASE + 24]);
@@ -557,13 +557,10 @@ main(int argc, char *argv[])
 			AH = getflags();
 			break;
 		case 37:
-			L = dir = 1;
-			opr1 = addr = modrm(mode, t, disp);
-			opr2 = tmp = regmap(a);
-			if (dir)
-				opr2 = addr, opr1 = tmp;
+			L = 1;
+			opr1 = regmap(a), opr2 = modrm(mode, t, disp);
 			POKE(mem[opr1], =, mem[opr2]);
-			POKE(mem[ROMBASE + m], =, mem[addr + 2]);
+			POKE(mem[ROMBASE + m], =, mem[opr2 + 2]);
 			break;
 		case 38:	/* int3 */
 			++ip;
