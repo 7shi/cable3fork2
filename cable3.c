@@ -6,8 +6,6 @@
 #include <SDL.h>
 
 #define POKE(dst,opr,src) (oldv=L?*(uint16_t*)&dst:dst,newv=L?*(uint16_t*)&dst opr(srcv=*(uint16_t*)&src):(dst opr(srcv=*(uint8_t*)&src)))
-#define PUSH(src) (L=4,SP-=2,POKE(mem[16*SS+SP],=,src))
-#define POP(dst) (L=4,SP+=2,POKE(dst,=,mem[16*SS+SP-2]))
 
 #define ROMBASE 0xf0000
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
@@ -52,6 +50,22 @@ int hassegpfx, segpfx;
 #define DF r8[47]
 #define OF r8[48]
 
+void
+push(uint16_t * src)
+{
+	L = 4;
+	*(uint16_t *) & mem[16 * SS + (SP -= 2)] = *src;
+}
+
+int
+pop(void)
+{
+	L = 4;
+	int ret = *(uint16_t *) & mem[16 * SS + SP];
+	SP += 2;
+	return ret;
+}
+
 int
 regmap(int rno)
 {
@@ -92,9 +106,9 @@ intr(int n)
 {
 	u = 76;
 	uint16_t flags = getflags();
-	PUSH(flags);
-	PUSH(CS);
-	PUSH(ip);
+	push(&flags);
+	push(&CS);
+	push(&ip);
 	POKE(CS, =, mem[4 * n + 2]);
 	POKE(ip, =, mem[4 * n]);
 	IF = 0;
@@ -197,21 +211,21 @@ main(int argc, char *argv[])
 			} else if (a != 6) {
 				ip += (mode % 3 + 2 * !(!mode * t - 6)) + 2;
 				if (a == 3)
-					PUSH(CS);
+					push(&CS);
 				if (a & 2)
-					PUSH(ip);
+					push(&ip);
 				if (a & 1)
 					POKE(mem[ROMBASE + 18], =, mem[U + 2]);
 				POKE(ip, =, mem[U]);
 				u = 67;
 			} else
-				PUSH(mem[h]);
+				push(&mem[h]);
 			break;
 		case 3:
-			PUSH(r[rno]);
+			push(&r[rno]);
 			break;
 		case 4:
-			POP(r[rno]);
+			r[rno] = pop();
 			break;
 		case 6:
 			W = U;
@@ -349,7 +363,7 @@ main(int argc, char *argv[])
 						U = h, W = tmp;
 					POKE(mem[tmp], =, h);
 				} else
-					POP(mem[h]);
+					mem[h] = pop();
 			}
 			break;
 		case 11:
@@ -433,7 +447,7 @@ main(int argc, char *argv[])
 				if (o)
 					CS = w3, ip = 0;
 				else
-					PUSH(ip);
+					push(&ip);
 			}
 			ip += o * L ? (int8_t) c : c;
 			break;
@@ -486,11 +500,11 @@ main(int argc, char *argv[])
 			break;
 		case 19:
 			o = L;
-			POP(ip);
+			ip = pop();
 			if (m)
-				POP(CS);
+				CS = pop();
 			if (m & 2)
-				setflags(POP(tmp));
+				setflags(pop());
 			else if (!o)
 				SP += c;
 			break;
@@ -510,10 +524,10 @@ main(int argc, char *argv[])
 				hassegpfx++;
 			break;
 		case 25:
-			PUSH(r[m]);
+			push(&r[m]);
 			break;
 		case 26:
-			POP(r[m]);
+			r[m] = pop();
 			break;
 		case 27:
 			hassegpfx = 2, segpfx = m;
@@ -537,16 +551,16 @@ main(int argc, char *argv[])
 			DX = -(1 & (L ? *(int16_t *) r : AX) >> 8 * -~L - 1);
 			break;
 		case 32:	/* callf */
-			PUSH(CS);
-			PUSH(ip + 5);
+			push(&CS);
+			push(&ip + 5);
 			CS = w3, ip = c;
 			break;
 		case 33:	/* pushf */
 			tmp = getflags();
-			PUSH(tmp);
+			push(&tmp);
 			break;
 		case 34:	/* popf */
-			setflags(POP(tmp));
+			setflags(pop());
 			break;
 		case 35:	/* sahf */
 			setflags((getflags() & ~m) + AH);
