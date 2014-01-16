@@ -4,7 +4,7 @@ OBJS = $(SRCS:.c=.o)
 PREFIX = /usr/local
 
 $(TARGET): $(OBJS)
-	$(CC) -o $@ $^
+	$(CC) -o $@ $(OBJS)
 
 install: $(TARGET)
 	install -cs $< $(PREFIX)/bin
