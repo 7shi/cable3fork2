@@ -197,7 +197,8 @@ main(int argc, char *argv[])
 			break;
 		case 1:
 			L = *ipptr & 8;
-			POKE(mem[regmap(reg)], =, c);
+			tmp = regmap(reg);
+			POKE(mem[tmp], =, c);
 			break;
 		case 2:
 			L = 2, o = 0, a = reg;
