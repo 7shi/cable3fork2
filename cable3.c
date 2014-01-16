@@ -202,7 +202,7 @@ main(int argc, char *argv[])
 			break;
 		case 2:
 			L = 2, a = m;
-			getoprs(0, reg, h, &opr1, &opr2);
+			getoprs(0, reg, h = modrm(mode, t, disp), &opr1, &opr2);
 		case 5:
 			if (a < 2) {
 				POKE(mem[opr2], +=1 - 2 * a +, mem[ROMBASE + 24]);
@@ -350,18 +350,14 @@ main(int argc, char *argv[])
 			break;
 		case 10:
 			if (!L) {
-				L = a += 8;
-				getoprs(o, a, h = modrm(mode, t, disp), &opr1, &opr2);
+				L = a + 8;
+				getoprs(o, L, modrm(mode, t, disp), &opr1, &opr2);
 				POKE(mem[opr1], =, mem[opr2]);
 			} else if (!o) {
-				hassegpfx = 1, segpfx = m;
-				opr1 = h = modrm(mode, t, disp);
-				opr2 = tmp = regmap(a);
-				if (o)
-					opr2 = h, opr1 = tmp;
-				POKE(mem[tmp], =, h);
+				hassegpfx = 1, segpfx = m, opr1 = modrm(mode, t, disp);
+				POKE(mem[opr2], =, opr1);
 			} else
-				*(uint16_t *) &mem[h] = pop();
+				*(uint16_t *) &mem[opr2] = pop();
 			break;
 		case 11:
 			a = 0;
