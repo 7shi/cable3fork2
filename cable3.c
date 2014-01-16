@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 	uint8_t t, a, mode, dir, reg, *ipptr, b = 0, rep = 0;
 	uint16_t counter = 0;
 	uint32_t kb = 0, addr, opr1, opr2, c, disp, d, tmp;
-	SDL_Surface *surface = 0;
+	SDL_Surface *surface = NULL;
 
 	CS = ROMBASE >> 4, ip = 0x100;
 
@@ -647,17 +647,18 @@ main(int argc, char *argv[])
 		if (!++counter) {
 			kb = 1;
 			if (ioport[0]) {
+				/* Hercules Graphics Card (HGC) */
 				SDL_PumpEvents();
 				if (!surface)
 					surface = SDL_SetVideoMode(720, 348, 32, 0);
-				uint32_t *pix = (uint32_t *) surface->pixels,
-				         io = 88 + ioport[0x3b8] / 128 * 4;
-				for (int i = 720 * 348; i--;)
-					pix[i] = -!!(1 << 7 - i % 8 & mem[i / 2880 * 90 + i % 720 / 8 + (io + i / 720 % 4 << 13)]);
+				uint32_t *pix = (uint32_t *) surface->pixels, io = 88 + ioport[0x3b8] / 128 * 4;
+				for (int y = 0, i = 0; y < 348; ++y)
+					for (int x = 0; x < 720; ++x, ++i)
+						pix[i] = -!!((1 << (7 - (x & 7))) & mem[y / 4 * 90 + x / 8 + ((io + (y & 3)) << 13)]);
 				SDL_Flip(surface);
 			} else if (surface) {
 				SDL_Quit();
-				surface = 0;
+				surface = NULL;
 			}
 		}
 	}
