@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <SDL.h>
 
 #define POKE(dst,opr,src) (oldv=L?*(uint16_t*)&dst:dst,newv=L?*(uint16_t*)&dst opr(srcv=*(uint16_t*)&src):(dst opr(srcv=*(uint8_t*)&src)))
@@ -137,7 +139,7 @@ main(int argc, char *argv[])
 				intr(7);
 			}
 #else
-			if (kb = read(0, &mem[0x4a6], 1))
+			if (kb = read(fileno(stdin), &mem[0x4a6], 1))
 				intr(7);
 #endif
 		}
@@ -612,8 +614,7 @@ main(int argc, char *argv[])
 				if (skipcnt && skipcnt--)
 					break;
 #endif
-				putchar(AL);
-				fflush(stdout);
+				write(fileno(stdout), &AL, 1);
 				break;
 			case 1:
 				time(&t);
