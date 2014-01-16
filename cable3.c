@@ -455,7 +455,9 @@ main(int argc, char *argv[])
 			break;
 		case 17:
 			if (!rep || CX) {
-				POKE(mem[m < 2 ? 16 * ES + DI : ROMBASE], =, mem[m & 1 ? ROMBASE : 16 * r[hassegpfx ? segpfx : 11] + SI]);
+				opr1 = m < 2 ? 16 * ES + DI : ROMBASE;
+				opr2 = m & 1 ? ROMBASE : 16 * r[hassegpfx ? segpfx : 11] + SI;
+				POKE(mem[opr1], =, mem[opr2]);
 				tmp = ~(-2 * DF) * ~L;
 				if (!(m & 1))
 					SI += tmp;
@@ -472,7 +474,9 @@ main(int argc, char *argv[])
 			break;
 		case 18:
 			if (!rep || CX) {
-				POKE(mem[m ? ROMBASE : 16 * r[hassegpfx ? segpfx : 11] + SI], -, mem[16 * ES + DI]);
+				opr1 = m ? ROMBASE : 16 * r[hassegpfx ? segpfx : 11] + SI;
+				opr2 = 16 * ES + DI;
+				POKE(mem[opr1], -, mem[opr2]);
 				u = 92;
 				ZF = !newv;
 				CF = newv > oldv;
