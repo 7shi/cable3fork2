@@ -67,9 +67,9 @@ pop(void)
 }
 
 int
-regmap(int rno)
+regmap(int reg)
 {
-	return ROMBASE + (L ? 2 * rno : (2 * rno + rno / 4) & 7);
+	return ROMBASE + (L ? 2 * reg : (2 * reg + reg / 4) & 7);
 }
 
 int
@@ -130,7 +130,7 @@ modrm(int mode, int t, int disp)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, a, mode, o, rno, *ipptr, b = 0, rep = 0;
+	uint8_t t, a, mode, o, reg, *ipptr, b = 0, rep = 0;
 	uint16_t counter = 0;
 	uint32_t kb = 0, h, opr1, opr2, c, disp, d, tmp;
 	SDL_Surface *surface = 0;
@@ -160,8 +160,8 @@ main(int argc, char *argv[])
 		ipptr = &mem[16 * CS + ip];
 		if (CS == 0 && ip == 0)
 			break;
-		L = (rno = *ipptr & 7) & 1;
-		o = rno / 2 & 1;
+		L = (reg = *ipptr & 7) & 1;
+		o = reg / 2 & 1;
 		ioport[32] = 0;
 		t = (c = *(int16_t *) &ipptr[1]) & 7;
 		a = c / 8 & 7;
@@ -192,10 +192,10 @@ main(int argc, char *argv[])
 			break;
 		case 1:
 			L = *ipptr & 8;
-			POKE(mem[regmap(rno)], =, c);
+			POKE(mem[regmap(reg)], =, c);
 			break;
 		case 2:
-			L = 2, o = 0, a = rno;
+			L = 2, o = 0, a = reg;
 			opr1 = h = modrm(mode, t, disp);
 			opr2 = tmp = regmap(a);
 			if (o)
@@ -222,10 +222,10 @@ main(int argc, char *argv[])
 				push(&mem[h]);
 			break;
 		case 3:
-			push(&r[rno]);
+			push(&r[reg]);
 			break;
 		case 4:
-			r[rno] = pop();
+			r[reg] = pop();
 			break;
 		case 6:
 			opr1 = opr2;
@@ -428,7 +428,7 @@ main(int argc, char *argv[])
 			break;
 		case 13:
 			tmp = !!--CX;
-			switch (rno) {
+			switch (reg) {
 			case 0:
 				tmp &= !r8[m];
 				break;
@@ -455,7 +455,7 @@ main(int argc, char *argv[])
 			POKE(mem[opr2], &, mem[opr1]);
 			break;
 		case 16:
-			L = 7, opr1 = ROMBASE, opr2 = regmap(rno);
+			L = 7, opr1 = ROMBASE, opr2 = regmap(reg);
 		case 24:
 			if (opr1 != opr2) {
 				POKE(mem[opr1], ^=, mem[opr2]);
