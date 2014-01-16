@@ -590,7 +590,16 @@ main(int argc, char *argv[])
 		case 48:	/* hyper call */
 			switch ((uint8_t) c) {
 				time_t t;
+#ifdef _WIN32
+				static int skipcnt;
+#endif
 			case 0:
+#ifdef _WIN32
+				if (AL == 27)
+					skipcnt = 6;
+				if (skipcnt && skipcnt--)
+					break;
+#endif
 				putchar(AL);
 				fflush(stdout);
 				break;
