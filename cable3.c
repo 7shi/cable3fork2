@@ -138,11 +138,6 @@ getoprs(int dir, int reg, uint32_t addr, uint32_t *opr1, uint32_t *opr2)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, a, mode, dir, reg, *ipptr, b = 0, rep = 0;
-	uint16_t counter = 0;
-	uint32_t kb = 0, addr, opr1, opr2, c, disp, d;
-	SDL_Surface *surface = NULL;
-
 	CS = ROMBASE >> 4, ip = 0x100;
 
 	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
@@ -151,6 +146,10 @@ main(int argc, char *argv[])
 	if (files[0])		/* CX:AX = HDD sectors */
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
+
+	uint8_t *ipptr, b = 0, rep = 0, kb = 0;
+	uint16_t counter = 0;
+	SDL_Surface *surface = NULL;
 
 	for (;;) {
 		if (!hassegpfx && !rep && kb && IF) {
@@ -168,15 +167,16 @@ main(int argc, char *argv[])
 		ipptr = &mem[16 * CS + ip];
 		if (CS == 0 && ip == 0)
 			break;
-		L = (reg = *ipptr & 7) & 1;
-		dir = reg / 2 & 1;
 		ioport[32] = 0;
-		t = (c = *(int16_t *) &ipptr[1]) & 7;
-		a = c / 8 & 7;
-		mode = ipptr[1] >> 6;
-		disp = ~-mode ? *(int16_t *) &ipptr[2] : (int8_t) *(int16_t *) &ipptr[2];
-		uint16_t w3 = d = *(int16_t *) &ipptr[3];
 		--ioport[64];
+		L = *ipptr & 1;
+		int reg = *ipptr & 7, dir = reg / 2 & 1;
+		uint32_t c = *(int16_t *) &ipptr[1];
+		int t = c & 7, a = c / 8 & 7;
+		int mode = ipptr[1] >> 6;
+		int disp = ~-mode ? *(int16_t *) &ipptr[2] : (int8_t) *(int16_t *) &ipptr[2];
+		uint32_t d = *(int16_t *) &ipptr[3];
+		uint16_t w3 = d;
 		if (!mode * t != 6 && mode != 2) {
 			if (mode != 1)
 				d = disp;
@@ -186,7 +186,8 @@ main(int argc, char *argv[])
 			hassegpfx--;
 		if (rep)
 			rep--;
-		getoprs(dir, a, addr = modrm(mode, t, disp), &opr1, &opr2);
+		uint32_t addr = modrm(mode, t, disp), opr1, opr2;
+		getoprs(dir, a, addr, &opr1, &opr2);
 		uint8_t m = lookup(14, u = lookup(51, *ipptr));
 		switch (lookup(8, u)) {
 			int tmp, tmp2;
