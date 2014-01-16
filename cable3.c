@@ -138,9 +138,9 @@ getoprs(int dir, int reg, uint32_t addr, uint32_t *opr1, uint32_t *opr2)
 int
 main(int argc, char *argv[])
 {
-	uint8_t t, a, mode, o, reg, *ipptr, b = 0, rep = 0;
+	uint8_t t, a, mode, dir, reg, *ipptr, b = 0, rep = 0;
 	uint16_t counter = 0;
-	uint32_t kb = 0, h, opr1, opr2, c, disp, d, tmp;
+	uint32_t kb = 0, addr, opr1, opr2, c, disp, d, tmp;
 	SDL_Surface *surface = 0;
 
 	CS = ROMBASE >> 4, ip = 0x100;
@@ -169,7 +169,7 @@ main(int argc, char *argv[])
 		if (CS == 0 && ip == 0)
 			break;
 		L = (reg = *ipptr & 7) & 1;
-		o = reg / 2 & 1;
+		dir = reg / 2 & 1;
 		ioport[32] = 0;
 		t = (c = *(int16_t *) &ipptr[1]) & 7;
 		a = c / 8 & 7;
@@ -186,7 +186,7 @@ main(int argc, char *argv[])
 			hassegpfx--;
 		if (rep)
 			rep--;
-		getoprs(o, a, h = modrm(mode, t, disp), &opr1, &opr2);
+		getoprs(dir, a, addr = modrm(mode, t, disp), &opr1, &opr2);
 		uint8_t m = lookup(14, u = lookup(51, *ipptr));
 		switch (lookup(8, u)) {
 			uint32_t tmp2;
@@ -202,7 +202,7 @@ main(int argc, char *argv[])
 			break;
 		case 2:
 			L = 2, a = m;
-			getoprs(0, reg, h = modrm(mode, t, disp), &opr1, &opr2);
+			getoprs(0, reg, addr = modrm(mode, t, disp), &opr1, &opr2);
 		case 5:
 			if (a < 2) {
 				POKE(mem[opr2], +=1 - 2 * a +, mem[ROMBASE + 24]);
@@ -221,7 +221,7 @@ main(int argc, char *argv[])
 				POKE(ip, =, mem[opr2]);
 				u = 67;
 			} else
-				push(*(uint16_t *) &mem[h]);
+				push(*(uint16_t *) &mem[addr]);
 			break;
 		case 3:
 			push(r[reg]);
@@ -247,26 +247,26 @@ main(int argc, char *argv[])
 			case 4:
 				u = 19;
 				if (L) {
-					DX = (AX = newv = *(uint16_t *) &mem[h] * (uint16_t) *r) >> 16;
+					DX = (AX = newv = *(uint16_t *) &mem[addr] * (uint16_t) *r) >> 16;
 					OF = CF = !!(newv - (uint16_t) newv);
 				} else {
-					AX = newv = *(uint8_t *) &mem[h] * (uint8_t) *r8;
+					AX = newv = *(uint8_t *) &mem[addr] * (uint8_t) *r8;
 					OF = CF = !!(newv - (uint8_t) newv);
 				}
 				break;
 			case 5:
 				u = 19;
 				if (L) {
-					DX = (AX = newv = *(int16_t *) &mem[h] * (int16_t) *r) >> 16;
+					DX = (AX = newv = *(int16_t *) &mem[addr] * (int16_t) *r) >> 16;
 					OF = CF = !!(newv - (int16_t) newv);
 				} else {
-					AX = newv = *(int8_t *) &mem[h] * (int8_t) *r8;
+					AX = newv = *(int8_t *) &mem[addr] * (int8_t) *r8;
 					OF = CF = !!(newv - (int8_t) newv);
 				}
 				break;
 			case 6:
 				if (L) {
-					if (tmp3 = *(uint16_t *) &mem[h]) {
+					if (tmp3 = *(uint16_t *) &mem[addr]) {
 						tmp2 = (uint32_t) (tmp = (DX << 16) + AX) / tmp3;
 						if (!(tmp2 - (uint16_t) tmp2))
 							DX = tmp - tmp3 * (AX = tmp2);
@@ -274,7 +274,7 @@ main(int argc, char *argv[])
 							intr(0);
 					}
 				} else {
-					if (tmp3 = *(uint8_t *) &mem[h]) {
+					if (tmp3 = *(uint8_t *) &mem[addr]) {
 						tmp2 = (uint16_t) (tmp = (AH << 16) + AX) / tmp3;
 						if (!(tmp2 - (uint8_t) tmp2))
 							AH = tmp - tmp3 * (AL = tmp2);
@@ -285,7 +285,7 @@ main(int argc, char *argv[])
 				break;
 			case 7:
 				if (L) {
-					if (tmp3 = *(int16_t *) &mem[h]) {
+					if (tmp3 = *(int16_t *) &mem[addr]) {
 						tmp2 = (int) (tmp = (DX << 16) + AX) / tmp3;
 						if (!(tmp2 - (int16_t) tmp2))
 							DX = tmp - tmp3 * (AX = tmp2);
@@ -293,7 +293,7 @@ main(int argc, char *argv[])
 							intr(0);
 					}
 				} else {
-					if (tmp3 = *(int8_t *) &mem[h]) {
+					if (tmp3 = *(int8_t *) &mem[addr]) {
 						tmp2 = (int16_t) (tmp = (AH << 16) + AX) / tmp3;
 						if (!(tmp2 - (int8_t) tmp2))
 							AH = tmp - tmp3 * (AL = tmp2);
@@ -305,10 +305,10 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 7:
-			h = ROMBASE, d = c, mode = 3, a = m, ip--;
+			addr = ROMBASE, d = c, mode = 3, a = m, ip--;
 		case 8:
-			opr1 = h;
-			r[13] = (o |= !L) ? (int8_t) d : d, opr2 = ROMBASE + 26, ip -= ~!o;
+			opr1 = addr;
+			r[13] = (dir |= !L) ? (int8_t) d : d, opr2 = ROMBASE + 26, ip -= ~!dir;
 			u = 17 + (m = a);
 		case 9:
 			switch (m) {
@@ -351,33 +351,33 @@ main(int argc, char *argv[])
 		case 10:
 			if (!L) {
 				L = a + 8;
-				getoprs(o, L, modrm(mode, t, disp), &opr1, &opr2);
+				getoprs(dir, L, modrm(mode, t, disp), &opr1, &opr2);
 				POKE(mem[opr1], =, mem[opr2]);
-			} else if (!o) {
-				hassegpfx = 1, segpfx = m, opr1 = modrm(mode, t, disp);
-				POKE(mem[opr2], =, opr1);
+			} else if (!dir) {
+				hassegpfx = 1, segpfx = m, addr = modrm(mode, t, disp);
+				POKE(mem[opr2], =, addr);
 			} else
-				*(uint16_t *) &mem[opr2] = pop();
+				*(uint16_t *) &mem[addr] = pop();
 			break;
 		case 11:
 			a = 0;
-			opr1 = h = modrm(0, 6, c);
+			opr1 = addr = modrm(0, 6, c);
 			opr2 = tmp = regmap(a);
-			if (o)
-				opr2 = h, opr1 = tmp;
+			if (dir)
+				opr2 = addr, opr1 = tmp;
 			POKE(mem[opr2], =, mem[opr1]);
 			break;
 		case 12:
-			tmp2 = (1 & (L ? *(int16_t *) &mem[h] : mem[h]) >> 8 * -~L - 1);
-			if (tmp = m ? ++ip, (int8_t) disp : o ? 31 & CL : 1) {
+			tmp2 = (1 & (L ? *(int16_t *) &mem[addr] : mem[addr]) >> 8 * -~L - 1);
+			if (tmp = m ? ++ip, (int8_t) disp : dir ? 31 & CL : 1) {
 				if (a < 4) {
 					tmp %= a / 2 + 8 * -~L;
-					POKE(tmp2, =, mem[h]);
+					POKE(tmp2, =, mem[addr]);
 				}
 				if (a & 1)
-					POKE(mem[h], >>=, tmp);
+					POKE(mem[addr], >>=, tmp);
 				else
-					POKE(mem[h], <<=, tmp);
+					POKE(mem[addr], <<=, tmp);
 				if (a > 3)
 					u = 19;
 				if (a >= 5)
@@ -385,22 +385,22 @@ main(int argc, char *argv[])
 			}
 			switch (a) {
 			case 0:
-				POKE(mem[h], +=, tmp2 >> 8 * -~L - tmp);
+				POKE(mem[addr], +=, tmp2 >> 8 * -~L - tmp);
 				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ (CF = newv & 1);
 				break;
 			case 1:
 				tmp2 &= (1 << tmp) - 1;
-				POKE(mem[h], +=, tmp2 << 8 * -~L - tmp);
+				POKE(mem[addr], +=, tmp2 << 8 * -~L - tmp);
 				CF = !!(1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1);
 				OF = (1 & (L ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 2:
-				POKE(mem[h], +=(CF << tmp - 1) +, tmp2 >> 1 + 8 * -~L - tmp);
+				POKE(mem[addr], +=(CF << tmp - 1) +, tmp2 >> 1 + 8 * -~L - tmp);
 				CF = !!(tmp2 & 1 << 8 * -~L - tmp);
 				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 3:
-				POKE(mem[h], +=(CF << 8 * -~L - tmp) +, tmp2 << 1 + 8 * -~L - tmp);
+				POKE(mem[addr], +=(CF << 8 * -~L - tmp) +, tmp2 << 1 + 8 * -~L - tmp);
 				CF = !!(tmp2 & 1 << tmp - 1);
 				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~L - 1);
 				break;
@@ -415,7 +415,7 @@ main(int argc, char *argv[])
 				if (tmp >= 8 * -~L)
 					CF = !!tmp2;
 				OF = 0;
-				POKE(mem[h], +=, tmp2 *= ~((1 << 8 * -~L) - 1 >> tmp));
+				POKE(mem[addr], +=, tmp2 *= ~((1 << 8 * -~L) - 1 >> tmp));
 				break;
 			}
 			break;
@@ -435,14 +435,14 @@ main(int argc, char *argv[])
 			ip += tmp * (int8_t) c;
 			break;
 		case 14:
-			ip += 3 - o;
+			ip += 3 - dir;
 			if (!L) {
-				if (o)
+				if (dir)
 					CS = w3, ip = 0;
 				else
 					push(ip);
 			}
-			ip += o * L ? (int8_t) c : c;
+			ip += dir * L ? (int8_t) c : c;
 			break;
 		case 15:
 			POKE(mem[opr2], &, mem[opr1]);
@@ -492,13 +492,13 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 19:
-			o = L;
+			dir = L;
 			ip = pop();
 			if (m)
 				CS = pop();
 			if (m & 2)
 				setflags(pop());
-			else if (!o)
+			else if (!dir)
 				SP += c;
 			break;
 		case 20:
@@ -561,13 +561,13 @@ main(int argc, char *argv[])
 			AH = getflags();
 			break;
 		case 37:
-			L = o = 1;
-			opr1 = h = modrm(mode, t, disp);
+			L = dir = 1;
+			opr1 = addr = modrm(mode, t, disp);
 			opr2 = tmp = regmap(a);
-			if (o)
-				opr2 = h, opr1 = tmp;
+			if (dir)
+				opr2 = addr, opr1 = tmp;
 			POKE(mem[opr1], =, mem[opr2]);
-			POKE(mem[ROMBASE + m], =, mem[h + 2]);
+			POKE(mem[ROMBASE + m], =, mem[addr + 2]);
 			break;
 		case 38:	/* int3 */
 			++ip;
