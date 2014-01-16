@@ -114,15 +114,15 @@ intr(int n)
 }
 
 uint32_t
-modrm(int mode, int t, int16_t disp)
+modrm(int mode, int rm, int16_t disp)
 {
 	if (mode == 3)
-		return regmap(t);
+		return regmap(rm);
 	int tno = 4 * !mode;
-	int seg = r[hassegpfx ? segpfx : lookup(tno + 3, t)];
-	int r1 = r[lookup(tno + 1, t)];
-	int hasdisp = lookup(tno + 2, t);
-	int r2 = r[lookup(tno, t)];
+	int seg = r[hassegpfx ? segpfx : lookup(tno + 3, rm)];
+	int r1 = r[lookup(tno + 1, rm)];
+	int hasdisp = lookup(tno + 2, rm);
+	int r2 = r[lookup(tno, rm)];
 	return 16 * seg + (uint16_t) (r1 + hasdisp * disp + r2);
 }
 
@@ -166,19 +166,19 @@ main(int argc, char *argv[])
 		}
 		if (CS == 0 && ip == 0)
 			break;
-		uint8_t *ipptr = &mem[16 * CS + ip];
 		ioport[32] = 0;
 		--ioport[64];
-		oprsz = *ipptr & 1;
-		int reg = *ipptr & 7, dir = reg / 2 & 1;
+		uint8_t *ipptr = &mem[16 * CS + ip];
+		oprsz = ipptr[0] & 1;
+		int o0 = ipptr[0] & 7, dir = ipptr[0] / 2 & 1;
 		uint32_t w1 = *(int16_t *) &ipptr[1];
 		uint32_t w2 = *(int16_t *) &ipptr[2];
 		uint32_t w3 = *(int16_t *) &ipptr[3];
-		int t = w1 & 7, a = w1 / 8 & 7;
+		int o1a = ipptr[1] & 7, o1b = ipptr[1] / 8 & 7;
 		int mode = ipptr[1] >> 6;
 		int16_t disp = ~-mode ? w2 : (int8_t) w2;
 		uint32_t d = w3;
-		if (!mode * t != 6 && mode != 2) {
+		if (!mode * o1a != 6 && mode != 2) {
 			if (mode != 1)
 				d = disp;
 		} else
@@ -187,38 +187,38 @@ main(int argc, char *argv[])
 			hassegpfx--;
 		if (rep)
 			rep--;
-		uint32_t addr = modrm(mode, t, disp), opr1, opr2;
-		getoprs(dir, a, addr, &opr1, &opr2);
-		uint8_t m = lookup(14, optype = lookup(51, *ipptr));
+		uint32_t addr = modrm(mode, o1a, disp), opr1, opr2;
+		getoprs(dir, o1b, addr, &opr1, &opr2);
+		uint8_t m = lookup(14, optype = lookup(51, ipptr[0]));
 		switch (lookup(8, optype)) {
 			int tmp, tmp2;
 			uint32_t utmp;
 		case 0:
-			tmp = *ipptr / 2 & 7;
+			tmp = ipptr[0] / 2 & 7;
 			ip += (int8_t) w1 *(oprsz ^ (r8[lookup(m, tmp)] | r8[lookup(22, tmp)] | r8[lookup(23, tmp)] ^ r8[lookup(24, tmp)]));
 			break;
 		case 1:
-			oprsz = *ipptr & 8;
-			tmp = regmap(reg);
+			oprsz = ipptr[0] & 8;
+			tmp = regmap(o0);
 			POKE(mem[tmp], =, w1);
 			break;
 		case 2:
-			oprsz = 2, a = m;
-			opr1 = addr = modrm(mode, t, disp), opr2 = regmap(reg);
+			oprsz = 2, o1b = m;
+			opr1 = addr = modrm(mode, o1a, disp), opr2 = regmap(o0);
 		case 5:
-			if (a < 2) {
-				POKE(mem[opr2], +=1 - 2 * a +, mem[ROMBASE + 24]);
+			if (o1b < 2) {
+				POKE(mem[opr2], +=1 - 2 * o1b +, mem[ROMBASE + 24]);
 				srcv = 1;
 				setafof();
-				OF = (oldv + 1 - a == 1 << 8 * -~oprsz - 1);
+				OF = (oldv + 1 - o1b == 1 << 8 * -~oprsz - 1);
 				optype = optype & 4 ? 19 : 57;
-			} else if (a != 6) {
-				ip += (mode % 3 + 2 * !(!mode * t - 6)) + 2;
-				if (a == 3)
+			} else if (o1b != 6) {
+				ip += (mode % 3 + 2 * !(!mode * o1a - 6)) + 2;
+				if (o1b == 3)
 					push(CS);
-				if (a & 2)
+				if (o1b & 2)
 					push(ip);
-				if (a & 1)
+				if (o1b & 1)
 					POKE(mem[ROMBASE + 18], =, mem[opr2 + 2]);
 				POKE(ip, =, mem[opr2]);
 				optype = 67;
@@ -226,14 +226,14 @@ main(int argc, char *argv[])
 				push(*(uint16_t *) &mem[addr]);
 			break;
 		case 3:
-			push(r[reg]);
+			push(r[o0]);
 			break;
 		case 4:
-			r[reg] = pop();
+			r[o0] = pop();
 			break;
 		case 6:
 			opr1 = opr2;
-			switch (a) {
+			switch (o1b) {
 			case 0:
 				optype = m, ip -= ~oprsz;
 				POKE(mem[opr1], &, d);
@@ -307,11 +307,11 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 7:
-			addr = ROMBASE, d = w1, mode = 3, a = m, ip--;
+			addr = ROMBASE, d = w1, mode = 3, o1b = m, ip--;
 		case 8:
 			opr1 = addr, opr2 = ROMBASE + 26;
 			r[13] = (dir |= !oprsz) ? (int8_t) d : d;
-			ip -= ~!dir, optype = 17 + (m = a);
+			ip -= ~!dir, optype = 17 + (m = o1b);
 		case 9:
 			switch (m) {
 			case 0:
@@ -352,11 +352,11 @@ main(int argc, char *argv[])
 			break;
 		case 10:
 			if (!oprsz) {
-				oprsz = a + 8;
-				getoprs(dir, oprsz, modrm(mode, t, disp), &opr1, &opr2);
+				oprsz = o1b + 8;
+				getoprs(dir, oprsz, modrm(mode, o1a, disp), &opr1, &opr2);
 				POKE(mem[opr1], =, mem[opr2]);
 			} else if (!dir) {
-				hassegpfx = 1, segpfx = m, addr = modrm(mode, t, disp);
+				hassegpfx = 1, segpfx = m, addr = modrm(mode, o1a, disp);
 				POKE(mem[opr2], =, addr);
 			} else
 				*(uint16_t *) &mem[addr] = pop();
@@ -368,20 +368,20 @@ main(int argc, char *argv[])
 		case 12:
 			utmp = (1 & (oprsz ? *(int16_t *) &mem[addr] : mem[addr]) >> 8 * -~oprsz - 1);
 			if (tmp = m ? ++ip, (int8_t) disp : dir ? 31 & CL : 1) {
-				if (a < 4) {
-					tmp %= a / 2 + 8 * -~oprsz;
+				if (o1b < 4) {
+					tmp %= o1b / 2 + 8 * -~oprsz;
 					POKE(utmp, =, mem[addr]);
 				}
-				if (a & 1)
+				if (o1b & 1)
 					POKE(mem[addr], >>=, tmp);
 				else
 					POKE(mem[addr], <<=, tmp);
-				if (a > 3)
+				if (o1b > 3)
 					optype = 19;
-				if (a >= 5)
+				if (o1b >= 5)
 					CF = oldv >> tmp - 1 & 1;
 			}
-			switch (a) {
+			switch (o1b) {
 			case 0:
 				POKE(mem[addr], +=, utmp >> 8 * -~oprsz - tmp);
 				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ (CF = newv & 1);
@@ -419,7 +419,7 @@ main(int argc, char *argv[])
 			break;
 		case 13:
 			tmp = !!--CX;
-			switch (reg) {
+			switch (o0) {
 			case 0:
 				tmp &= !r8[m];
 				break;
@@ -446,7 +446,7 @@ main(int argc, char *argv[])
 			POKE(mem[opr2], &, mem[opr1]);
 			break;
 		case 16:
-			oprsz = 7, opr1 = ROMBASE, opr2 = regmap(reg);
+			oprsz = 7, opr1 = ROMBASE, opr2 = regmap(o0);
 		case 24:
 			if (opr1 != opr2) {
 				POKE(mem[opr1], ^=, mem[opr2]);
@@ -564,7 +564,7 @@ main(int argc, char *argv[])
 			break;
 		case 37:
 			oprsz = 1;
-			opr1 = regmap(a), opr2 = modrm(mode, t, disp);
+			opr1 = regmap(o1b), opr2 = modrm(mode, o1a, disp);
 			POKE(mem[opr1], =, mem[opr2]);
 			POKE(mem[ROMBASE + m], =, mem[opr2 + 2]);
 			break;
@@ -644,7 +644,7 @@ main(int argc, char *argv[])
 			setafof();
 		else if (lookup(17, optype))
 			OF = CF = 0;
-		ip += (mode % 3 + 2 * !(!mode * t - 6)) * lookup(20, optype) + lookup(18, optype) - lookup(19, optype) * ~!!oprsz;
+		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * lookup(20, optype) + lookup(18, optype) - lookup(19, optype) * ~!!oprsz;
 		if (lookup(15, optype)) {
 			SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
 			ZF = !newv;
