@@ -51,10 +51,10 @@ int hassegpfx, segpfx;
 #define OF r8[48]
 
 void
-push(uint16_t * src)
+push(void *src)
 {
 	L = 4;
-	*(uint16_t *) & mem[16 * SS + (SP -= 2)] = *src;
+	*(uint16_t *) & mem[16 * SS + (SP -= 2)] = *(uint16_t *) src;
 }
 
 int
