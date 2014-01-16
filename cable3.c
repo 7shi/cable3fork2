@@ -171,12 +171,13 @@ main(int argc, char *argv[])
 		--ioport[64];
 		oprsz = *ipptr & 1;
 		int reg = *ipptr & 7, dir = reg / 2 & 1;
-		uint32_t c = *(int16_t *) &ipptr[1];
-		int t = c & 7, a = c / 8 & 7;
+		uint32_t w1 = *(int16_t *) &ipptr[1];
+		uint32_t w2 = *(int16_t *) &ipptr[2];
+		uint32_t w3 = *(int16_t *) &ipptr[3];
+		int t = w1 & 7, a = w1 / 8 & 7;
 		int mode = ipptr[1] >> 6;
-		int disp = ~-mode ? *(int16_t *) &ipptr[2] : (int8_t) *(int16_t *) &ipptr[2];
-		uint32_t d = *(int16_t *) &ipptr[3];
-		uint16_t w3 = d;
+		int disp = ~-mode ? w2 : (int8_t) w2;
+		uint32_t d = w3;
 		if (!mode * t != 6 && mode != 2) {
 			if (mode != 1)
 				d = disp;
@@ -194,12 +195,12 @@ main(int argc, char *argv[])
 			uint32_t utmp;
 		case 0:
 			tmp = *ipptr / 2 & 7;
-			ip += (int8_t) c *(oprsz ^ (r8[lookup(m, tmp)] | r8[lookup(22, tmp)] | r8[lookup(23, tmp)] ^ r8[lookup(24, tmp)]));
+			ip += (int8_t) w1 *(oprsz ^ (r8[lookup(m, tmp)] | r8[lookup(22, tmp)] | r8[lookup(23, tmp)] ^ r8[lookup(24, tmp)]));
 			break;
 		case 1:
 			oprsz = *ipptr & 8;
 			tmp = regmap(reg);
-			POKE(mem[tmp], =, c);
+			POKE(mem[tmp], =, w1);
 			break;
 		case 2:
 			oprsz = 2, a = m;
@@ -306,7 +307,7 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 7:
-			addr = ROMBASE, d = c, mode = 3, a = m, ip--;
+			addr = ROMBASE, d = w1, mode = 3, a = m, ip--;
 		case 8:
 			opr1 = addr, opr2 = ROMBASE + 26;
 			r[13] = (dir |= !oprsz) ? (int8_t) d : d;
@@ -361,7 +362,7 @@ main(int argc, char *argv[])
 				*(uint16_t *) &mem[addr] = pop();
 			break;
 		case 11:
-			getoprs(dir, 0, modrm(0, 6, c), &opr1, &opr2);
+			getoprs(dir, 0, modrm(0, 6, w1), &opr1, &opr2);
 			POKE(mem[opr2], =, mem[opr1]);
 			break;
 		case 12:
@@ -429,7 +430,7 @@ main(int argc, char *argv[])
 				tmp = !++CX;
 				break;
 			}
-			ip += tmp * (int8_t) c;
+			ip += tmp * (int8_t) w1;
 			break;
 		case 14:
 			ip += 3 - dir;
@@ -439,7 +440,7 @@ main(int argc, char *argv[])
 				else
 					push(ip);
 			}
-			ip += dir * oprsz ? (int8_t) c : c;
+			ip += dir * oprsz ? (int8_t) w1 : w1;
 			break;
 		case 15:
 			POKE(mem[opr2], &, mem[opr1]);
@@ -500,17 +501,17 @@ main(int argc, char *argv[])
 			if (m & 2)
 				setflags(pop());
 			else if (!dir)
-				SP += c;
+				SP += w1;
 			break;
 		case 20:
 			POKE(mem[opr2], =, d);
 			break;
 		case 21:	/* in */
 			ioport[0x3da] ^= 9;
-			POKE(AL, =, ioport[m ? DX : (int8_t) c]);
+			POKE(AL, =, ioport[m ? DX : (int8_t) w1]);
 			break;
 		case 22:	/* out */
-			POKE(ioport[m ? DX : (int8_t) c], =, AL);
+			POKE(ioport[m ? DX : (int8_t) w1], =, AL);
 			break;
 		case 23:
 			rep = 2, b = oprsz;
@@ -547,7 +548,7 @@ main(int argc, char *argv[])
 		case 32:	/* callf */
 			push(CS);
 			push(ip + 5);
-			CS = w3, ip = c;
+			CS = w3, ip = w1;
 			break;
 		case 33:	/* pushf */
 			push(getflags());
@@ -573,7 +574,7 @@ main(int argc, char *argv[])
 			break;
 		case 39:	/* int n */
 			ip += 2;
-			intr(c & m);
+			intr(w1 & m);
 			break;
 		case 40:
 			++ip;
@@ -581,14 +582,14 @@ main(int argc, char *argv[])
 				intr(4);
 			break;
 		case 41:
-			if (c &= m) {
-				AH = AL / c;
-				newv = AL %= c;
+			if (w1 &= m) {
+				AH = AL / w1;
+				newv = AL %= w1;
 			} else
 				intr(0);
 			break;
 		case 42:
-			oprsz = 0, AX = newv = m & AL + c * AH;
+			oprsz = 0, AX = newv = m & AL + w1 * AH;
 			break;
 		case 43:
 			AL = -r8[m];
@@ -603,10 +604,10 @@ main(int argc, char *argv[])
 			r8[m / 2] = m & 1;
 			break;
 		case 47:
-			POKE(AL, &, c);
+			POKE(AL, &, w1);
 			break;
 		case 48:	/* hyper call */
-			switch ((uint8_t) c) {
+			switch ((uint8_t) w1) {
 				time_t t;
 #ifdef _WIN32
 				static int skipcnt;
