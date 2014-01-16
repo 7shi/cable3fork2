@@ -85,17 +85,17 @@ setafof(void)
 	OF = (newv - oldv && 1 & (CF ^ srcv >> 8 * -~L - 1));
 }
 
-int
+uint16_t
 getflags(void)
 {
-	int flags = 0xf002;
+	uint16_t flags = 0xf002;
 	for (int i = 0; i < 9; ++i)
 		flags += r8[40 + i] << lookup(25, i);
 	return flags;
 }
 
 void
-setflags(int flags)
+setflags(uint16_t flags)
 {
 	for (int i = 0; i < 9; ++i)
 		r8[40 + i] = !!(flags & (1 << lookup(25, i)));
@@ -114,7 +114,7 @@ intr(int n)
 	IF = 0;
 }
 
-int
+uint32_t
 modrm(int mode, int t, int disp)
 {
 	if (mode == 3)
