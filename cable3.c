@@ -356,17 +356,15 @@ main(int argc, char *argv[])
 				if (o)
 					opr2 = h, opr1 = tmp;
 				POKE(mem[opr1], =, mem[opr2]);
-			} else {
-				if (!o) {
-					hassegpfx = 1, segpfx = m;
-					opr1 = h = modrm(mode, t, disp);
-					opr2 = tmp = regmap(a);
-					if (o)
-						opr2 = h, opr1 = tmp;
-					POKE(mem[tmp], =, h);
-				} else
-					*(uint16_t *) &mem[h] = pop();
-			}
+			} else if (!o) {
+				hassegpfx = 1, segpfx = m;
+				opr1 = h = modrm(mode, t, disp);
+				opr2 = tmp = regmap(a);
+				if (o)
+					opr2 = h, opr1 = tmp;
+				POKE(mem[tmp], =, h);
+			} else
+				*(uint16_t *) &mem[h] = pop();
 			break;
 		case 11:
 			a = 0;
