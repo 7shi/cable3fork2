@@ -127,6 +127,15 @@ modrm(int mode, int t, int disp)
 	return 16 * seg + (uint16_t) (r1 + hasdisp * disp + r2);
 }
 
+void
+getoprs(int dir, int reg, uint32_t addr, uint32_t *opr1, uint32_t *opr2)
+{
+	if (!dir)
+		*opr1 = addr, *opr2 = regmap(reg);
+	else
+		*opr1 = regmap(reg), *opr2 = addr;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -178,10 +187,7 @@ main(int argc, char *argv[])
 			hassegpfx--;
 		if (rep)
 			rep--;
-		opr1 = h = modrm(mode, t, disp);
-		tmp = opr2 = regmap(a);
-		if (o)
-			opr2 = h, opr1 = tmp;
+		getoprs(o, a, h = modrm(mode, t, disp), &opr1, &opr2);
 		uint8_t m = lookup(14, u = lookup(51, *ipptr));
 		switch (lookup(8, u)) {
 			uint32_t tmp2;
