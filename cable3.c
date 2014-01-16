@@ -177,12 +177,12 @@ main(int argc, char *argv[])
 		int o1a = ipptr[1] & 7, o1b = ipptr[1] / 8 & 7;
 		int mode = ipptr[1] >> 6;
 		int16_t disp = ~-mode ? w2 : (int8_t) w2;
-		uint32_t d = w3;
-		if (!mode * o1a != 6 && mode != 2) {
+		uint32_t opr = w3;
+		if (!(mode == 0 && o1a == 6) && mode != 2) {
 			if (mode != 1)
-				d = disp;
+				opr = disp;
 		} else
-			d = *(int16_t *) &ipptr[4];
+			opr = *(int16_t *) &ipptr[4];
 		if (hassegpfx)
 			hassegpfx--;
 		if (rep)
@@ -236,7 +236,7 @@ main(int argc, char *argv[])
 			switch (o1b) {
 			case 0:
 				optype = m, ip -= ~oprsz;
-				POKE(mem[opr1], &, d);
+				POKE(mem[opr1], &, opr);
 				break;
 			case 2:
 				POKE(mem[opr1], = ~, mem[opr2]);
@@ -307,10 +307,10 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 7:
-			addr = ROMBASE, d = w1, mode = 3, o1b = m, ip--;
+			addr = ROMBASE, opr = w1, mode = 3, o1b = m, ip--;
 		case 8:
 			opr1 = addr, opr2 = ROMBASE + 26;
-			r[13] = (dir |= !oprsz) ? (int8_t) d : d;
+			r[13] = (dir |= !oprsz) ? (int8_t) opr : opr;
 			ip -= ~!dir, optype = 17 + (m = o1b);
 		case 9:
 			switch (m) {
@@ -504,7 +504,7 @@ main(int argc, char *argv[])
 				SP += w1;
 			break;
 		case 20:
-			POKE(mem[opr2], =, d);
+			POKE(mem[opr2], =, opr);
 			break;
 		case 21:	/* in */
 			ioport[0x3da] ^= 9;
