@@ -147,7 +147,7 @@ main(int argc, char *argv[])
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
 
-	uint8_t b = 0, rep = 0, kb = 0;
+	int hasrep = 0, rep = 0, kb = 0;
 	uint16_t counter = 0;
 	SDL_Surface *surface = NULL;
 
@@ -485,7 +485,7 @@ main(int argc, char *argv[])
 				if (!m)
 					SI += tmp;
 				DI += tmp;
-				if (rep && --CX && !newv == b) {
+				if (rep && --CX && !newv == hasrep) {
 					rep++;
 					if (hassegpfx)
 						hassegpfx++;
@@ -514,7 +514,7 @@ main(int argc, char *argv[])
 			POKE(ioport[m ? DX : (int8_t) w1], =, AL);
 			break;
 		case 23:
-			rep = 2, b = oprsz;
+			rep = 2, hasrep = oprsz;
 			if (hassegpfx)
 				hassegpfx++;
 			break;
