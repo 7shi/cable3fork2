@@ -382,11 +382,13 @@ main(int argc, char *argv[])
 			case 1:
 				tmp2 &= (1 << tmp) - 1;
 				POKE(mem[h], +=, tmp2 << 8 * -~L - tmp);
-				OF = (1 & (L ? *(int16_t *) & newv * 2 : newv * 2) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1));
+				CF = !!(1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1);
+				OF = (1 & (L ? *(int16_t *) & newv * 2 : newv * 2) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 2:
 				POKE(mem[h], +=(CF << tmp - 1) +, tmp2 >> 1 + 8 * -~L - tmp);
-				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (CF = !!(tmp2 & 1 << 8 * -~L - tmp));
+				CF = !!(tmp2 & 1 << 8 * -~L - tmp);
+				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 3:
 				POKE(mem[h], +=(CF << 8 * -~L - tmp) +, tmp2 << 1 + 8 * -~L - tmp);
@@ -394,7 +396,8 @@ main(int argc, char *argv[])
 				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) & newv * 2 : newv * 2) >> 8 * -~L - 1);
 				break;
 			case 4:
-				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ (CF = !!(1 & (L ? *(int16_t *) & oldv << tmp - 1 : oldv << tmp - 1) >> 8 * -~L - 1));
+				CF = !!(1 & (L ? *(int16_t *) & oldv << tmp - 1 : oldv << tmp - 1) >> 8 * -~L - 1);
+				OF = (1 & (L ? *(int16_t *) & newv : newv) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 5:
 				OF = (1 & (L ? *(int16_t *) & oldv : oldv) >> 8 * -~L - 1);
