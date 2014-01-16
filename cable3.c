@@ -360,11 +360,7 @@ main(int argc, char *argv[])
 				*(uint16_t *) &mem[addr] = pop();
 			break;
 		case 11:
-			a = 0;
-			opr1 = addr = modrm(0, 6, c);
-			opr2 = tmp = regmap(a);
-			if (dir)
-				opr2 = addr, opr1 = tmp;
+			getoprs(dir, 0, modrm(0, 6, c), &opr1, &opr2);
 			POKE(mem[opr2], =, mem[opr1]);
 			break;
 		case 12:
