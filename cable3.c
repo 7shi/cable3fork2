@@ -6,7 +6,12 @@
 #define POKE(dst,opr,src) (oldv=L?*(uint16_t*)&dst:dst,newv=L?*(uint16_t*)&dst opr(srcv=*(uint16_t*)&src):(dst opr(srcv=*(uint8_t*)&src)))
 #define PUSH(src) (L=4,SP-=2,POKE(mem[16*SS+SP],=,src))
 #define POP(dst) (L=4,SP+=2,POKE(dst,=,mem[16*SS+SP-2]))
+
+#ifdef _WIN32
+#define KB (intr(8),kb=kbhit())&&(mem[0x4a6]=getch(),intr(7))
+#else
 #define KB (kb=read(intr(8),&mem[0x4a6],1))&&intr(7)
+#endif
 
 #define ROMBASE 0xf0000
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
@@ -124,7 +129,7 @@ main(int argc, char *argv[])
 
 	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
 	for (int i = 1; i <= 3 && i < argc; ++i)
-		files[3 - i] = fopen(argv[i], "r+");
+		files[3 - i] = fopen(argv[i], "r+b");
 	if (files[0])		/* CX:AX = HDD sectors */
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
