@@ -351,10 +351,7 @@ main(int argc, char *argv[])
 		case 10:
 			if (!L) {
 				L = a += 8;
-				opr1 = h = modrm(mode, t, disp);
-				opr2 = tmp = regmap(a);
-				if (o)
-					opr2 = h, opr1 = tmp;
+				getoprs(o, a, h = modrm(mode, t, disp), &opr1, &opr2);
 				POKE(mem[opr1], =, mem[opr2]);
 			} else if (!o) {
 				hassegpfx = 1, segpfx = m;
