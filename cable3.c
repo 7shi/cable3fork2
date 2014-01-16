@@ -307,9 +307,9 @@ main(int argc, char *argv[])
 		case 7:
 			addr = ROMBASE, d = c, mode = 3, a = m, ip--;
 		case 8:
-			opr1 = addr;
-			r[13] = (dir |= !L) ? (int8_t) d : d, opr2 = ROMBASE + 26, ip -= ~!dir;
-			u = 17 + (m = a);
+			opr1 = addr, opr2 = ROMBASE + 26;
+			r[13] = (dir |= !L) ? (int8_t) d : d;
+			ip -= ~!dir, u = 17 + (m = a);
 		case 9:
 			switch (m) {
 			case 0:
