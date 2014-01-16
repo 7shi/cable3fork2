@@ -652,10 +652,11 @@ main(int argc, char *argv[])
 				SDL_PumpEvents();
 				if (!surface)
 					surface = SDL_SetVideoMode(720, 348, 32, 0);
-				uint32_t *pix = (uint32_t *) surface->pixels, io = 88 + ioport[0x3b8] / 128 * 4;
+				uint32_t *pix = (uint32_t *) surface->pixels;
+				uint8_t *fb = &mem[0xb0000 + ioport[0x3b8] / 128 * 0x8000];
 				for (int y = 0, i = 0; y < 348; ++y)
 					for (int x = 0; x < 720; ++x, ++i)
-						pix[i] = -!!((1 << (7 - (x & 7))) & mem[y / 4 * 90 + x / 8 + ((io + (y & 3)) << 13)]);
+						pix[i] = -!!((1 << (7 - (x & 7))) & fb[x / 8 + y / 4 * 90 + ((y & 3) << 13)]);
 				SDL_Flip(surface);
 			} else if (surface) {
 				SDL_Quit();
