@@ -57,11 +57,11 @@ push(void *src)
 	*(uint16_t *) &mem[16 * SS + (SP -= 2)] = *(uint16_t *) src;
 }
 
-int
+uint16_t
 pop(void)
 {
 	L = 4;
-	int ret = *(uint16_t *) &mem[16 * SS + SP];
+	uint16_t ret = *(uint16_t *) &mem[16 * SS + SP];
 	SP += 2;
 	return ret;
 }
@@ -363,7 +363,7 @@ main(int argc, char *argv[])
 						opr2 = h, opr1 = tmp;
 					POKE(mem[tmp], =, h);
 				} else
-					mem[h] = pop();
+					*(uint16_t *) &mem[h] = pop();
 			}
 			break;
 		case 11:
