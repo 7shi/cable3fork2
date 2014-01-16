@@ -201,12 +201,8 @@ main(int argc, char *argv[])
 			POKE(mem[tmp], =, c);
 			break;
 		case 2:
-			L = 2, o = 0, a = reg;
-			opr1 = h = modrm(mode, t, disp);
-			opr2 = tmp = regmap(a);
-			if (o)
-				opr2 = h, opr1 = tmp;
-			a = m;
+			L = 2, a = m;
+			getoprs(0, reg, h, &opr1, &opr2);
 		case 5:
 			if (a < 2) {
 				POKE(mem[opr2], +=1 - 2 * a +, mem[ROMBASE + 24]);
