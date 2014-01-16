@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 {
 	uint8_t t, a, mode, dir, reg, *ipptr, b = 0, rep = 0;
 	uint16_t counter = 0;
-	uint32_t kb = 0, addr, opr1, opr2, c, disp, d, tmp;
+	uint32_t kb = 0, addr, opr1, opr2, c, disp, d;
 	SDL_Surface *surface = NULL;
 
 	CS = ROMBASE >> 4, ip = 0x100;
@@ -189,8 +189,8 @@ main(int argc, char *argv[])
 		getoprs(dir, a, addr = modrm(mode, t, disp), &opr1, &opr2);
 		uint8_t m = lookup(14, u = lookup(51, *ipptr));
 		switch (lookup(8, u)) {
-			uint32_t tmp2;
-			int tmp3;
+			int tmp, tmp2;
+			uint32_t utmp;
 		case 0:
 			tmp = *ipptr / 2 & 7;
 			ip += (int8_t) c *(L ^ (r8[lookup(m, tmp)] | r8[lookup(22, tmp)] | r8[lookup(23, tmp)] ^ r8[lookup(24, tmp)]));
@@ -266,18 +266,18 @@ main(int argc, char *argv[])
 				break;
 			case 6:
 				if (L) {
-					if (tmp3 = *(uint16_t *) &mem[addr]) {
-						tmp2 = (uint32_t) (tmp = (DX << 16) + AX) / tmp3;
-						if (!(tmp2 - (uint16_t) tmp2))
-							DX = tmp - tmp3 * (AX = tmp2);
+					if (tmp2 = *(uint16_t *) &mem[addr]) {
+						utmp = (uint32_t) (tmp = (DX << 16) + AX) / tmp2;
+						if (!(utmp - (uint16_t) utmp))
+							DX = tmp - tmp2 * (AX = utmp);
 						else
 							intr(0);
 					}
 				} else {
-					if (tmp3 = *(uint8_t *) &mem[addr]) {
-						tmp2 = (uint16_t) (tmp = (AH << 16) + AX) / tmp3;
-						if (!(tmp2 - (uint8_t) tmp2))
-							AH = tmp - tmp3 * (AL = tmp2);
+					if (tmp2 = *(uint8_t *) &mem[addr]) {
+						utmp = (uint16_t) (tmp = (AH << 16) + AX) / tmp2;
+						if (!(utmp - (uint8_t) utmp))
+							AH = tmp - tmp2 * (AL = utmp);
 						else
 							intr(0);
 					}
@@ -285,18 +285,18 @@ main(int argc, char *argv[])
 				break;
 			case 7:
 				if (L) {
-					if (tmp3 = *(int16_t *) &mem[addr]) {
-						tmp2 = (int) (tmp = (DX << 16) + AX) / tmp3;
-						if (!(tmp2 - (int16_t) tmp2))
-							DX = tmp - tmp3 * (AX = tmp2);
+					if (tmp2 = *(int16_t *) &mem[addr]) {
+						utmp = (int) (tmp = (DX << 16) + AX) / tmp2;
+						if (!(utmp - (int16_t) utmp))
+							DX = tmp - tmp2 * (AX = utmp);
 						else
 							intr(0);
 					}
 				} else {
-					if (tmp3 = *(int8_t *) &mem[addr]) {
-						tmp2 = (int16_t) (tmp = (AH << 16) + AX) / tmp3;
-						if (!(tmp2 - (int8_t) tmp2))
-							AH = tmp - tmp3 * (AL = tmp2);
+					if (tmp2 = *(int8_t *) &mem[addr]) {
+						utmp = (int16_t) (tmp = (AH << 16) + AX) / tmp2;
+						if (!(utmp - (int8_t) utmp))
+							AH = tmp - tmp2 * (AL = utmp);
 						else
 							intr(0);
 					}
@@ -364,11 +364,11 @@ main(int argc, char *argv[])
 			POKE(mem[opr2], =, mem[opr1]);
 			break;
 		case 12:
-			tmp2 = (1 & (L ? *(int16_t *) &mem[addr] : mem[addr]) >> 8 * -~L - 1);
+			utmp = (1 & (L ? *(int16_t *) &mem[addr] : mem[addr]) >> 8 * -~L - 1);
 			if (tmp = m ? ++ip, (int8_t) disp : dir ? 31 & CL : 1) {
 				if (a < 4) {
 					tmp %= a / 2 + 8 * -~L;
-					POKE(tmp2, =, mem[addr]);
+					POKE(utmp, =, mem[addr]);
 				}
 				if (a & 1)
 					POKE(mem[addr], >>=, tmp);
@@ -381,23 +381,23 @@ main(int argc, char *argv[])
 			}
 			switch (a) {
 			case 0:
-				POKE(mem[addr], +=, tmp2 >> 8 * -~L - tmp);
+				POKE(mem[addr], +=, utmp >> 8 * -~L - tmp);
 				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ (CF = newv & 1);
 				break;
 			case 1:
-				tmp2 &= (1 << tmp) - 1;
-				POKE(mem[addr], +=, tmp2 << 8 * -~L - tmp);
+				utmp &= (1 << tmp) - 1;
+				POKE(mem[addr], +=, utmp << 8 * -~L - tmp);
 				CF = !!(1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1);
 				OF = (1 & (L ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 2:
-				POKE(mem[addr], +=(CF << tmp - 1) +, tmp2 >> 1 + 8 * -~L - tmp);
-				CF = !!(tmp2 & 1 << 8 * -~L - tmp);
+				POKE(mem[addr], +=(CF << tmp - 1) +, utmp >> 1 + 8 * -~L - tmp);
+				CF = !!(utmp & 1 << 8 * -~L - tmp);
 				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ CF;
 				break;
 			case 3:
-				POKE(mem[addr], +=(CF << 8 * -~L - tmp) +, tmp2 << 1 + 8 * -~L - tmp);
-				CF = !!(tmp2 & 1 << tmp - 1);
+				POKE(mem[addr], +=(CF << 8 * -~L - tmp) +, utmp << 1 + 8 * -~L - tmp);
+				CF = !!(utmp & 1 << tmp - 1);
 				OF = (1 & (L ? *(int16_t *) &newv : newv) >> 8 * -~L - 1) ^ (1 & (L ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~L - 1);
 				break;
 			case 4:
@@ -409,9 +409,9 @@ main(int argc, char *argv[])
 				break;
 			case 7:
 				if (tmp >= 8 * -~L)
-					CF = !!tmp2;
+					CF = !!utmp;
 				OF = 0;
-				POKE(mem[addr], +=, tmp2 *= ~((1 << 8 * -~L) - 1 >> tmp));
+				POKE(mem[addr], +=, utmp *= ~((1 << 8 * -~L) - 1 >> tmp));
 				break;
 			}
 			break;
