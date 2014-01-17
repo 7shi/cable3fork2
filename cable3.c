@@ -189,7 +189,8 @@ main(int argc, char *argv[])
 			rep--;
 		uint32_t addr = modrm(mode, o1a, disp), opr1, opr2;
 		getoprs(dir, o1b, addr, &opr1, &opr2);
-		uint8_t m = lookup(14, optype = lookup(51, ipptr[0]));
+		optype = lookup(51, ipptr[0]);
+		uint8_t m = lookup(14, optype);
 		switch (lookup(8, optype)) {
 			int tmp, tmp2;
 			uint32_t utmp;
