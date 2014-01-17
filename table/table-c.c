@@ -537,4 +537,3 @@ uint8_t *tables[] = {
     table30, table31, table32, table33, table34, table35, table36, table37, table38, table39,
     table40, table41, table42, table43, table44, table45, table46, table47, table48, table49,
     table50, table51, };
-
