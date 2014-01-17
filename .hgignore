@@ -7,3 +7,4 @@ cable3
 *core
 stdout.txt
 stderr.txt
+bin/

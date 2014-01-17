@@ -1,0 +1,35 @@
+getflags		25	8
+modrm	r2	0	7
+	r1	1	7
+	hasdisp	2	7
+	seg	3	7
+	r2	4	7
+	r1	5	7
+	hasdisp	6	7
+	seg	7	7
+main	optype	51	255
+	m?	14	optype
+	switch()	8	optype
+	case 0	m	7
+		22	7
+		23	7
+		24	7
+	case 28	m	255
+		m+3	255
+		m+6	255
+		m+9	255
+		m+1	255
+		m+4	255
+		m+7	255
+		m+10	255
+		m-1	255
+		m+2	255
+		m+5	255
+		m+8	255
+	setafof	16	optype
+	of=cf=0	17	optype
+	ip+=	20	optype
+		18	optype
+		19	optype
+	SF/ZF/PF	15	optype
+	PF	50	255
