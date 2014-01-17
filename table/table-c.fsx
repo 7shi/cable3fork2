@@ -1,4 +1,4 @@
-let bios = System.IO.File.ReadAllBytes "../../bios"
+let bios = System.IO.File.ReadAllBytes "../../../bios"
 let baseaddr = 0xf0000
 let start = baseaddr + 0x100
 let last = start + bios.Length
@@ -15,9 +15,21 @@ let tables =
     i0, ad0, if ad0 < start then 0 else ad1 - ad0)
 |> Seq.sortBy (fun (index, _, _) -> index)
 
+printfn "#include <stdint.h>"
+printfn ""
 for index, addr, size in tables do
-    if size = 0 then
-        printfn "%d\t%x\t%d" index addr size
-    else
-        let data = slice addr size
-        printfn "%d\t%x\t%d\t%d\t%d" index addr size (Array.min data) (Array.max data)
+    printf "uint8_t table%02d[] = { /* %x */" index addr
+    for i in 0 .. size - 1 do
+        if i % 16 = 0 then
+            printfn ""
+            printf "   "
+        printf " 0x%02x," bios.[addr + i - start]
+    printfn " };"
+printfn ""
+printf "uint8_t *tables[] = {"
+for index, _, _ in tables do
+    if index % 10 = 0 then
+        printfn ""
+        printf "   "
+    printf " table%02d," index
+printfn " };"

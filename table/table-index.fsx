@@ -1,4 +1,4 @@
-let bios = System.IO.File.ReadAllBytes "../../bios"
+let bios = System.IO.File.ReadAllBytes "../../../bios"
 let baseaddr = 0xf0000
 let start = baseaddr + 0x100
 let last = start + bios.Length
@@ -12,6 +12,7 @@ let tables =
 |> Seq.pairwise
 |> Seq.map (fun ((i0, ad0), (_, ad1)) ->
     i0, ad0, if ad0 < start then 0 else ad1 - ad0)
+|> Seq.sortBy (fun (index, _, _) -> index)
 
 for index, addr, size in tables do
-    printfn "%x\t%d\t%d" addr index size
+    printfn "%d\t%x\t%d" index addr size
