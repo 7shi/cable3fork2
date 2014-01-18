@@ -1,6 +1,7 @@
-table.exe: bin/Debug/table.exe
-table-addr.exe: bin/Debug/table-addr.exe
-table-index.exe: bin/Debug/table-index.exe
-table-minmax.exe: bin/Debug/table-minmax.exe
-table-8.exe: bin/Debug/table-8.exe
-table-c.exe: bin/Debug/table-c.exe
+table.tsv: bin/Debug/table.exe
+table-addr.tsv: bin/Debug/table-addr.exe
+table-index.tsv: bin/Debug/table-index.exe
+table-minmax.tsv: bin/Debug/table-minmax.exe
+table-8.tsv: bin/Debug/table-8.exe
+table-51.tsv: bin/Debug/table-51.exe
+table-c.c: bin/Debug/table-c.exe

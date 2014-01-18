@@ -24,7 +24,7 @@ clean:
 	rm -rf bin $(TARGET)
 
 depend:
-	for exe in $(SRCS1:.fsx=.exe); do echo `echo $$exe | sed s/\.fsx/\.tsv/`: $(ODIR)/$$exe; done > dependencies
-	for exe in $(SRCS2:.fsx=.exe); do echo `echo $$exe | sed s/\.fsx/\.c/`: $(ODIR)/$$exe; done >> dependencies
+	for exe in $(SRCS1:.fsx=.exe); do echo `echo $$exe | sed s/\.exe/\.tsv/`: $(ODIR)/$$exe; done > dependencies
+	for exe in $(SRCS2:.fsx=.exe); do echo `echo $$exe | sed s/\.exe/\.c/`: $(ODIR)/$$exe; done >> dependencies
 
 -include dependencies
