@@ -10,8 +10,6 @@ FSC    = fsharpc --nologo -g
 
 all: $(ODIR) $(TARGET)
 
-$(TARGET): $(EXES)
-
 $(ODIR):
 	mkdir -p $(ODIR)
 
@@ -23,3 +21,9 @@ $(ODIR)/%.exe: %.fsx
 
 clean:
 	rm -rf bin $(TARGET)
+
+depend:
+	for exe in $(SRCS1:.fsx=.exe); do echo `echo $$exe | sed s/\.fsx/\.tsv/`: $(ODIR)/$$exe; done > dependencies
+	for exe in $(SRCS2:.fsx=.exe); do echo `echo $$exe | sed s/\.fsx/\.c/`: $(ODIR)/$$exe; done >> dependencies
+
+-include dependencies
