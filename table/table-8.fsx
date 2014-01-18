@@ -17,5 +17,16 @@ let tables =
 |> Seq.toArray
 
 let data = tables |> Array.map (fun (_, addr, size) -> slice addr size)
-data.[8] |> Array.mapi (fun i b ->
-    if int b > 48 then printfn "%d\t%d" i b)
+let data51 = data.[51] |> Array.mapi (fun i b -> i, int b)
+
+printfn "index8\tvalue\tindex51(hex)"
+data.[8]
+|> Seq.mapi (fun i b -> i, int b)
+|> Seq.filter (fun (_, b) -> b > 48)
+|> Seq.iter (fun (i, b) ->
+    printf "%d\t%d\t" i b
+    data51
+    |> Seq.filter (fun (_, b) -> b = i)
+    |> Seq.map (fun (i, _) -> sprintf "%02x" i)
+    |> String.concat ","
+    |> printfn "%s")
