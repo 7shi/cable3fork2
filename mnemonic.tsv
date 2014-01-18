@@ -202,7 +202,7 @@ C8	enter
 C9	leave
 CA	retf
 CB	retf
-CC	int
+CC	int3
 CD	int
 CE	into
 CF	iret
@@ -239,7 +239,7 @@ ED	in
 EE	out
 EF	out
 F0	lock
-F1	?F1
+F1	int1
 F2	repnz/repz
 F3	repnz/repz
 F4	hlt
