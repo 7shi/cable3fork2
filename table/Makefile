@@ -1,6 +1,6 @@
 TARGET = $(TSVS) $(CS)
 SRCS1  = table.fsx table-addr.fsx table-index.fsx table-minmax.fsx \
-		 table-8.fsx table-51.fsx table-51-mne.fsx
+		 table-8.fsx table-51.fsx table-51-mne.fsx table-14.fsx
 SRCS2  = table-c.fsx
 SRCS   = $(SRCS1) $(SRCS2)
 EXES   = $(addprefix $(ODIR)/,$(SRCS:.fsx=.exe))
