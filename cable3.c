@@ -194,7 +194,7 @@ main(int argc, char *argv[])
 		switch (lookup(8, optype)) {
 			int tmp, tmp2;
 			uint32_t utmp;
-		case 0:	/* conditional jump, enter, leave, int1 */
+		case 0:	/* conditional jump, enter?, leave?, int1? */
 			tmp = ipptr[0] / 2 & 7;
 			ip += (int8_t) w1 *(oprsz ^ (r8[lookup(21, tmp)] | r8[lookup(22, tmp)] | r8[lookup(23, tmp)] ^ r8[lookup(24, tmp)]));
 			break;
@@ -236,19 +236,19 @@ main(int argc, char *argv[])
 		case 6:	/* test, not, neg, mul, imul, div, idiv */
 			opr1 = opr2;
 			switch (o1b) {
-			case 0:
+			case 0:/* test */
 				optype = 21, ip -= ~oprsz;
 				POKE(mem[opr1], &, opr);
 				break;
-			case 2:
+			case 2:/* not */
 				POKE(mem[opr1], = ~, mem[opr2]);
 				break;
-			case 3:
+			case 3:/* neg */
 				POKE(mem[opr1], = -, mem[opr2]);
 				oldv = 0, optype = 22;
 				CF = newv > oldv;
 				break;
-			case 4:
+			case 4:/* mul */
 				optype = 19;
 				if (oprsz) {
 					DX = (AX = newv = *(uint16_t *) &mem[addr] * (uint16_t) *r) >> 16;
@@ -258,7 +258,7 @@ main(int argc, char *argv[])
 					OF = CF = !!(newv - (uint8_t) newv);
 				}
 				break;
-			case 5:
+			case 5:/* imul */
 				optype = 19;
 				if (oprsz) {
 					DX = (AX = newv = *(int16_t *) &mem[addr] * (int16_t) *r) >> 16;
@@ -268,7 +268,7 @@ main(int argc, char *argv[])
 					OF = CF = !!(newv - (int8_t) newv);
 				}
 				break;
-			case 6:
+			case 6:/* div */
 				if (oprsz) {
 					if (tmp2 = *(uint16_t *) &mem[addr]) {
 						utmp = (uint32_t) (tmp = (DX << 16) + AX) / tmp2;
@@ -287,7 +287,7 @@ main(int argc, char *argv[])
 					}
 				}
 				break;
-			case 7:
+			case 7:/* idiv */
 				if (oprsz) {
 					if (tmp2 = *(int16_t *) &mem[addr]) {
 						utmp = (int) (tmp = (DX << 16) + AX) / tmp2;
@@ -318,38 +318,38 @@ main(int argc, char *argv[])
 		case 9:	/* add, or, adc, sbb, and, sub, xor, cmp, mov */
 			/* oprtype = 0, 1, 2, 3, 4, 5, 6, 7, 8 */
 			switch (oprtype) {
-			case 0:
+			case 0:/* add */
 				POKE(mem[opr1], +=, mem[opr2]);
 				CF = newv < oldv;
 				break;
-			case 1:
+			case 1:/* or */
 				POKE(mem[opr1], |=, mem[opr2]);
 				break;
-			case 2:
+			case 2:/* adc */
 				POKE(mem[opr1], +=CF +, mem[opr2]);
 				CF = !!(CF & newv == oldv | +newv < +(int) oldv);
 				setafof();
 				break;
-			case 3:
+			case 3:/* sbb */
 				POKE(mem[opr1], -=CF +, mem[opr2]);
 				CF = !!(CF & newv == oldv | -newv < -(int) oldv);
 				setafof();
 				break;
-			case 4:
+			case 4:/* and */
 				POKE(mem[opr1], &=, mem[opr2]);
 				break;
-			case 5:
+			case 5:/* sub */
 				POKE(mem[opr1], -=, mem[opr2]);
 				CF = newv > oldv;
 				break;
-			case 6:
+			case 6:/* xor */
 				POKE(mem[opr1], ^=, mem[opr2]);
 				break;
-			case 7:
+			case 7:/* cmp */
 				POKE(mem[opr1], -, mem[opr2]);
 				CF = newv > oldv;
 				break;
-			case 8:
+			case 8:/* mov */
 				POKE(mem[opr1], =, mem[opr2]);
 				break;
 			}
@@ -387,34 +387,34 @@ main(int argc, char *argv[])
 					CF = oldv >> tmp - 1 & 1;
 			}
 			switch (o1b) {
-			case 0:
+			case 0:/* rol */
 				POKE(mem[addr], +=, utmp >> 8 * -~oprsz - tmp);
 				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ (CF = newv & 1);
 				break;
-			case 1:
+			case 1:/* ror */
 				utmp &= (1 << tmp) - 1;
 				POKE(mem[addr], +=, utmp << 8 * -~oprsz - tmp);
 				CF = !!(1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
 				OF = (1 & (oprsz ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~oprsz - 1) ^ CF;
 				break;
-			case 2:
+			case 2:/* rcl */
 				POKE(mem[addr], +=(CF << tmp - 1) +, utmp >> 1 + 8 * -~oprsz - tmp);
 				CF = !!(utmp & 1 << 8 * -~oprsz - tmp);
 				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ CF;
 				break;
-			case 3:
+			case 3:/* rcr */
 				POKE(mem[addr], +=(CF << 8 * -~oprsz - tmp) +, utmp << 1 + 8 * -~oprsz - tmp);
 				CF = !!(utmp & 1 << tmp - 1);
 				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ (1 & (oprsz ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~oprsz - 1);
 				break;
-			case 4:
+			case 4:/* shl */
 				CF = !!(1 & (oprsz ? *(int16_t *) &oldv << tmp - 1 : oldv << tmp - 1) >> 8 * -~oprsz - 1);
 				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ CF;
 				break;
-			case 5:
+			case 5:/* shr */
 				OF = (1 & (oprsz ? *(int16_t *) &oldv : oldv) >> 8 * -~oprsz - 1);
 				break;
-			case 7:
+			case 7:/* sar */
 				if (tmp >= 8 * -~oprsz)
 					CF = !!utmp;
 				OF = 0;
@@ -425,13 +425,13 @@ main(int argc, char *argv[])
 		case 13:	/* loopnz, loopne, loopz, loope, loop, jcxz */
 			tmp = !!--CX;
 			switch (o0) {
-			case 0:
+			case 0:/* loopnz, loopne */
 				tmp &= !ZF;
 				break;
-			case 1:
+			case 1:/* loopz, loope */
 				tmp &= ZF;
 				break;
-			case 3:
+			case 3:/* jcxz */
 				tmp = !++CX;
 				break;
 			}
@@ -629,7 +629,7 @@ main(int argc, char *argv[])
 #ifdef _WIN32
 				static int skipcnt;
 #endif
-			case 0:
+			case 0:/* output char */
 #ifdef _WIN32
 				if (AL == 27)
 					skipcnt = 6;
@@ -638,17 +638,17 @@ main(int argc, char *argv[])
 #endif
 				write(fileno(stdout), &AL, 1);
 				break;
-			case 1:
+			case 1:/* get time */
 				time(&t);
 				memcpy(&mem[16 * ES + BX], localtime(&t), 36);
 				break;
-			case 2:
+			case 2:/* read disk */
 				if (fseek(files[DL], (*(uint32_t *) &BP) << 9, SEEK_SET) != -1)
 					AL = fread(&mem[16 * ES + BX], 1, AX, files[DL]);
 				else
 					AL = 0;
 				break;
-			case 3:
+			case 3:/* write disk */
 				if (fseek(files[DL], (*(uint32_t *) &BP) << 9, SEEK_SET) != -1)
 					AL = fwrite(&mem[16 * ES + BX], 1, AX, files[DL]);
 				else
