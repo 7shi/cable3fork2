@@ -426,10 +426,10 @@ main(int argc, char *argv[])
 			tmp = !!--CX;
 			switch (o0) {
 			case 0:
-				tmp &= !r8[43];
+				tmp &= !ZF;
 				break;
 			case 1:
-				tmp &= r8[43];
+				tmp &= ZF;
 				break;
 			case 3:
 				tmp = !++CX;
@@ -594,7 +594,7 @@ main(int argc, char *argv[])
 			break;
 		case 40:
 			++ip;
-			if (r8[48])
+			if (OF)
 				intr(4);
 			break;
 		case 41:
@@ -608,13 +608,13 @@ main(int argc, char *argv[])
 			oprsz = 0, AX = newv = AL + w1 * AH;
 			break;
 		case 43:
-			AL = -r8[40];
+			AL = -CF;
 			break;
 		case 44:
 			AL = mem[16 * r[hassegpfx ? segpfx : 11] + (uint16_t) (AL + BX)];
 			break;
 		case 45:
-			r8[40] ^= 1;
+			CF ^= 1;
 			break;
 		case 46:
 			/* m = 80-81: CF, 92-93: IF, 94-95: DF */
