@@ -1,8 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifdef _WIN32
+#include <conio.h>
+#endif
 
 #define POKE(dst,opr,src) (oldv=oprsz?*(uint16_t*)&dst:dst,newv=oprsz?*(uint16_t*)&dst opr(srcv=*(uint16_t*)&src):(dst opr(srcv=*(uint8_t*)&src)))
 
@@ -158,7 +163,7 @@ main(int argc, char *argv[])
 				intr(7);
 			}
 #else
-			if (kb = read(fileno(stdin), &mem[0x4a6], 1))
+			if (kb = read(0, &mem[0x4a6], 1))
 				intr(7);
 #endif
 		}
@@ -634,7 +639,7 @@ main(int argc, char *argv[])
 				if (skipcnt && skipcnt--)
 					break;
 #endif
-				write(fileno(stdout), &AL, 1);
+				write(1, &AL, 1);
 				break;
 			case 1:/* get time */
 				time(&t);
