@@ -16,9 +16,10 @@ uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
+uint8_t ptable[256];
 extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[],
         table19[], table21[], table20[], table22[], table23[], table24[],
-        table25[], table50[], table51[];
+        table25[], table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -153,6 +154,15 @@ int
 main(int argc, char *argv[])
 {
 	CS = ROMBASE >> 4, ip = 0x100;
+
+	for (int i = 0; i < 256; i++) {
+		int n = 0;
+		for (int j = 1; j < 256; j += j) {
+			if (i & j)
+				n++;
+		}
+		ptable[i] = (n & 1) == 0;
+	}
 
 	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
 	for (int i = 1; i <= 3 && i < argc; ++i)
@@ -674,7 +684,7 @@ main(int argc, char *argv[])
 		if (table15[optype]) {
 			SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
 			ZF = !newv;
-			PF = table50[(uint8_t) newv];
+			PF = ptable[(uint8_t) newv];
 		}
 		if (!++counter) {
 			kb = 1;
