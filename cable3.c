@@ -18,8 +18,8 @@ uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
 extern uint8_t *tables[];
 extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[],
-        table19[], table21[], table20[], table22[], table23[], table24[], table25[],
-        table51[];
+        table19[], table21[], table20[], table22[], table23[], table24[],
+        table25[], table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -115,16 +115,27 @@ intr(int n)
 	IF = 0;
 }
 
+uint8_t modrmtbl[][8] = {
+	{0x03, 0x03, 0x05, 0x05, 0x06, 0x07, 0x05, 0x03,},
+	{0x06, 0x07, 0x06, 0x07, 0x0c, 0x0c, 0x0c, 0x0c,},
+	{0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,},
+	{0x0b, 0x0b, 0x0a, 0x0a, 0x0b, 0x0b, 0x0a, 0x0b,},
+	{0x03, 0x03, 0x05, 0x05, 0x06, 0x07, 0x0c, 0x03,},
+	{0x06, 0x07, 0x06, 0x07, 0x0c, 0x0c, 0x0c, 0x0c,},
+	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00,},
+	{0x0b, 0x0b, 0x0a, 0x0a, 0x0b, 0x0b, 0x0b, 0x0b,}
+};
+
 uint32_t
 modrm(int mode, int rm, int16_t disp)
 {
 	if (mode == 3)
 		return regmap(rm);
 	int tno = 4 * !mode;
-	int seg = r[hassegpfx ? segpfx : tables[tno + 3][rm]];
-	int r1 = r[tables[tno + 1][rm]];
-	int hasdisp = tables[tno + 2][rm];
-	int r2 = r[tables[tno][rm]];
+	int seg = r[hassegpfx ? segpfx : modrmtbl[tno + 3][rm]];
+	int r1 = r[modrmtbl[tno + 1][rm]];
+	int hasdisp = modrmtbl[tno + 2][rm];
+	int r2 = r[modrmtbl[tno][rm]];
 	return 16 * seg + (uint16_t) (r1 + hasdisp * disp + r2);
 }
 
