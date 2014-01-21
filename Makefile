@@ -6,7 +6,7 @@ IFLAGS = -bap -br -ce -ci4 -cli0 -d0 -di0 -i8 -ip -l79 -nbc -ncdb \
 all: $(TARGET)
 
 $(TARGET): cable3.c
-	$(CC) $(CFLAGS) -o $@ $< `sdl-config --cflags --libs`
+	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
 	rm -f $(TARGET) $(TARGET).exe
