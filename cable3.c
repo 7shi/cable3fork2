@@ -3,7 +3,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <SDL.h>
 
 #define POKE(dst,opr,src) (oldv=oprsz?*(uint16_t*)&dst:dst,newv=oprsz?*(uint16_t*)&dst opr(srcv=*(uint16_t*)&src):(dst opr(srcv=*(uint8_t*)&src)))
 
@@ -149,7 +148,6 @@ main(int argc, char *argv[])
 
 	int hasrep = 0, rep = 0, kb = 0;
 	uint16_t counter = 0;
-	SDL_Surface *surface = NULL;
 
 	for (;;) {
 		if (!hassegpfx && !rep && kb && IF) {
@@ -670,19 +668,8 @@ main(int argc, char *argv[])
 		if (!++counter) {
 			kb = 1;
 			if (ioport[0]) {
-				/* Hercules Graphics Card (HGC) */
-				SDL_PumpEvents();
-				if (!surface)
-					surface = SDL_SetVideoMode(720, 348, 32, 0);
-				uint32_t *pix = (uint32_t *) surface->pixels;
-				uint8_t *fb = &mem[0xb0000 + ioport[0x3b8] / 128 * 0x8000];
-				for (int y = 0, i = 0; y < 348; ++y)
-					for (int x = 0; x < 720; ++x, ++i)
-						pix[i] = -!!((1 << (7 - (x & 7))) & fb[x / 8 + y / 4 * 90 + ((y & 3) << 13)]);
-				SDL_Flip(surface);
-			} else if (surface) {
-				SDL_Quit();
-				surface = NULL;
+				fprintf(stderr, "HGC not supported\n");
+				exit(1);
 			}
 		}
 	}
