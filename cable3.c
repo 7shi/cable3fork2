@@ -17,8 +17,9 @@ uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
 uint8_t ptable[256];
-extern uint8_t table14[], table15[], table16[], table17[], table18[], table19[], table21[],
-        table20[], table22[], table23[], table24[], table25[], table51[];
+extern uint8_t table14[], table15[], table16[], table17[], table18[], table19[],
+        table21[], table20[], table22[], table23[], table24[], table25[],
+        table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -262,6 +263,7 @@ main(int argc, char *argv[])
 			case 0:/* test */
 				optype = 21, ip -= ~oprsz;
 				POKE(mem[opr1], &, opr);
+				OF = CF = 0;
 				break;
 			case 2:/* not */
 				POKE(mem[opr1], = ~, mem[opr2]);
@@ -270,6 +272,7 @@ main(int argc, char *argv[])
 				POKE(mem[opr1], = -, mem[opr2]);
 				oldv = 0, optype = 22;
 				CF = newv > oldv;
+				setafof();
 				break;
 			case 4:/* mul */
 				optype = 19;
@@ -391,6 +394,10 @@ main(int argc, char *argv[])
 				POKE(mem[opr1], =, mem[opr2]);
 				break;
 			}
+			if (table16[optype])	/* 8, 13, 15, 17, 22, 24 */
+				setafof();
+			else if (table17[optype])	/* 9, 12, 14, 18, 21, 23 */
+				OF = CF = 0;
 			break;
 		case 26:	/* mov, lea, pop */
 			if (!oprsz) {
@@ -488,6 +495,7 @@ main(int argc, char *argv[])
 			break;
 		case 31:	/* test */
 			POKE(mem[opr2], &, mem[opr1]);
+			OF = CF = 0;
 			break;
 		case 32:	/* xchg */
 			oprsz = 7, opr1 = ROMBASE, opr2 = regmap(o0);
@@ -540,6 +548,7 @@ main(int argc, char *argv[])
 						hassegpfx++;
 					ip--;
 				}
+				setafof();
 			}
 			break;
 		case 39:	/* ret */
@@ -653,9 +662,11 @@ main(int argc, char *argv[])
 				newv = AL %= w1;
 			} else
 				intr(0);
+			OF = CF = 0;
 			break;
 		case 80:	/* aad */
 			oprsz = 0, AX = newv = AL + w1 * AH;
+			OF = CF = 0;
 			break;
 		case 81:	/* salc */
 			AL = -CF;
@@ -677,6 +688,7 @@ main(int argc, char *argv[])
 			break;
 		case 35:	/* test */
 			POKE(AL, &, w1);
+			OF = CF = 0;
 			break;
 		case 64:	/* hyper call */
 			switch ((uint8_t) w1) {
@@ -712,10 +724,6 @@ main(int argc, char *argv[])
 			}
 			break;
 		}
-		if (table16[optype])
-			setafof();
-		else if (table17[optype])
-			OF = CF = 0;
 		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
 		if (table15[optype]) {
 			SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
