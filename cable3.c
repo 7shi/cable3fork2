@@ -16,9 +16,9 @@ uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
-extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[], table19[],
-        table21[], table20[], table22[], table23[], table24[], table25[],
-        table50[], table51[];
+extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[],
+        table19[], table21[], table20[], table22[], table23[], table24[],
+        table25[], table50[], table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -86,12 +86,14 @@ setafof(void)
 	OF = (newv - oldv && 1 & (CF ^ srcv >> 8 * -~oprsz - 1));
 }
 
+uint8_t flagtbl[] = {0, 2, 4, 6, 7, 8, 9, 10, 11};
+
 uint16_t
 getflags(void)
 {
 	uint16_t flags = 0xf002;
 	for (int i = 0; i < 9; ++i)
-		flags += r8[40 + i] << table25[i];
+		flags += r8[40 + i] << flagtbl[i];
 	return flags;
 }
 
@@ -99,7 +101,7 @@ void
 setflags(uint16_t flags)
 {
 	for (int i = 0; i < 9; ++i)
-		r8[40 + i] = !!(flags & (1 << table25[i]));
+		r8[40 + i] = !!(flags & (1 << flagtbl[i]));
 }
 
 void
