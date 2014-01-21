@@ -17,9 +17,9 @@ uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
 uint8_t ptable[256];
-extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[],
-        table19[], table21[], table20[], table22[], table23[], table24[],
-        table25[], table51[];
+extern uint8_t table14[], table15[], table16[], table17[], table18[], table19[],
+        table21[], table20[], table22[], table23[], table24[], table25[],
+        table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -214,7 +214,7 @@ main(int argc, char *argv[])
 		getoprs(dir, o1b, addr, &opr1, &opr2);
 		optype = table51[ipptr[0]];
 		uint8_t oprtype = table14[optype];
-		switch (table08[optype]) {
+		switch (optype) {
 			int tmp, tmp2;
 			uint32_t utmp;
 		case 0:	/* conditional jump, enter?, leave?, int1? */
@@ -227,10 +227,11 @@ main(int argc, char *argv[])
 			POKE(mem[tmp], =, w1);
 			break;
 		case 2:	/* inc, dec */
+		case 3:
 			/* oprtype = 0, 1 */
 			oprsz = 2, o1b = oprtype;
 			opr1 = addr = modrm(mode, o1a, disp), opr2 = regmap(o0);
-		case 5:	/* inc, dec, call, callf, jmp, jmpf, push */
+		case 6:	/* inc, dec, call, callf, jmp, jmpf, push */
 			if (o1b < 2) {
 				POKE(mem[opr2], +=1 - 2 * o1b +, mem[ROMBASE + 24]);
 				srcv = 1;
@@ -250,13 +251,13 @@ main(int argc, char *argv[])
 			} else
 				push(*(uint16_t *) &mem[addr]);
 			break;
-		case 3:	/* push */
+		case 4:	/* push */
 			push(r[o0]);
 			break;
-		case 4:	/* pop */
+		case 5:	/* pop */
 			r[o0] = pop();
 			break;
-		case 6:	/* test, not, neg, mul, imul, div, idiv */
+		case 7:	/* test, not, neg, mul, imul, div, idiv */
 			opr1 = opr2;
 			switch (o1b) {
 			case 0:/* test */
@@ -331,14 +332,29 @@ main(int argc, char *argv[])
 				break;
 			}
 			break;
-		case 7:	/* add, or, adc, sbb, and, sub, xor, cmp */
+		case 8:	/* add, or, adc, sbb, and, sub, xor, cmp */
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+		case 15:
 			/* oprtype = 0, 1, 2, 3, 4, 5, 6, 7 */
 			addr = ROMBASE, opr = w1, mode = 3, o1b = oprtype, ip--;
-		case 8:	/* add, or, adc, sbb, and, sub, xor, cmp */
+		case 16:	/* add, or, adc, sbb, and, sub, xor, cmp */
 			opr1 = addr, opr2 = ROMBASE + 26;
 			r[13] = (dir |= !oprsz) ? (int8_t) opr : opr;
 			ip -= ~!dir, optype = 17 + (oprtype = o1b);
-		case 9:	/* add, or, adc, sbb, and, sub, xor, cmp, mov */
+		case 17:	/* add, or, adc, sbb, and, sub, xor, cmp, mov */
+		case 18:
+		case 19:
+		case 20:
+		case 21:
+		case 22:
+		case 23:
+		case 24:
+		case 25:
 			/* oprtype = 0, 1, 2, 3, 4, 5, 6, 7, 8 */
 			switch (oprtype) {
 			case 0:/* add */
@@ -377,7 +393,7 @@ main(int argc, char *argv[])
 				break;
 			}
 			break;
-		case 10:	/* mov, lea, pop */
+		case 26:	/* mov, lea, pop */
 			if (!oprsz) {
 				oprsz = o1b + 8;
 				getoprs(dir, oprsz, modrm(mode, o1a, disp), &opr1, &opr2);
@@ -388,11 +404,12 @@ main(int argc, char *argv[])
 			} else
 				*(uint16_t *) &mem[addr] = pop();
 			break;
-		case 11:	/* mov */
+		case 27:	/* mov */
 			getoprs(dir, 0, modrm(0, 6, w1), &opr1, &opr2);
 			POKE(mem[opr2], =, mem[opr1]);
 			break;
-		case 12:	/* rcl, rol, ror, rcl, rcr, shl, sal, shr, sar */
+		case 28:	/* rcl, rol, ror, rcl, rcr, shl, sal, shr, sar */
+		case 94:
 			utmp = (1 & (oprsz ? *(int16_t *) &mem[addr] : mem[addr]) >> 8 * -~oprsz - 1);
 			/* oprtype = 0, 1 */
 			if (tmp = oprtype ? ++ip, (int8_t) disp : dir ? 31 & CL : 1) {
@@ -445,7 +462,7 @@ main(int argc, char *argv[])
 				break;
 			}
 			break;
-		case 13:	/* loopnz, loopne, loopz, loope, loop, jcxz */
+		case 29:	/* loopnz, loopne, loopz, loope, loop, jcxz */
 			tmp = !!--CX;
 			switch (o0) {
 			case 0:/* loopnz, loopne */
@@ -460,7 +477,7 @@ main(int argc, char *argv[])
 			}
 			ip += tmp * (int8_t) w1;
 			break;
-		case 14:	/* call, jmp, jmpf */
+		case 30:	/* call, jmp, jmpf */
 			ip += 3 - dir;
 			if (!oprsz) {
 				if (dir)
@@ -470,19 +487,21 @@ main(int argc, char *argv[])
 			}
 			ip += dir * oprsz ? (int8_t) w1 : w1;
 			break;
-		case 15:	/* test */
+		case 31:	/* test */
 			POKE(mem[opr2], &, mem[opr1]);
 			break;
-		case 16:	/* xchg */
+		case 32:	/* xchg */
 			oprsz = 7, opr1 = ROMBASE, opr2 = regmap(o0);
-		case 24:	/* xchg */
+		case 48:	/* xchg */
 			if (opr1 != opr2) {
 				POKE(mem[opr1], ^=, mem[opr2]);
 				POKE(mem[opr2], ^=, mem[opr1]);
 				POKE(mem[opr1], ^=, mem[opr2]);
 			}
 			break;
-		case 17:	/* movsb, movsw, stosb, stosw, lodsb, lodsw */
+		case 33:	/* movsb, movsw, stosb, stosw, lodsb, lodsw */
+		case 36:
+		case 37:
 			if (!rep || CX) {
 				/* oprtype = 0, 1, 2 */
 				opr1 = oprtype < 2 ? 16 * ES + DI : ROMBASE;
@@ -502,7 +521,8 @@ main(int argc, char *argv[])
 				}
 			}
 			break;
-		case 18:	/* cmpsb, cmpsw, scasb, scasw */
+		case 34:	/* cmpsb, cmpsw, scasb, scasw */
+		case 38:
 			if (!rep || CX) {
 				/* oprtype = 0, 1 */
 				opr1 = oprtype ? ROMBASE : 16 * r[hassegpfx ? segpfx : 11] + SI;
@@ -523,7 +543,9 @@ main(int argc, char *argv[])
 				}
 			}
 			break;
-		case 19:	/* ret, retf, iret */
+		case 39:	/* ret, retf, iret */
+		case 41:
+		case 78:
 			dir = oprsz;
 			ip = pop();
 			/* oprtype = 0, 1, 2 */
@@ -534,115 +556,133 @@ main(int argc, char *argv[])
 			else if (!dir)
 				SP += w1;
 			break;
-		case 20:	/* mov */
+		case 40:	/* mov */
 			POKE(mem[opr2], =, opr);
 			break;
-		case 21:	/* in */
+		case 42:	/* in */
+		case 44:
 			ioport[0x3da] ^= 9;
 			/* oprtype = 0, 1 */
 			POKE(AL, =, ioport[oprtype ? DX : (int8_t) w1]);
 			break;
-		case 22:	/* out */
+		case 43:	/* out */
+		case 45:
 			/* oprtype = 0, 1 */
 			POKE(ioport[oprtype ? DX : (int8_t) w1], =, AL);
 			break;
-		case 23:	/* repnz, repz */
+		case 46:	/* repnz, repz */
 			rep = 2, hasrep = oprsz;
 			if (hassegpfx)
 				hassegpfx++;
 			break;
-		case 25:	/* push */
+		case 49:	/* push */
+		case 51:
+		case 52:
+		case 54:
 			/* oprtype = 8: ES, 9: CS, 10: SS, 11: DS */
 			push(r[oprtype]);
 			break;
-		case 26:	/* pop */
+		case 50:	/* pop */
+		case 53:
+		case 55:
 			/* oprtype = 8: ES, 10: SS, 11: DS */
 			r[oprtype] = pop();
 			break;
-		case 27:	/* es:, cs:, ss:, ds: */
+		case 56:	/* es:, cs:, ss:, ds: */
+		case 58:
+		case 60:
+		case 62:
 			/* oprtype = 8: ES, 9: CS, 10: SS, 11: DS */
 			hassegpfx = 2, segpfx = oprtype;
 			if (rep)
 				rep++;
 			break;
-		case 28:	/* daa, das */
+		case 57:	/* daa, das */
+		case 59:
 			fprintf(stderr, "not implemented: daa/das\n");
 			exit(1);
 			break;
-		case 29:	/* aaa, aas */
+		case 61:	/* aaa, aas */
+		case 63:
 			fprintf(stderr, "not implemented: aaa/aas\n");
 			exit(1);
 			break;
-		case 30:	/* cbw */
+		case 65:	/* cbw */
 			AH = -(1 & (oprsz ? *(int16_t *) r8 : AL) >> 8 * -~oprsz - 1);
 			break;
-		case 31:	/* cwd */
+		case 66:	/* cwd */
 			DX = -(1 & (oprsz ? *(int16_t *) r : AX) >> 8 * -~oprsz - 1);
 			break;
-		case 32:	/* callf */
+		case 67:	/* callf */
 			push(CS);
 			push(ip + 5);
 			CS = w3, ip = w1;
 			break;
-		case 33:	/* pushf */
+		case 69:	/* pushf */
 			push(getflags());
 			break;
-		case 34:	/* popf */
+		case 70:	/* popf */
 			setflags(pop());
 			break;
-		case 35:	/* sahf */
+		case 71:	/* sahf */
 			setflags((getflags() & ~255) + AH);
 			break;
-		case 36:	/* lahf */
+		case 72:	/* lahf */
 			AH = getflags();
 			break;
-		case 37:	/* les, lds */
+		case 73:	/* les, lds */
+		case 74:
 			oprsz = 1;
 			opr1 = regmap(o1b), opr2 = modrm(mode, o1a, disp);
 			POKE(mem[opr1], =, mem[opr2]);
 			/* oprtype = 16, 22 */
 			POKE(mem[ROMBASE + oprtype], =, mem[opr2 + 2]);
 			break;
-		case 38:	/* int3 */
+		case 75:	/* int3 */
 			++ip;
 			intr(3);
 			break;
-		case 39:	/* int */
+		case 76:	/* int */
 			ip += 2;
 			intr(w1 & 255);
 			break;
-		case 40:	/* into */
+		case 77:	/* into */
 			++ip;
 			if (OF)
 				intr(4);
 			break;
-		case 41:	/* aam */
+		case 79:	/* aam */
 			if (w1 &= 255) {
 				AH = AL / w1;
 				newv = AL %= w1;
 			} else
 				intr(0);
 			break;
-		case 42:	/* aad */
+		case 80:	/* aad */
 			oprsz = 0, AX = newv = AL + w1 * AH;
 			break;
-		case 43:	/* salc */
+		case 81:	/* salc */
 			AL = -CF;
 			break;
-		case 44:	/* xlat */
+		case 82:	/* xlat */
 			AL = mem[16 * r[hassegpfx ? segpfx : 11] + (uint16_t) (AL + BX)];
 			break;
-		case 45:	/* cmc */
+		case 85:	/* cmc */
 			CF ^= 1;
 			break;
-		case 46:	/* clc, stc, cli, sti, cld, std */
+		case 86:	/* clc, stc, cli, sti, cld, std */
+		case 87:
+		case 88:
+		case 89:
+		case 90:
+		case 91:
 			/* oprtype = 80-81: CF, 92-93: IF, 94-95: DF */
 			r8[oprtype / 2] = oprtype & 1;
 			break;
-		case 47:	/* test */
+		case 35:	/* test */
 			POKE(AL, &, w1);
 			break;
-		case 48:	/* hyper call */
+		case 64:	/* hyper call */
 			switch ((uint8_t) w1) {
 				time_t t;
 #ifdef _WIN32
