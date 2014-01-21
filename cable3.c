@@ -15,7 +15,7 @@
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
-uint32_t *const table = (uint32_t *) &mem[ROMBASE + 0x103];
+extern uint8_t *tables[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -76,12 +76,6 @@ regmap(int reg)
 	return ROMBASE + (oprsz ? 2 * reg : (2 * reg + reg / 4) & 7);
 }
 
-int
-lookup(int no, int offset)
-{
-	return mem[table[no] + offset];
-}
-
 void
 setafof(void)
 {
@@ -94,7 +88,7 @@ getflags(void)
 {
 	uint16_t flags = 0xf002;
 	for (int i = 0; i < 9; ++i)
-		flags += r8[40 + i] << lookup(25, i);
+		flags += r8[40 + i] << tables[25][i];
 	return flags;
 }
 
@@ -102,7 +96,7 @@ void
 setflags(uint16_t flags)
 {
 	for (int i = 0; i < 9; ++i)
-		r8[40 + i] = !!(flags & (1 << lookup(25, i)));
+		r8[40 + i] = !!(flags & (1 << tables[25][i]));
 }
 
 void
@@ -123,10 +117,10 @@ modrm(int mode, int rm, int16_t disp)
 	if (mode == 3)
 		return regmap(rm);
 	int tno = 4 * !mode;
-	int seg = r[hassegpfx ? segpfx : lookup(tno + 3, rm)];
-	int r1 = r[lookup(tno + 1, rm)];
-	int hasdisp = lookup(tno + 2, rm);
-	int r2 = r[lookup(tno, rm)];
+	int seg = r[hassegpfx ? segpfx : tables[tno + 3][rm]];
+	int r1 = r[tables[tno + 1][rm]];
+	int hasdisp = tables[tno + 2][rm];
+	int r2 = r[tables[tno][rm]];
 	return 16 * seg + (uint16_t) (r1 + hasdisp * disp + r2);
 }
 
@@ -192,14 +186,14 @@ main(int argc, char *argv[])
 			rep--;
 		uint32_t addr = modrm(mode, o1a, disp), opr1, opr2;
 		getoprs(dir, o1b, addr, &opr1, &opr2);
-		optype = lookup(51, ipptr[0]);
-		uint8_t oprtype = lookup(14, optype);
-		switch (lookup(8, optype)) {
+		optype = tables[51][ipptr[0]];
+		uint8_t oprtype = tables[14][optype];
+		switch (tables[8][optype]) {
 			int tmp, tmp2;
 			uint32_t utmp;
 		case 0:	/* conditional jump, enter?, leave?, int1? */
 			tmp = ipptr[0] / 2 & 7;
-			ip += (int8_t) w1 *(oprsz ^ (r8[lookup(21, tmp)] | r8[lookup(22, tmp)] | r8[lookup(23, tmp)] ^ r8[lookup(24, tmp)]));
+			ip += (int8_t) w1 *(oprsz ^ (r8[tables[21][tmp]] | r8[tables[22][tmp]] | r8[tables[23][tmp]] ^ r8[tables[24][tmp]]));
 			break;
 		case 1:	/* mov */
 			oprsz = ipptr[0] & 8;
@@ -548,9 +542,9 @@ main(int argc, char *argv[])
 		case 28:	/* daa, das */
 			oprsz = 0;
 			/* oprtype = 27, 39 */
-			CF = !!lookup(oprtype += 3 * AF + 6 * CF, AL);
-			AF = !!(lookup(1 + oprtype, AL));
-			newv = AL = lookup(oprtype - 1, AL);
+			CF = !!tables[oprtype += 3 * AF + 6 * CF][AL];
+			AF = !!(tables[1 + oprtype][AL]);
+			newv = AL = tables[oprtype - 1][AL];
 			break;
 		case 29:	/* aaa, aas */
 			/* oprtype = 0, 2 */
@@ -660,15 +654,15 @@ main(int argc, char *argv[])
 			}
 			break;
 		}
-		if (lookup(16, optype))
+		if (tables[16][optype])
 			setafof();
-		else if (lookup(17, optype))
+		else if (tables[17][optype])
 			OF = CF = 0;
-		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * lookup(20, optype) + lookup(18, optype) - lookup(19, optype) * ~!!oprsz;
-		if (lookup(15, optype)) {
+		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * tables[20][optype] + tables[18][optype] - tables[19][optype] * ~!!oprsz;
+		if (tables[15][optype]) {
 			SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
 			ZF = !newv;
-			PF = lookup(50, (uint8_t) newv);
+			PF = tables[50][(uint8_t) newv];
 		}
 		if (!++counter) {
 			kb = 1;

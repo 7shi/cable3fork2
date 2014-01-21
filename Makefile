@@ -2,11 +2,12 @@ TARGET = cable3
 CFLAGS = -O2 -std=c99
 IFLAGS = -bap -br -ce -ci4 -cli0 -d0 -di0 -i8 -ip -l79 -nbc -ncdb \
 		 -ndj -ei -nfc1 -nlp -npcs -psl -sc -sob
+SRCS = cable3.c table/table-c.c
 
 all: $(TARGET)
 
-$(TARGET): cable3.c
-	$(CC) $(CFLAGS) -o $@ $<
+$(TARGET): $(SRCS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
 	rm -f $(TARGET) $(TARGET).exe
