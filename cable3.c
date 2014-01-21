@@ -17,9 +17,9 @@ uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
 extern uint8_t *tables[];
-extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[],
-        table19[], table21[], table20[], table22[], table23[], table24[],
-        table25[], table51[];
+extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[], table19[],
+        table21[], table20[], table22[], table23[], table24[], table25[],
+        table50[], table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -677,7 +677,7 @@ main(int argc, char *argv[])
 		if (table15[optype]) {
 			SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
 			ZF = !newv;
-			PF = tables[50][(uint8_t) newv];
+			PF = table50[(uint8_t) newv];
 		}
 		if (!++counter) {
 			kb = 1;
