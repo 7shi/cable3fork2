@@ -16,7 +16,6 @@ uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
-extern uint8_t *tables[];
 extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[], table19[],
         table21[], table20[], table22[], table23[], table24[], table25[],
         table50[], table51[];
@@ -555,16 +554,12 @@ main(int argc, char *argv[])
 				rep++;
 			break;
 		case 28:	/* daa, das */
-			oprsz = 0;
-			/* oprtype = 27, 39 */
-			CF = !!tables[oprtype += 3 * AF + 6 * CF][AL];
-			AF = !!(tables[1 + oprtype][AL]);
-			newv = AL = tables[oprtype - 1][AL];
+			fprintf(stderr, "not implemented: daa/das\n");
+			exit(1);
 			break;
 		case 29:	/* aaa, aas */
-			/* oprtype = 0, 2 */
-			AX += 262 * (oprtype - 1) * (AF = CF = !!((AL & 15) > 9 | AF));
-			newv = AL &= 15;
+			fprintf(stderr, "not implemented: aaa/aas\n");
+			exit(1);
 			break;
 		case 30:	/* cbw */
 			AH = -(1 & (oprsz ? *(int16_t *) r8 : AL) >> 8 * -~oprsz - 1);
