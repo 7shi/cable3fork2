@@ -15,7 +15,11 @@
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
+
 extern uint8_t *tables[];
+extern uint8_t table08[], table14[], table15[], table16[], table17[], table18[],
+        table19[], table21[], table20[], table22[], table23[], table24[], table25[],
+        table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -88,7 +92,7 @@ getflags(void)
 {
 	uint16_t flags = 0xf002;
 	for (int i = 0; i < 9; ++i)
-		flags += r8[40 + i] << tables[25][i];
+		flags += r8[40 + i] << table25[i];
 	return flags;
 }
 
@@ -96,7 +100,7 @@ void
 setflags(uint16_t flags)
 {
 	for (int i = 0; i < 9; ++i)
-		r8[40 + i] = !!(flags & (1 << tables[25][i]));
+		r8[40 + i] = !!(flags & (1 << table25[i]));
 }
 
 void
@@ -186,14 +190,14 @@ main(int argc, char *argv[])
 			rep--;
 		uint32_t addr = modrm(mode, o1a, disp), opr1, opr2;
 		getoprs(dir, o1b, addr, &opr1, &opr2);
-		optype = tables[51][ipptr[0]];
-		uint8_t oprtype = tables[14][optype];
-		switch (tables[8][optype]) {
+		optype = table51[ipptr[0]];
+		uint8_t oprtype = table14[optype];
+		switch (table08[optype]) {
 			int tmp, tmp2;
 			uint32_t utmp;
 		case 0:	/* conditional jump, enter?, leave?, int1? */
 			tmp = ipptr[0] / 2 & 7;
-			ip += (int8_t) w1 *(oprsz ^ (r8[tables[21][tmp]] | r8[tables[22][tmp]] | r8[tables[23][tmp]] ^ r8[tables[24][tmp]]));
+			ip += (int8_t) w1 *(oprsz ^ (r8[table21[tmp]] | r8[table22[tmp]] | r8[table23[tmp]] ^ r8[table24[tmp]]));
 			break;
 		case 1:	/* mov */
 			oprsz = ipptr[0] & 8;
@@ -654,12 +658,12 @@ main(int argc, char *argv[])
 			}
 			break;
 		}
-		if (tables[16][optype])
+		if (table16[optype])
 			setafof();
-		else if (tables[17][optype])
+		else if (table17[optype])
 			OF = CF = 0;
-		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * tables[20][optype] + tables[18][optype] - tables[19][optype] * ~!!oprsz;
-		if (tables[15][optype]) {
+		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
+		if (table15[optype]) {
 			SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
 			ZF = !newv;
 			PF = tables[50][(uint8_t) newv];
