@@ -17,9 +17,8 @@ uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
 uint8_t ptable[256];
-extern uint8_t table14[], table15[], table16[], table17[], table18[], table19[],
-        table21[], table20[], table22[], table23[], table24[], table25[],
-        table51[];
+extern uint8_t table14[], table15[], table18[], table19[], table21[], table20[],
+        table22[], table23[], table24[], table25[], table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -362,9 +361,11 @@ main(int argc, char *argv[])
 			case 0:/* add */
 				POKE(mem[opr1], +=, mem[opr2]);
 				CF = newv < oldv;
+				setafof();
 				break;
 			case 1:/* or */
 				POKE(mem[opr1], |=, mem[opr2]);
+				OF = CF = 0;
 				break;
 			case 2:/* adc */
 				POKE(mem[opr1], +=CF +, mem[opr2]);
@@ -378,26 +379,26 @@ main(int argc, char *argv[])
 				break;
 			case 4:/* and */
 				POKE(mem[opr1], &=, mem[opr2]);
+				OF = CF = 0;
 				break;
 			case 5:/* sub */
 				POKE(mem[opr1], -=, mem[opr2]);
 				CF = newv > oldv;
+				setafof();
 				break;
 			case 6:/* xor */
 				POKE(mem[opr1], ^=, mem[opr2]);
+				OF = CF = 0;
 				break;
 			case 7:/* cmp */
 				POKE(mem[opr1], -, mem[opr2]);
 				CF = newv > oldv;
+				setafof();
 				break;
 			case 8:/* mov */
 				POKE(mem[opr1], =, mem[opr2]);
 				break;
 			}
-			if (table16[optype])	/* 8, 13, 15, 17, 22, 24 */
-				setafof();
-			else if (table17[optype])	/* 9, 12, 14, 18, 21, 23 */
-				OF = CF = 0;
 			break;
 		case 26:	/* mov, lea, pop */
 			if (!oprsz) {
