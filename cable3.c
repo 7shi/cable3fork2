@@ -116,26 +116,46 @@ intr(int n)
 	IF = 0;
 }
 
-uint8_t modrmtbl[][8] = {
-	{0x03, 0x03, 0x05, 0x05, 0x06, 0x07, 0x05, 0x03,},
-	{0x06, 0x07, 0x06, 0x07, 0x0c, 0x0c, 0x0c, 0x0c,},
-	{0x0b, 0x0b, 0x0a, 0x0a, 0x0b, 0x0b, 0x0a, 0x0b,},
-	{0x03, 0x03, 0x05, 0x05, 0x06, 0x07, 0x0c, 0x03,},
-	{0x06, 0x07, 0x06, 0x07, 0x0c, 0x0c, 0x0c, 0x0c,},
-	{0x0b, 0x0b, 0x0a, 0x0a, 0x0b, 0x0b, 0x0b, 0x0b,}
-};
-
 uint32_t
 modrm(int mode, int rm, int16_t disp)
 {
 	if (mode == 3)
 		return regmap(rm);
-	int tno = 3 * !mode;
-	int seg = r[hassegpfx ? segpfx : modrmtbl[tno + 2][rm]];
-	int r1 = r[modrmtbl[tno + 1][rm]];
-	int r2 = r[modrmtbl[tno][rm]];
-	int hasdisp = mode || rm == 6;
-	return 16 * seg + (uint16_t) (r1 + r2 + hasdisp * disp);
+	uint16_t addr, *seg;
+	switch (rm) {
+	case 0:
+		seg = &DS, addr = BX + SI;
+		break;
+	case 1:
+		seg = &DS, addr = BX + DI;
+		break;
+	case 2:
+		seg = &SS, addr = BP + SI;
+		break;
+	case 3:
+		seg = &SS, addr = BP + DI;
+		break;
+	case 4:
+		seg = &DS, addr = SI;
+		break;
+	case 5:
+		seg = &DS, addr = DI;
+		break;
+	case 6:
+		if (mode == 0)
+			seg = &DS, addr = disp;
+		else
+			seg = &SS, addr = BP;
+		break;
+	case 7:
+		seg = &DS, addr = BX;
+		break;
+	}
+	if (hassegpfx)
+		seg = &r[segpfx];
+	if (mode)
+		addr += disp;
+	return 16 * *seg + addr;
 }
 
 void
