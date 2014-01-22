@@ -17,8 +17,8 @@ uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
 uint8_t ptable[256];
-extern uint8_t table14[], table15[], table18[], table19[], table21[], table20[],
-        table22[], table23[], table24[], table25[], table51[];
+extern uint8_t table14[], table15[], table18[], table19[], table21[], table20[], table22[],
+        table23[], table24[], table25[], table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -83,7 +83,7 @@ void
 setafof(void)
 {
 	AF = !!((srcv ^= oldv ^ newv) & 16);
-	OF = (newv - oldv && 1 & (CF ^ srcv >> 8 * -~oprsz - 1));
+	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
 }
 
 uint8_t flagtbl[] = {0, 2, 4, 6, 7, 8, 9, 10, 11};
@@ -216,7 +216,7 @@ main(int argc, char *argv[])
 		uint32_t w3 = *(int16_t *) &ipptr[3];
 		int o1a = ipptr[1] & 7, o1b = ipptr[1] / 8 & 7;
 		int mode = ipptr[1] >> 6;
-		int16_t disp = ~-mode ? w2 : (int8_t) w2;
+		int16_t disp = mode != 1 ? w2 : (int8_t) w2;
 		uint32_t opr = w3;
 		if (!(mode == 0 && o1a == 6) && mode != 2) {
 			if (mode != 1)
@@ -253,7 +253,7 @@ main(int argc, char *argv[])
 				POKE(mem[opr2], +=1 - 2 * o1b +, mem[ROMBASE + 24]);
 				srcv = 1;
 				setafof();
-				OF = (oldv + 1 - o1b == 1 << 8 * -~oprsz - 1);
+				OF = (oldv + 1 - o1b == 1 << (8 * (oprsz + 1) - 1));
 				optype = optype & 4 ? 19 : 57;
 			} else if (o1b != 6) {
 				ip += (mode % 3 + 2 * !(!mode * o1a - 6)) + 2;
@@ -435,11 +435,11 @@ main(int argc, char *argv[])
 			break;
 		case 28:	/* rol, ror, rcl, rcr, shl, sal, shr, sar */
 		case 94:	/* rcl */
-			utmp = (1 & (oprsz ? *(int16_t *) &mem[addr] : mem[addr]) >> 8 * -~oprsz - 1);
+			utmp = (1 & (oprsz ? *(int16_t *) &mem[addr] : mem[addr]) >> (8 * (oprsz + 1) - 1));
 			/* oprtype = 0, 1 */
 			if (tmp = oprtype ? ++ip, (int8_t) disp : dir ? 31 & CL : 1) {
 				if (o1b < 4) {
-					tmp %= o1b / 2 + 8 * -~oprsz;
+					tmp %= o1b / 2 + 8 * (oprsz + 1);
 					POKE(utmp, =, mem[addr]);
 				}
 				if (o1b & 1)
@@ -453,37 +453,37 @@ main(int argc, char *argv[])
 			}
 			switch (o1b) {
 			case 0:/* rol */
-				POKE(mem[addr], +=, utmp >> 8 * -~oprsz - tmp);
-				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ (CF = newv & 1);
+				POKE(mem[addr], +=, utmp >> 8 * (oprsz + 1) - tmp);
+				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ (CF = newv & 1);
 				break;
 			case 1:/* ror */
 				utmp &= (1 << tmp) - 1;
-				POKE(mem[addr], +=, utmp << 8 * -~oprsz - tmp);
-				CF = !!(1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
-				OF = (1 & (oprsz ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~oprsz - 1) ^ CF;
+				POKE(mem[addr], +=, utmp << (8 * (oprsz + 1) - tmp));
+				CF = !!(1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1));
+				OF = (1 & (oprsz ? *(int16_t *) &newv * 2 : newv * 2) >> (8 * (oprsz + 1) - 1)) ^ CF;
 				break;
 			case 2:/* rcl */
-				POKE(mem[addr], +=(CF << tmp - 1) +, utmp >> 1 + 8 * -~oprsz - tmp);
-				CF = !!(utmp & 1 << 8 * -~oprsz - tmp);
-				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ CF;
+				POKE(mem[addr], +=(CF << tmp - 1) +, utmp >> (1 + 8 * (oprsz + 1) - tmp));
+				CF = !!(utmp & 1 << (8 * (oprsz + 1) - tmp));
+				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ CF;
 				break;
 			case 3:/* rcr */
-				POKE(mem[addr], +=(CF << 8 * -~oprsz - tmp) +, utmp << 1 + 8 * -~oprsz - tmp);
+				POKE(mem[addr], +=(CF << (8 * (oprsz + 1) - tmp)) +, utmp << (1 + 8 * (oprsz + 1) - tmp));
 				CF = !!(utmp & 1 << tmp - 1);
-				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ (1 & (oprsz ? *(int16_t *) &newv * 2 : newv * 2) >> 8 * -~oprsz - 1);
+				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ (1 & (oprsz ? *(int16_t *) &newv * 2 : newv * 2) >> (8 * (oprsz + 1) - 1));
 				break;
 			case 4:/* shl */
-				CF = !!(1 & (oprsz ? *(int16_t *) &oldv << tmp - 1 : oldv << tmp - 1) >> 8 * -~oprsz - 1);
-				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1) ^ CF;
+				CF = !!(1 & (oprsz ? *(int16_t *) &oldv << tmp - 1 : oldv << tmp - 1) >> (8 * (oprsz + 1) - 1));
+				OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ CF;
 				break;
 			case 5:/* shr */
-				OF = (1 & (oprsz ? *(int16_t *) &oldv : oldv) >> 8 * -~oprsz - 1);
+				OF = (1 & (oprsz ? *(int16_t *) &oldv : oldv) >> (8 * (oprsz + 1) - 1));
 				break;
 			case 7:/* sar */
-				if (tmp >= 8 * -~oprsz)
+				if (tmp >= 8 * (oprsz + 1))
 					CF = !!utmp;
 				OF = 0;
-				POKE(mem[addr], +=, utmp *= ~((1 << 8 * -~oprsz) - 1 >> tmp));
+				POKE(mem[addr], +=, utmp *= ~(((1 << (8 * (oprsz + 1))) - 1) >> tmp));
 				break;
 			}
 			break;
@@ -632,10 +632,10 @@ main(int argc, char *argv[])
 			exit(1);
 			break;
 		case 65:	/* cbw */
-			AH = -(1 & (oprsz ? *(int16_t *) r8 : AL) >> 8 * -~oprsz - 1);
+			AH = -(1 & (oprsz ? *(int16_t *) r8 : AL) >> (8 * (oprsz + 1) - 1));
 			break;
 		case 66:	/* cwd */
-			DX = -(1 & (oprsz ? *(int16_t *) r : AX) >> 8 * -~oprsz - 1);
+			DX = -(1 & (oprsz ? *(int16_t *) r : AX) >> (8 * (oprsz + 1) - 1));
 			break;
 		case 67:	/* callf */
 			push(CS);
@@ -745,7 +745,7 @@ main(int argc, char *argv[])
 		}
 		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
 		if (table15[optype]) {
-			SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> 8 * -~oprsz - 1);
+			SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1));
 			ZF = !newv;
 			PF = ptable[(uint8_t) newv];
 		}
