@@ -502,8 +502,8 @@ main(int argc, char *argv[])
 				getoprs(dir, oprsz, modrm(mode, o1a, disp), &opr1, &opr2);
 				POKE(*opr1, =, *opr2);
 			} else if (!dir) {
-				hassegpfx = 1, segpfx = 12, tmp = modrm(mode, o1a, disp) - mem;
-				POKE(*opr2, =, tmp);
+				hassegpfx = 1, segpfx = 12;
+				*(uint16_t *) opr2 = modrm(mode, o1a, disp) - mem;
 			} else
 				*(uint16_t *) addr = pop();
 			break;
