@@ -116,10 +116,13 @@ intr(int n)
 }
 
 uint8_t *
-modrm(int mode, int rm, int16_t disp)
+modrm(int *oprlen, int mode, int rm, int16_t disp)
 {
-	if (mode == 3)
+	if (mode == 3) {
+		*oprlen = 0;
 		return regmap(rm);
+	}
+	*oprlen = mode;
 	uint16_t addr, *seg;
 	switch (rm) {
 	case 0:
@@ -141,9 +144,10 @@ modrm(int mode, int rm, int16_t disp)
 		seg = &DS, addr = DI;
 		break;
 	case 6:
-		if (mode == 0)
+		if (mode == 0) {
+			*oprlen += 2;
 			seg = &DS, addr = disp;
-		else
+		} else
 			seg = &SS, addr = BP;
 		break;
 	case 7:
@@ -233,7 +237,9 @@ main(int argc, char *argv[])
 			hassegpfx--;
 		if (rep)
 			rep--;
-		uint8_t *addr = modrm(mode, o1a, disp), *opr1, *opr2;
+		int oprlen;
+		uint8_t *addr = modrm(&oprlen, mode, o1a, disp), *opr1,
+		       *opr2;
 		getoprs(dir, o1b, addr, &opr1, &opr2);
 		optype = table51[ipptr[0]];
 		uint8_t oprtype = table14[optype];
@@ -311,7 +317,7 @@ main(int argc, char *argv[])
 		case 3:	/* dec */
 			/* oprtype = 0, 1 */
 			oprsz = 2, o1b = oprtype;
-			opr1 = addr = modrm(mode, o1a, disp), opr2 = regmap(o0);
+			opr1 = addr = modrm(&oprlen, mode, o1a, disp), opr2 = regmap(o0);
 		case 6:	/* inc, dec, call, callf, jmp, jmpf, push */
 			if (o1b < 2) {	/* inc, dec */
 				POKE(*opr2, +=1 - 2 * o1b +, r[12]);
@@ -326,7 +332,7 @@ main(int argc, char *argv[])
 					optype = 67;
 				}
 			} else if (o1b != 6) {
-				IP += (mode % 3 + 2 * !(!mode * o1a - 6)) + 2;
+				IP += 2 + oprlen;
 				if (o1b == 3)	/* callf */
 					push(CS);
 				if (o1b & 2)	/* call, callf */
@@ -438,7 +444,7 @@ main(int argc, char *argv[])
 		case 14:	/* xor */
 		case 15:	/* cmp */
 			/* oprtype = 0, 1, 2, 3, 4, 5, 6, 7 */
-			addr = r8, opr = w1, mode = 3, o1b = oprtype, IP--;
+			addr = r8, opr = w1, mode = 3, o1b = oprtype, IP--, oprlen = 0;
 		case 16:	/* add, or, adc, sbb, and, sub, xor, cmp */
 			opr1 = addr, opr2 = (uint8_t *) &utmp;
 			utmp = (dir |= !oprsz) ? (int8_t) opr : opr;
@@ -501,16 +507,16 @@ main(int argc, char *argv[])
 		case 26:	/* mov, lea, pop */
 			if (!oprsz) {
 				oprsz = o1b + 8;
-				getoprs(dir, oprsz, modrm(mode, o1a, disp), &opr1, &opr2);
+				getoprs(dir, oprsz, modrm(&oprlen, mode, o1a, disp), &opr1, &opr2);
 				POKE(*opr1, =, *opr2);
 			} else if (!dir) {
 				hassegpfx = 1, segpfx = 12;
-				*(uint16_t *) opr2 = modrm(mode, o1a, disp) - mem;
+				*(uint16_t *) opr2 = modrm(&oprlen, mode, o1a, disp) - mem;
 			} else
 				*(uint16_t *) addr = pop();
 			break;
 		case 27:	/* mov */
-			getoprs(dir, 0, modrm(0, 6, w1), &opr1, &opr2);
+			getoprs(dir, 0, modrm(&oprlen, 0, 6, w1), &opr1, &opr2);
 			POKE(*opr2, =, *opr1);
 			IP += 3;
 			optype = 67;
@@ -781,7 +787,7 @@ main(int argc, char *argv[])
 		case 73:	/* les */
 		case 74:	/* lds */
 			oprsz = 1;
-			opr1 = regmap(o1b), opr2 = modrm(mode, o1a, disp);
+			opr1 = regmap(o1b), opr2 = modrm(&oprlen, mode, o1a, disp);
 			POKE(*opr1, =, *opr2);
 			/* oprtype = 16: ES, 22: DS */
 			POKE(r8[oprtype], =, opr2[2]);
@@ -905,6 +911,6 @@ main(int argc, char *argv[])
 			optype = 67;
 			break;
 		}
-		IP += (mode % 3 + 2 * !(!mode * o1a - 6)) * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
+		IP += oprlen * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
 	}
 }
