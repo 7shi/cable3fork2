@@ -297,8 +297,8 @@ main(int argc, char *argv[])
 			break;
 		case 1:	/* mov */
 			oprsz = ipptr[0] & 8;
-			tmp = regmap(o0) - mem;
-			POKE(mem[tmp], =, w1);
+			addr = regmap(o0);
+			POKE(*addr, =, w1);
 			break;
 		case 2:	/* inc */
 		case 3:	/* dec */
