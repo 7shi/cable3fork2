@@ -152,12 +152,12 @@ modrm(int mode, int rm, int16_t disp)
 }
 
 void
-getoprs(int dir, int reg, uint32_t addr, uint32_t *opr1, uint32_t *opr2)
+getoprs(int dir, int reg, uint8_t *addr, uint32_t *opr1, uint32_t *opr2)
 {
 	if (!dir)
-		*opr1 = addr, *opr2 = regmap(reg) - mem;
+		*opr1 = addr - mem, *opr2 = regmap(reg) - mem;
 	else
-		*opr1 = regmap(reg) - mem, *opr2 = addr;
+		*opr1 = regmap(reg) - mem, *opr2 = addr - mem;
 }
 
 int
@@ -221,7 +221,7 @@ main(int argc, char *argv[])
 		if (rep)
 			rep--;
 		uint32_t addr = modrm(mode, o1a, disp) - mem, opr1, opr2;
-		getoprs(dir, o1b, addr, &opr1, &opr2);
+		getoprs(dir, o1b, &mem[addr], &opr1, &opr2);
 		optype = table51[ipptr[0]];
 		uint8_t oprtype = table14[optype];
 		switch (optype) {
@@ -478,7 +478,7 @@ main(int argc, char *argv[])
 		case 26:	/* mov, lea, pop */
 			if (!oprsz) {
 				oprsz = o1b + 8;
-				getoprs(dir, oprsz, modrm(mode, o1a, disp) - mem, &opr1, &opr2);
+				getoprs(dir, oprsz, modrm(mode, o1a, disp), &opr1, &opr2);
 				POKE(mem[opr1], =, mem[opr2]);
 			} else if (!dir) {
 				hassegpfx = 1, segpfx = 12, addr = modrm(mode, o1a, disp) - mem;
@@ -487,7 +487,7 @@ main(int argc, char *argv[])
 				*(uint16_t *) &mem[addr] = pop();
 			break;
 		case 27:	/* mov */
-			getoprs(dir, 0, modrm(0, 6, w1) - mem, &opr1, &opr2);
+			getoprs(dir, 0, modrm(0, 6, w1), &opr1, &opr2);
 			POKE(mem[opr2], =, mem[opr1]);
 			break;
 		case 28:	/* rol, ror, rcl, rcr, shl, sal, shr, sar */
