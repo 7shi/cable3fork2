@@ -824,13 +824,13 @@ main(int argc, char *argv[])
 				memcpy(&mem[16 * ES + BX], localtime(&t), 36);
 				break;
 			case 2:/* read disk */
-				if (fseek(files[DL], (*(uint32_t *) &BP) << 9, SEEK_SET) != -1)
+				if (fseek(files[DL], (16 * SI + BP) << 9, SEEK_SET) != -1)
 					AL = fread(&mem[16 * ES + BX], 1, AX, files[DL]);
 				else
 					AL = 0;
 				break;
 			case 3:/* write disk */
-				if (fseek(files[DL], (*(uint32_t *) &BP) << 9, SEEK_SET) != -1)
+				if (fseek(files[DL], (16 * SI + BP) << 9, SEEK_SET) != -1)
 					AL = fwrite(&mem[16 * ES + BX], 1, AX, files[DL]);
 				else
 					AL = 0;
