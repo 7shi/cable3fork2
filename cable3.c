@@ -13,8 +13,8 @@
 
 #define ROMBASE 0xf0000
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
-uint8_t *const r8 = &mem[ROMBASE];
-uint16_t *const r = (uint16_t *) &mem[ROMBASE];
+uint16_t r[13], ip;
+uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 
 uint8_t ptable[256];
@@ -22,7 +22,7 @@ extern uint8_t table14[], table15[], table18[], table19[], table20[], table25[];
 extern uint8_t table51[];
 
 uint8_t optype, oprsz;
-uint16_t ip, srcv, oldv, newv;
+uint16_t srcv, oldv, newv;
 int hassegpfx, segpfx;
 
 #define AL r8[0]
@@ -588,7 +588,7 @@ main(int argc, char *argv[])
 			if (!rep || CX) {
 				/* oprtype = 0, 1, 2 */
 				opr1 = oprtype < 2 ? &mem[16 * ES + DI] : r8;
-				opr2 = oprtype & 1 ? r8 : &mem[16 * r[hassegpfx ? segpfx : 11] + SI];
+				opr2 = oprtype & 1 ? r8 : &mem[16 * (hassegpfx ? r[segpfx] : DS) + SI];
 				POKE(*opr1, =, *opr2);
 				tmp = ~(-2 * DF) * ~oprsz;
 				if (!(oprtype & 1))
@@ -608,7 +608,7 @@ main(int argc, char *argv[])
 		case 38:	/* scasb, scasw */
 			if (!rep || CX) {
 				/* oprtype = 0, 1 */
-				opr1 = oprtype ? r8 : &mem[16 * r[hassegpfx ? segpfx : 11] + SI];
+				opr1 = oprtype ? r8 : &mem[16 * (hassegpfx ? r[segpfx] : DS) + SI];
 				opr2 = &mem[16 * ES + DI];
 				POKE(*opr1, -, *opr2);
 				optype = 92;
@@ -716,7 +716,7 @@ main(int argc, char *argv[])
 			oprsz = 1;
 			opr1 = regmap(o1b), opr2 = modrm(mode, o1a, disp);
 			POKE(*opr1, =, *opr2);
-			/* oprtype = 16, 22 */
+			/* oprtype = 16: ES, 22: DS */
 			POKE(r8[oprtype], =, opr2[2]);
 			break;
 		case 75:	/* int3 */
@@ -748,7 +748,7 @@ main(int argc, char *argv[])
 			AL = -CF;
 			break;
 		case 82:	/* xlat */
-			AL = mem[16 * r[hassegpfx ? segpfx : 11] + (uint16_t) (AL + BX)];
+			AL = mem[16 * (hassegpfx ? r[segpfx] : DS) + (uint16_t) (AL + BX)];
 			break;
 		case 85:	/* cmc */
 			CF ^= 1;
