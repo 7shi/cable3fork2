@@ -15,6 +15,7 @@
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
+uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 
 uint8_t ptable[256];
 extern uint8_t table14[], table15[], table18[], table19[], table20[], table25[];
@@ -47,16 +48,6 @@ int hassegpfx, segpfx;
 #define SS r[10]
 #define DS r[11]
 
-#define CF r8[40]
-#define PF r8[41]
-#define AF r8[42]
-#define ZF r8[43]
-#define SF r8[44]
-#define TF r8[45]
-#define IF r8[46]
-#define DF r8[47]
-#define OF r8[48]
-
 void
 push(uint16_t src)
 {
@@ -86,22 +77,24 @@ setafof(void)
 	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
 }
 
-uint8_t flagtbl[] = {0, 2, 4, 6, 7, 8, 9, 10, 11};
-
 uint16_t
 getflags(void)
 {
-	uint16_t flags = 0xf002;
-	for (int i = 0; i < 9; ++i)
-		flags += r8[40 + i] << flagtbl[i];
-	return flags;
+	return 0xf002 | CF | (PF << 2) | (AF << 4) | (ZF << 6) | (SF << 7) | (TF << 8) | (IF << 9) | (DF << 10) | (OF << 11);
 }
 
 void
 setflags(uint16_t flags)
 {
-	for (int i = 0; i < 9; ++i)
-		r8[40 + i] = !!(flags & (1 << flagtbl[i]));
+	CF = flags & 1;
+	PF = (flags & 4) != 0;
+	AF = (flags & 16) != 0;
+	ZF = (flags & 64) != 0;
+	SF = (flags & 128) != 0;
+	TF = (flags & 256) != 0;
+	IF = (flags & 512) != 0;
+	DF = (flags & 1024) != 0;
+	OF = (flags & 2048) != 0;
 }
 
 void
