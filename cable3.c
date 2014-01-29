@@ -17,8 +17,8 @@ uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
 uint8_t ptable[256];
-extern uint8_t table14[], table15[], table18[], table19[], table21[], table20[], table22[],
-        table23[], table24[], table25[], table51[];
+extern uint8_t table14[], table15[], table18[], table19[], table20[], table25[],
+        table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
@@ -235,8 +235,72 @@ main(int argc, char *argv[])
 			int tmp, tmp2;
 			uint32_t utmp;
 		case 0:	/* conditional jump, enter?, leave?, int1? */
-			tmp = ipptr[0] / 2 & 7;
-			ip += (int8_t) w1 *(oprsz ^ (r8[table21[tmp]] | r8[table22[tmp]] | r8[table23[tmp]] ^ r8[table24[tmp]]));
+			switch (ipptr[0]) {
+			case 0x70:	/* jo */
+				if (OF)
+					ip += (int8_t) w1;
+				break;
+			case 0x71:	/* jno */
+				if (!OF)
+					ip += (int8_t) w1;
+				break;
+			case 0x72:	/* jb, jnae */
+				if (CF)
+					ip += (int8_t) w1;
+				break;
+			case 0x73:	/* jnb, jae */
+				if (!CF)
+					ip += (int8_t) w1;
+				break;
+			case 0x74:	/* je, jz */
+				if (ZF)
+					ip += (int8_t) w1;
+				break;
+			case 0x75:	/* jne, jnz */
+				if (!ZF)
+					ip += (int8_t) w1;
+				break;
+			case 0x76:	/* jbe, jna */
+				if (CF || ZF)
+					ip += (int8_t) w1;
+				break;
+			case 0x77:	/* jnbe, ja */
+				if (!CF && !ZF)
+					ip += (int8_t) w1;
+				break;
+			case 0x78:	/* js */
+				if (SF)
+					ip += (int8_t) w1;
+				break;
+			case 0x79:	/* jns */
+				if (!SF)
+					ip += (int8_t) w1;
+				break;
+			case 0x7a:	/* jp */
+				if (PF)
+					ip += (int8_t) w1;
+				break;
+			case 0x7b:	/* jnp */
+				if (!PF)
+					ip += (int8_t) w1;
+				break;
+			case 0x7c:	/* jl, jnge */
+				if (SF != OF)
+					ip += (int8_t) w1;
+				break;
+			case 0x7d:	/* jnl, jge */
+				if (SF == OF)
+					ip += (int8_t) w1;
+				break;
+			case 0x7e:	/* jle, jng */
+				if (ZF || SF != OF)
+					ip += (int8_t) w1;
+				break;
+			case 0x7f:	/* jnle, jg */
+				if (!ZF && SF == OF)
+					ip += (int8_t) w1;
+				break;
+			}
 			break;
 		case 1:	/* mov */
 			oprsz = ipptr[0] & 8;
