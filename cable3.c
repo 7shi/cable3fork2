@@ -21,7 +21,6 @@ uint8_t ptable[256];
 extern uint8_t table14[], table18[], table19[], table20[], table51[];
 
 uint8_t optype, oprsz;
-uint16_t srcv, oldv, newv;
 int hassegpfx, segpfx;
 
 #define AL r8[0]
@@ -70,14 +69,14 @@ regmap(int reg)
 }
 
 void
-setafof(void)
+setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 {
 	AF = !!((srcv ^= oldv ^ newv) & 16);
 	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
 }
 
 void
-setsfzfpf(void)
+setsfzfpf(uint16_t newv)
 {
 	SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1));
 	ZF = !newv;
@@ -111,8 +110,8 @@ intr(int n)
 	push(getflags());
 	push(CS);
 	push(ip);
-	POKE(CS, =, mem[4 * n + 2]);
-	POKE(ip, =, mem[4 * n]);
+	CS = *(uint16_t *) &mem[4 * n + 2];
+	ip = *(uint16_t *) &mem[4 * n];
 	IF = 0;
 }
 
@@ -241,6 +240,7 @@ main(int argc, char *argv[])
 		switch (optype) {
 			int tmp, tmp2;
 			uint32_t utmp;
+			uint16_t srcv, oldv, newv;
 		case 0:	/* conditional jump, enter?, leave?, int1? */
 			switch (ipptr[0]) {
 			case 0x70:	/* jo */
@@ -323,8 +323,8 @@ main(int argc, char *argv[])
 			if (o1b < 2) {	/* inc, dec */
 				POKE(*opr2, +=1 - 2 * o1b +, r[12]);
 				srcv = 1;
-				setafof();
-				setsfzfpf();
+				setafof(srcv, oldv, newv);
+				setsfzfpf(newv);
 				OF = (oldv + 1 - o1b == 1 << (8 * (oprsz + 1) - 1));
 				optype = optype & 4 ? 19 : 57;
 			} else if (o1b != 6) {
@@ -352,7 +352,7 @@ main(int argc, char *argv[])
 			case 0:/* test */
 				optype = 21, ip -= ~oprsz;
 				POKE(*opr1, &, opr);
-				setsfzfpf();
+				setsfzfpf(newv);
 				OF = CF = 0;
 				break;
 			case 2:/* not */
@@ -362,8 +362,8 @@ main(int argc, char *argv[])
 				POKE(*opr1, = -, *opr2);
 				oldv = 0, optype = 22;
 				CF = newv > oldv;
-				setafof();
-				setsfzfpf();
+				setafof(srcv, oldv, newv);
+				setsfzfpf(newv);
 				break;
 			case 4:/* mul */
 				optype = 19;
@@ -374,7 +374,7 @@ main(int argc, char *argv[])
 					AX = utmp = *addr * AL;
 					OF = CF = (utmp >> 8) != 0;
 				}
-				setsfzfpf();
+				setsfzfpf(newv);
 				break;
 			case 5:/* imul */
 				optype = 19;
@@ -385,7 +385,7 @@ main(int argc, char *argv[])
 					AX = tmp = *(int8_t *) addr *(int8_t) AL;
 					OF = CF = (tmp >> 8) != 0;
 				}
-				setsfzfpf();
+				setsfzfpf(newv);
 				break;
 			case 6:/* div */
 				if (oprsz) {
@@ -455,7 +455,7 @@ main(int argc, char *argv[])
 			case 0:/* add */
 				POKE(*opr1, +=, *opr2);
 				CF = newv < oldv;
-				setafof();
+				setafof(srcv, oldv, newv);
 				break;
 			case 1:/* or */
 				POKE(*opr1, |=, *opr2);
@@ -464,12 +464,12 @@ main(int argc, char *argv[])
 			case 2:/* adc */
 				POKE(*opr1, +=CF +, *opr2);
 				CF = !!(CF & newv == oldv | +newv < +(int) oldv);
-				setafof();
+				setafof(srcv, oldv, newv);
 				break;
 			case 3:/* sbb */
 				POKE(*opr1, -=CF +, *opr2);
 				CF = !!(CF & newv == oldv | -newv < -(int) oldv);
-				setafof();
+				setafof(srcv, oldv, newv);
 				break;
 			case 4:/* and */
 				POKE(*opr1, &=, *opr2);
@@ -478,7 +478,7 @@ main(int argc, char *argv[])
 			case 5:/* sub */
 				POKE(*opr1, -=, *opr2);
 				CF = newv > oldv;
-				setafof();
+				setafof(srcv, oldv, newv);
 				break;
 			case 6:/* xor */
 				POKE(*opr1, ^=, *opr2);
@@ -487,14 +487,14 @@ main(int argc, char *argv[])
 			case 7:/* cmp */
 				POKE(*opr1, -, *opr2);
 				CF = newv > oldv;
-				setafof();
+				setafof(srcv, oldv, newv);
 				break;
 			case 8:/* mov */
 				POKE(*opr1, =, *opr2);
 				break;
 			}
 			if (oprtype != 8)
-				setsfzfpf();
+				setsfzfpf(newv);
 			break;
 		case 26:	/* mov, lea, pop */
 			if (!oprsz) {
@@ -565,7 +565,7 @@ main(int argc, char *argv[])
 				break;
 			}
 			if (optype == 19)
-				setsfzfpf();
+				setsfzfpf(newv);
 			break;
 		case 29:	/* loopnz, loopne, loopz, loope, loop, jcxz */
 			tmp = !!--CX;
@@ -594,7 +594,7 @@ main(int argc, char *argv[])
 			break;
 		case 31:	/* test */
 			POKE(*opr2, &, *opr1);
-			setsfzfpf();
+			setsfzfpf(newv);
 			OF = CF = 0;
 			break;
 		case 32:	/* xchg */
@@ -648,8 +648,8 @@ main(int argc, char *argv[])
 						hassegpfx++;
 					ip--;
 				}
-				setafof();
-				setsfzfpf();
+				setafof(srcv, oldv, newv);
+				setsfzfpf(newv);
 			}
 			break;
 		case 39:	/* ret */
@@ -712,7 +712,7 @@ main(int argc, char *argv[])
 		case 63:	/* aas */
 			fprintf(stderr, "not implemented: daa/das/aaa/aas\n");
 			exit(1);
-			/* setsfzfpf(); */
+			/* setsfzfpf(newv); */
 			break;
 		case 65:	/* cbw */
 			AH = -(1 & (oprsz ? (int16_t) AX : AL) >> (8 * (oprsz + 1) - 1));
@@ -764,12 +764,12 @@ main(int argc, char *argv[])
 				newv = AL %= w1;
 			} else
 				intr(0);
-			setsfzfpf();
+			setsfzfpf(newv);
 			OF = CF = 0;
 			break;
 		case 80:	/* aad */
 			oprsz = 0, AX = newv = AL + w1 * AH;
-			setsfzfpf();
+			setsfzfpf(newv);
 			OF = CF = 0;
 			break;
 		case 81:	/* salc */
@@ -801,7 +801,7 @@ main(int argc, char *argv[])
 			break;
 		case 35:	/* test */
 			POKE(AL, &, w1);
-			setsfzfpf();
+			setsfzfpf(newv);
 			OF = CF = 0;
 			break;
 		case 64:	/* hyper call */
