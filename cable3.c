@@ -244,75 +244,68 @@ main(int argc, char *argv[])
 		case 0:	/* conditional jump, enter?, leave?, int1? */
 			switch (ipptr[0]) {
 			case 0x70:	/* jo */
-				if (OF)
-					IP += (int8_t) w1;
+				tmp = OF;
 				break;
 			case 0x71:	/* jno */
-				if (!OF)
-					IP += (int8_t) w1;
+				tmp = !OF;
 				break;
 			case 0x72:	/* jb, jnae */
-				if (CF)
-					IP += (int8_t) w1;
+				tmp = CF;
 				break;
 			case 0x73:	/* jnb, jae */
-				if (!CF)
-					IP += (int8_t) w1;
+				tmp = !CF;
 				break;
 			case 0x74:	/* je, jz */
-				if (ZF)
-					IP += (int8_t) w1;
+				tmp = ZF;
 				break;
 			case 0x75:	/* jne, jnz */
-				if (!ZF)
-					IP += (int8_t) w1;
+				tmp = !ZF;
 				break;
 			case 0x76:	/* jbe, jna */
-				if (CF || ZF)
-					IP += (int8_t) w1;
+				tmp = CF || ZF;
 				break;
 			case 0x77:	/* jnbe, ja */
-				if (!CF && !ZF)
-					IP += (int8_t) w1;
+				tmp = !CF && !ZF;
 				break;
 			case 0x78:	/* js */
-				if (SF)
-					IP += (int8_t) w1;
+				tmp = SF;
 				break;
 			case 0x79:	/* jns */
-				if (!SF)
-					IP += (int8_t) w1;
+				tmp = !SF;
 				break;
 			case 0x7a:	/* jp */
-				if (PF)
-					IP += (int8_t) w1;
+				tmp = PF;
 				break;
 			case 0x7b:	/* jnp */
-				if (!PF)
-					IP += (int8_t) w1;
+				tmp = !PF;
 				break;
 			case 0x7c:	/* jl, jnge */
-				if (SF != OF)
-					IP += (int8_t) w1;
+				tmp = SF != OF;
 				break;
 			case 0x7d:	/* jnl, jge */
-				if (SF == OF)
-					IP += (int8_t) w1;
+				tmp = SF == OF;
 				break;
 			case 0x7e:	/* jle, jng */
-				if (ZF || SF != OF)
-					IP += (int8_t) w1;
+				tmp = ZF || SF != OF;
 				break;
 			case 0x7f:	/* jnle, jg */
-				if (!ZF && SF == OF)
-					IP += (int8_t) w1;
+				tmp = !ZF && SF == OF;
+				break;
+			default:
+				tmp = 0;
 				break;
 			}
+			IP += 2;
+			if (tmp)
+				IP += (int8_t) ipptr[1];
+			optype = 67;
 			break;
 		case 1:	/* mov */
 			oprsz = ipptr[0] & 8;
 			addr = regmap(o0);
 			POKE(*addr, =, w1);
+			IP += oprsz ? 3 : 2;
+			optype = 67;
 			break;
 		case 2:	/* inc */
 		case 3:	/* dec */
@@ -326,7 +319,12 @@ main(int argc, char *argv[])
 				setafof(srcv, oldv, newv);
 				setsfzfpf(newv);
 				OF = (oldv + 1 - o1b == 1 << (8 * (oprsz + 1) - 1));
-				optype = optype & 4 ? 19 : 57;
+				if (optype == 6)
+					optype = 19;
+				else {
+					++IP;
+					optype = 67;
+				}
 			} else if (o1b != 6) {
 				IP += (mode % 3 + 2 * !(!mode * o1a - 6)) + 2;
 				if (o1b == 3)	/* callf */
@@ -342,9 +340,13 @@ main(int argc, char *argv[])
 			break;
 		case 4:	/* push */
 			push(r[o0]);
+			++IP;
+			optype = 67;
 			break;
 		case 5:	/* pop */
 			r[o0] = pop();
+			++IP;
+			optype = 67;
 			break;
 		case 7:	/* test, not, neg, mul, imul, div, idiv */
 			opr1 = opr2;
@@ -510,6 +512,8 @@ main(int argc, char *argv[])
 		case 27:	/* mov */
 			getoprs(dir, 0, modrm(0, 6, w1), &opr1, &opr2);
 			POKE(*opr2, =, *opr1);
+			IP += 3;
+			optype = 67;
 			break;
 		case 28:	/* rol, ror, rcl, rcr, shl, sal, shr, sar */
 		case 94:	/* rcl */
@@ -580,7 +584,10 @@ main(int argc, char *argv[])
 				tmp = !++CX;
 				break;
 			}
-			IP += tmp * (int8_t) w1;
+			IP += 2;
+			if (tmp)
+				IP += (int8_t) ipptr[1];
+			optype = 67;
 			break;
 		case 30:	/* call, jmp, jmpf */
 			IP += 3 - dir;
@@ -605,6 +612,10 @@ main(int argc, char *argv[])
 				POKE(*opr2, ^=, *opr1);
 				POKE(*opr1, ^=, *opr2);
 			}
+			if (optype == 32) {
+				++IP;
+				optype = 67;
+			}
 			break;
 		case 33:	/* movsb, movsw */
 		case 36:	/* stosb, stosw */
@@ -627,6 +638,8 @@ main(int argc, char *argv[])
 					};
 				}
 			}
+			++IP;
+			optype = 67;
 			break;
 		case 34:	/* cmpsb, cmpsw */
 		case 38:	/* scasb, scasw */
@@ -651,6 +664,8 @@ main(int argc, char *argv[])
 				setafof(srcv, oldv, newv);
 				setsfzfpf(newv);
 			}
+			++IP;
+			optype = 67;
 			break;
 		case 39:	/* ret */
 		case 41:	/* retf */
@@ -669,20 +684,28 @@ main(int argc, char *argv[])
 			POKE(*opr2, =, opr);
 			break;
 		case 42:	/* in */
+			++IP;
 		case 44:	/* in */
 			ioport[0x3da] ^= 9;
 			/* oprtype = 0, 1 */
 			POKE(AL, =, ioport[oprtype ? DX : (int8_t) w1]);
+			++IP;
+			optype = 67;
 			break;
 		case 43:	/* out */
+			++IP;
 		case 45:	/* out */
 			/* oprtype = 0, 1 */
 			POKE(ioport[oprtype ? DX : (int8_t) w1], =, AL);
+			++IP;
+			optype = 67;
 			break;
 		case 46:	/* repnz, repz */
 			rep = 2, hasrep = oprsz;
 			if (hassegpfx)
 				hassegpfx++;
+			++IP;
+			optype = 67;
 			break;
 		case 49:	/* push */
 		case 51:	/* push */
@@ -690,12 +713,16 @@ main(int argc, char *argv[])
 		case 54:	/* push */
 			/* oprtype = 8: ES, 9: CS, 10: SS, 11: DS */
 			push(r[oprtype]);
+			++IP;
+			optype = 67;
 			break;
 		case 50:	/* pop */
 		case 53:	/* pop */
 		case 55:	/* pop */
 			/* oprtype = 8: ES, 10: SS, 11: DS */
 			r[oprtype] = pop();
+			++IP;
+			optype = 67;
 			break;
 		case 56:	/* es: */
 		case 58:	/* cs: */
@@ -705,6 +732,8 @@ main(int argc, char *argv[])
 			hassegpfx = 2, segpfx = oprtype;
 			if (rep)
 				rep++;
+			++IP;
+			optype = 67;
 			break;
 		case 57:	/* daa */
 		case 59:	/* das */
@@ -712,13 +741,17 @@ main(int argc, char *argv[])
 		case 63:	/* aas */
 			fprintf(stderr, "not implemented: daa/das/aaa/aas\n");
 			exit(1);
-			/* setsfzfpf(newv); */
+			/* setsfzfpf(newv); ++IP; */
 			break;
 		case 65:	/* cbw */
 			AH = -(1 & (oprsz ? (int16_t) AX : AL) >> (8 * (oprsz + 1) - 1));
+			++IP;
+			optype = 67;
 			break;
 		case 66:	/* cwd */
 			DX = -(1 & (oprsz ? (int16_t) AX : AX) >> (8 * (oprsz + 1) - 1));
+			++IP;
+			optype = 67;
 			break;
 		case 67:	/* callf */
 			push(CS);
@@ -727,15 +760,23 @@ main(int argc, char *argv[])
 			break;
 		case 69:	/* pushf */
 			push(getflags());
+			++IP;
+			optype = 67;
 			break;
 		case 70:	/* popf */
 			setflags(pop());
+			++IP;
+			optype = 67;
 			break;
 		case 71:	/* sahf */
 			setflags((getflags() & ~255) + AH);
+			++IP;
+			optype = 67;
 			break;
 		case 72:	/* lahf */
 			AH = getflags();
+			++IP;
+			optype = 67;
 			break;
 		case 73:	/* les */
 		case 74:	/* lds */
@@ -766,43 +807,67 @@ main(int argc, char *argv[])
 				intr(0);
 			setsfzfpf(newv);
 			OF = CF = 0;
+			IP += 2;
+			optype = 67;
 			break;
 		case 80:	/* aad */
 			oprsz = 0, AX = newv = AL + w1 * AH;
 			setsfzfpf(newv);
 			OF = CF = 0;
+			IP += 2;
+			optype = 67;
 			break;
 		case 81:	/* salc */
 			AL = -CF;
+			++IP;
+			optype = 67;
 			break;
 		case 82:	/* xlat */
 			AL = mem[16 * (hassegpfx ? r[segpfx] : DS) + (uint16_t) (AL + BX)];
+			++IP;
+			optype = 67;
 			break;
 		case 85:	/* cmc */
 			CF ^= 1;
+			++IP;
+			optype = 67;
 			break;
 		case 86:	/* clc */
 			CF = 0;
+			++IP;
+			optype = 67;
 			break;
 		case 87:	/* stc */
 			CF = 1;
+			++IP;
+			optype = 67;
 			break;
 		case 88:	/* cli */
 			IF = 0;
+			++IP;
+			optype = 67;
 			break;
 		case 89:	/* sti */
 			IF = 1;
+			++IP;
+			optype = 67;
 			break;
 		case 90:	/* cld */
 			DF = 0;
+			++IP;
+			optype = 67;
 			break;
 		case 91:	/* std */
 			DF = 1;
+			++IP;
+			optype = 67;
 			break;
 		case 35:	/* test */
 			POKE(AL, &, w1);
 			setsfzfpf(newv);
 			OF = CF = 0;
+			IP += 2 + oprsz;
+			optype = 67;
 			break;
 		case 64:	/* hyper call */
 			switch ((uint8_t) w1) {
@@ -836,6 +901,8 @@ main(int argc, char *argv[])
 					AL = 0;
 				break;
 			}
+			IP += 2;
+			optype = 67;
 			break;
 		}
 		IP += (mode % 3 + 2 * !(!mode * o1a - 6)) * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
