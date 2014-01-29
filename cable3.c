@@ -109,11 +109,11 @@ intr(int n)
 	IF = 0;
 }
 
-uint32_t
+uint8_t *
 modrm(int mode, int rm, int16_t disp)
 {
 	if (mode == 3)
-		return regmap(rm) - mem;
+		return regmap(rm);
 	uint16_t addr, *seg;
 	switch (rm) {
 	case 0:
@@ -148,7 +148,7 @@ modrm(int mode, int rm, int16_t disp)
 		seg = &r[segpfx];
 	if (mode)
 		addr += disp;
-	return 16 * *seg + addr;
+	return &mem[16 * *seg + addr];
 }
 
 void
@@ -220,7 +220,7 @@ main(int argc, char *argv[])
 			hassegpfx--;
 		if (rep)
 			rep--;
-		uint32_t addr = modrm(mode, o1a, disp), opr1, opr2;
+		uint32_t addr = modrm(mode, o1a, disp) - mem, opr1, opr2;
 		getoprs(dir, o1b, addr, &opr1, &opr2);
 		optype = table51[ipptr[0]];
 		uint8_t oprtype = table14[optype];
@@ -304,7 +304,7 @@ main(int argc, char *argv[])
 		case 3:	/* dec */
 			/* oprtype = 0, 1 */
 			oprsz = 2, o1b = oprtype;
-			opr1 = addr = modrm(mode, o1a, disp), opr2 = regmap(o0) - mem;
+			opr1 = addr = modrm(mode, o1a, disp) - mem, opr2 = regmap(o0) - mem;
 		case 6:	/* inc, dec, call, callf, jmp, jmpf, push */
 			if (o1b < 2) {
 				POKE(mem[opr2], +=1 - 2 * o1b +, mem[ROMBASE + 24]);
@@ -478,16 +478,16 @@ main(int argc, char *argv[])
 		case 26:	/* mov, lea, pop */
 			if (!oprsz) {
 				oprsz = o1b + 8;
-				getoprs(dir, oprsz, modrm(mode, o1a, disp), &opr1, &opr2);
+				getoprs(dir, oprsz, modrm(mode, o1a, disp) - mem, &opr1, &opr2);
 				POKE(mem[opr1], =, mem[opr2]);
 			} else if (!dir) {
-				hassegpfx = 1, segpfx = 12, addr = modrm(mode, o1a, disp);
+				hassegpfx = 1, segpfx = 12, addr = modrm(mode, o1a, disp) - mem;
 				POKE(mem[opr2], =, addr);
 			} else
 				*(uint16_t *) &mem[addr] = pop();
 			break;
 		case 27:	/* mov */
-			getoprs(dir, 0, modrm(0, 6, w1), &opr1, &opr2);
+			getoprs(dir, 0, modrm(0, 6, w1) - mem, &opr1, &opr2);
 			POKE(mem[opr2], =, mem[opr1]);
 			break;
 		case 28:	/* rol, ror, rcl, rcr, shl, sal, shr, sar */
@@ -714,7 +714,7 @@ main(int argc, char *argv[])
 		case 73:	/* les */
 		case 74:	/* lds */
 			oprsz = 1;
-			opr1 = regmap(o1b) - mem, opr2 = modrm(mode, o1a, disp);
+			opr1 = regmap(o1b) - mem, opr2 = modrm(mode, o1a, disp) - mem;
 			POKE(mem[opr1], =, mem[opr2]);
 			/* oprtype = 16, 22 */
 			POKE(mem[ROMBASE + oprtype], =, mem[opr2 + 2]);
