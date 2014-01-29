@@ -351,21 +351,21 @@ main(int argc, char *argv[])
 			case 4:/* mul */
 				optype = 19;
 				if (oprsz) {
-					DX = (AX = newv = *(uint16_t *) addr * AX) >> 16;
-					OF = CF = !!(newv - (uint16_t) newv);
+					DX = (AX = utmp = *(uint16_t *) addr * AX) >> 16;
+					OF = CF = (utmp >> 16) != 0;
 				} else {
-					AX = newv = *addr * AL;
-					OF = CF = !!(newv - (uint8_t) newv);
+					AX = utmp = *addr * AL;
+					OF = CF = (utmp >> 8) != 0;
 				}
 				break;
 			case 5:/* imul */
 				optype = 19;
 				if (oprsz) {
-					DX = (AX = newv = *(int16_t *) addr * (int16_t) AX) >> 16;
-					OF = CF = !!(newv - (int16_t) newv);
+					DX = (AX = tmp = *(int16_t *) addr * (int16_t) AX) >> 16;
+					OF = CF = (tmp >> 16) != 0;
 				} else {
-					AX = newv = *(int8_t *) addr *(int8_t) AL;
-					OF = CF = !!(newv - (int8_t) newv);
+					AX = tmp = *(int8_t *) addr *(int8_t) AL;
+					OF = CF = (tmp >> 8) != 0;
 				}
 				break;
 			case 6:/* div */
@@ -689,10 +689,10 @@ main(int argc, char *argv[])
 			exit(1);
 			break;
 		case 65:	/* cbw */
-			AH = -(1 & (oprsz ? *(int16_t *) r8 : AL) >> (8 * (oprsz + 1) - 1));
+			AH = -(1 & (oprsz ? (int16_t) AX : AL) >> (8 * (oprsz + 1) - 1));
 			break;
 		case 66:	/* cwd */
-			DX = -(1 & (oprsz ? *(int16_t *) r : AX) >> (8 * (oprsz + 1) - 1));
+			DX = -(1 & (oprsz ? (int16_t) AX : AX) >> (8 * (oprsz + 1) - 1));
 			break;
 		case 67:	/* callf */
 			push(CS);
