@@ -17,8 +17,8 @@ uint8_t *const r8 = &mem[ROMBASE];
 uint16_t *const r = (uint16_t *) &mem[ROMBASE];
 
 uint8_t ptable[256];
-extern uint8_t table14[], table15[], table18[], table19[], table20[], table25[],
-        table51[];
+extern uint8_t table14[], table15[], table18[], table19[], table20[], table25[];
+extern uint8_t table51[];
 
 uint8_t optype, oprsz;
 uint16_t ip, srcv, oldv, newv;
