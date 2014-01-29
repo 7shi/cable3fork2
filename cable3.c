@@ -419,8 +419,8 @@ main(int argc, char *argv[])
 			/* oprtype = 0, 1, 2, 3, 4, 5, 6, 7 */
 			addr = r8, opr = w1, mode = 3, o1b = oprtype, ip--;
 		case 16:	/* add, or, adc, sbb, and, sub, xor, cmp */
-			opr1 = addr, opr2 = (uint8_t *) &r[13];
-			r[13] = (dir |= !oprsz) ? (int8_t) opr : opr;
+			opr1 = addr, opr2 = (uint8_t *) &utmp;
+			utmp = (dir |= !oprsz) ? (int8_t) opr : opr;
 			ip -= ~!dir, optype = 17 + (oprtype = o1b);
 		case 17:	/* add */
 		case 18:	/* or */
