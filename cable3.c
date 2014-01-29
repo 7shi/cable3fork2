@@ -329,13 +329,13 @@ main(int argc, char *argv[])
 				optype = optype & 4 ? 19 : 57;
 			} else if (o1b != 6) {
 				IP += (mode % 3 + 2 * !(!mode * o1a - 6)) + 2;
-				if (o1b == 3)
+				if (o1b == 3)	/* callf */
 					push(CS);
-				if (o1b & 2)
+				if (o1b & 2)	/* call, callf */
 					push(IP);
-				if (o1b & 1)
-					POKE(CS, =, opr2[2]);
-				POKE(IP, =, *opr2);
+				if (o1b & 1)	/* jmpf */
+					CS = *(uint16_t *) &opr2[2];
+				IP = *(uint16_t *) opr2;
 				optype = 67;
 			} else
 				push(*(uint16_t *) addr);
