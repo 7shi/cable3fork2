@@ -307,7 +307,7 @@ main(int argc, char *argv[])
 			opr1 = addr = modrm(mode, o1a, disp), opr2 = regmap(o0);
 		case 6:	/* inc, dec, call, callf, jmp, jmpf, push */
 			if (o1b < 2) {
-				POKE(*opr2, +=1 - 2 * o1b +, mem[ROMBASE + 24]);
+				POKE(*opr2, +=1 - 2 * o1b +, r[12]);
 				srcv = 1;
 				setafof();
 				OF = (oldv + 1 - o1b == 1 << (8 * (oprsz + 1) - 1));
@@ -319,7 +319,7 @@ main(int argc, char *argv[])
 				if (o1b & 2)
 					push(ip);
 				if (o1b & 1)
-					POKE(mem[ROMBASE + 18], =, opr2[2]);
+					POKE(CS, =, opr2[2]);
 				POKE(ip, =, *opr2);
 				optype = 67;
 			} else
@@ -717,7 +717,7 @@ main(int argc, char *argv[])
 			opr1 = regmap(o1b), opr2 = modrm(mode, o1a, disp);
 			POKE(*opr1, =, *opr2);
 			/* oprtype = 16, 22 */
-			POKE(mem[ROMBASE + oprtype], =, opr2[2]);
+			POKE(r8[oprtype], =, opr2[2]);
 			break;
 		case 75:	/* int3 */
 			++ip;
