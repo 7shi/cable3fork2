@@ -13,7 +13,7 @@
 
 #define ROMBASE 0xf0000
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
-uint16_t r[13], ip;
+uint16_t r[13], IP;
 uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 
@@ -109,9 +109,9 @@ intr(int n)
 	optype = 76;
 	push(getflags());
 	push(CS);
-	push(ip);
+	push(IP);
 	CS = *(uint16_t *) &mem[4 * n + 2];
-	ip = *(uint16_t *) &mem[4 * n];
+	IP = *(uint16_t *) &mem[4 * n];
 	IF = 0;
 }
 
@@ -169,7 +169,7 @@ getoprs(int dir, int reg, uint8_t *addr, uint8_t **opr1, uint8_t **opr2)
 int
 main(int argc, char *argv[])
 {
-	CS = ROMBASE >> 4, ip = 0x100;
+	CS = ROMBASE >> 4, IP = 0x100;
 
 	for (int i = 0; i < 256; i++) {
 		int n = 0;
@@ -185,7 +185,7 @@ main(int argc, char *argv[])
 		files[3 - i] = fopen(argv[i], "r+b");
 	if (files[0])		/* CX:AX = HDD sectors */
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
-	fread(&mem[ROMBASE + ip], 1, ROMBASE, files[2]);	/* read BIOS */
+	fread(&mem[ROMBASE + IP], 1, ROMBASE, files[2]);	/* read BIOS */
 
 	int hasrep = 0, rep = 0, kb = 0;
 	uint16_t counter = 0;
@@ -210,11 +210,11 @@ main(int argc, char *argv[])
 				intr(7);
 #endif
 		}
-		if (CS == 0 && ip == 0)
+		if (CS == 0 && IP == 0)
 			break;
 		ioport[32] = 0;
 		--ioport[64];
-		uint8_t *ipptr = &mem[16 * CS + ip];
+		uint8_t *ipptr = &mem[16 * CS + IP];
 		oprsz = ipptr[0] & 1;
 		int o0 = ipptr[0] & 7, dir = ipptr[0] / 2 & 1;
 		uint32_t w1 = *(int16_t *) &ipptr[1];
@@ -245,67 +245,67 @@ main(int argc, char *argv[])
 			switch (ipptr[0]) {
 			case 0x70:	/* jo */
 				if (OF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x71:	/* jno */
 				if (!OF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x72:	/* jb, jnae */
 				if (CF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x73:	/* jnb, jae */
 				if (!CF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x74:	/* je, jz */
 				if (ZF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x75:	/* jne, jnz */
 				if (!ZF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x76:	/* jbe, jna */
 				if (CF || ZF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x77:	/* jnbe, ja */
 				if (!CF && !ZF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x78:	/* js */
 				if (SF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x79:	/* jns */
 				if (!SF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x7a:	/* jp */
 				if (PF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x7b:	/* jnp */
 				if (!PF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x7c:	/* jl, jnge */
 				if (SF != OF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x7d:	/* jnl, jge */
 				if (SF == OF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x7e:	/* jle, jng */
 				if (ZF || SF != OF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			case 0x7f:	/* jnle, jg */
 				if (!ZF && SF == OF)
-					ip += (int8_t) w1;
+					IP += (int8_t) w1;
 				break;
 			}
 			break;
@@ -328,14 +328,14 @@ main(int argc, char *argv[])
 				OF = (oldv + 1 - o1b == 1 << (8 * (oprsz + 1) - 1));
 				optype = optype & 4 ? 19 : 57;
 			} else if (o1b != 6) {
-				ip += (mode % 3 + 2 * !(!mode * o1a - 6)) + 2;
+				IP += (mode % 3 + 2 * !(!mode * o1a - 6)) + 2;
 				if (o1b == 3)
 					push(CS);
 				if (o1b & 2)
-					push(ip);
+					push(IP);
 				if (o1b & 1)
 					POKE(CS, =, opr2[2]);
-				POKE(ip, =, *opr2);
+				POKE(IP, =, *opr2);
 				optype = 67;
 			} else
 				push(*(uint16_t *) addr);
@@ -350,7 +350,7 @@ main(int argc, char *argv[])
 			opr1 = opr2;
 			switch (o1b) {
 			case 0:/* test */
-				optype = 21, ip -= ~oprsz;
+				optype = 21, IP -= ~oprsz;
 				POKE(*opr1, &, opr);
 				setsfzfpf(newv);
 				OF = CF = 0;
@@ -436,11 +436,11 @@ main(int argc, char *argv[])
 		case 14:	/* xor */
 		case 15:	/* cmp */
 			/* oprtype = 0, 1, 2, 3, 4, 5, 6, 7 */
-			addr = r8, opr = w1, mode = 3, o1b = oprtype, ip--;
+			addr = r8, opr = w1, mode = 3, o1b = oprtype, IP--;
 		case 16:	/* add, or, adc, sbb, and, sub, xor, cmp */
 			opr1 = addr, opr2 = (uint8_t *) &utmp;
 			utmp = (dir |= !oprsz) ? (int8_t) opr : opr;
-			ip -= ~!dir, optype = 17 + (oprtype = o1b);
+			IP -= ~!dir, optype = 17 + (oprtype = o1b);
 		case 17:	/* add */
 		case 18:	/* or */
 		case 19:	/* adc */
@@ -515,7 +515,7 @@ main(int argc, char *argv[])
 		case 94:	/* rcl */
 			utmp = (1 & (oprsz ? *(int16_t *) addr : *addr) >> (8 * (oprsz + 1) - 1));
 			/* oprtype = 0, 1 */
-			if (tmp = oprtype ? ++ip, (int8_t) disp : dir ? 31 & CL : 1) {
+			if (tmp = oprtype ? ++IP, (int8_t) disp : dir ? 31 & CL : 1) {
 				if (o1b < 4) {
 					tmp %= o1b / 2 + 8 * (oprsz + 1);
 					POKE(utmp, =, *addr);
@@ -580,17 +580,17 @@ main(int argc, char *argv[])
 				tmp = !++CX;
 				break;
 			}
-			ip += tmp * (int8_t) w1;
+			IP += tmp * (int8_t) w1;
 			break;
 		case 30:	/* call, jmp, jmpf */
-			ip += 3 - dir;
+			IP += 3 - dir;
 			if (!oprsz) {
 				if (dir)
-					CS = w3, ip = 0;
+					CS = w3, IP = 0;
 				else
-					push(ip);
+					push(IP);
 			}
-			ip += dir * oprsz ? (int8_t) w1 : w1;
+			IP += dir * oprsz ? (int8_t) w1 : w1;
 			break;
 		case 31:	/* test */
 			POKE(*opr2, &, *opr1);
@@ -623,7 +623,7 @@ main(int argc, char *argv[])
 						rep++;
 						if (hassegpfx)
 							hassegpfx++;
-						ip--;
+						IP--;
 					};
 				}
 			}
@@ -646,7 +646,7 @@ main(int argc, char *argv[])
 					rep++;
 					if (hassegpfx)
 						hassegpfx++;
-					ip--;
+					IP--;
 				}
 				setafof(srcv, oldv, newv);
 				setsfzfpf(newv);
@@ -656,7 +656,7 @@ main(int argc, char *argv[])
 		case 41:	/* retf */
 		case 78:	/* iret */
 			dir = oprsz;
-			ip = pop();
+			IP = pop();
 			/* oprtype = 0, 1, 2 */
 			if (oprtype)
 				CS = pop();
@@ -722,8 +722,8 @@ main(int argc, char *argv[])
 			break;
 		case 67:	/* callf */
 			push(CS);
-			push(ip + 5);
-			CS = w3, ip = w1;
+			push(IP + 5);
+			CS = w3, IP = w1;
 			break;
 		case 69:	/* pushf */
 			push(getflags());
@@ -746,15 +746,15 @@ main(int argc, char *argv[])
 			POKE(r8[oprtype], =, opr2[2]);
 			break;
 		case 75:	/* int3 */
-			++ip;
+			++IP;
 			intr(3);
 			break;
 		case 76:	/* int */
-			ip += 2;
+			IP += 2;
 			intr(w1 & 255);
 			break;
 		case 77:	/* into */
-			++ip;
+			++IP;
 			if (OF)
 				intr(4);
 			break;
@@ -838,6 +838,6 @@ main(int argc, char *argv[])
 			}
 			break;
 		}
-		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
+		IP += (mode % 3 + 2 * !(!mode * o1a - 6)) * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
 	}
 }
