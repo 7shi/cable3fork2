@@ -64,10 +64,10 @@ pop(void)
 	return ret;
 }
 
-int
+uint8_t *
 regmap(int reg)
 {
-	return ROMBASE + (oprsz ? 2 * reg : (2 * reg + reg / 4) & 7);
+	return &r8[oprsz ? 2 * reg : (2 * reg + reg / 4) & 7];
 }
 
 void
@@ -113,7 +113,7 @@ uint32_t
 modrm(int mode, int rm, int16_t disp)
 {
 	if (mode == 3)
-		return regmap(rm);
+		return regmap(rm) - mem;
 	uint16_t addr, *seg;
 	switch (rm) {
 	case 0:
@@ -155,9 +155,9 @@ void
 getoprs(int dir, int reg, uint32_t addr, uint32_t *opr1, uint32_t *opr2)
 {
 	if (!dir)
-		*opr1 = addr, *opr2 = regmap(reg);
+		*opr1 = addr, *opr2 = regmap(reg) - mem;
 	else
-		*opr1 = regmap(reg), *opr2 = addr;
+		*opr1 = regmap(reg) - mem, *opr2 = addr;
 }
 
 int
@@ -297,14 +297,14 @@ main(int argc, char *argv[])
 			break;
 		case 1:	/* mov */
 			oprsz = ipptr[0] & 8;
-			tmp = regmap(o0);
+			tmp = regmap(o0) - mem;
 			POKE(mem[tmp], =, w1);
 			break;
 		case 2:	/* inc */
 		case 3:	/* dec */
 			/* oprtype = 0, 1 */
 			oprsz = 2, o1b = oprtype;
-			opr1 = addr = modrm(mode, o1a, disp), opr2 = regmap(o0);
+			opr1 = addr = modrm(mode, o1a, disp), opr2 = regmap(o0) - mem;
 		case 6:	/* inc, dec, call, callf, jmp, jmpf, push */
 			if (o1b < 2) {
 				POKE(mem[opr2], +=1 - 2 * o1b +, mem[ROMBASE + 24]);
@@ -574,7 +574,7 @@ main(int argc, char *argv[])
 			OF = CF = 0;
 			break;
 		case 32:	/* xchg */
-			oprsz = 7, opr1 = ROMBASE, opr2 = regmap(o0);
+			oprsz = 7, opr1 = ROMBASE, opr2 = regmap(o0) - mem;
 		case 48:	/* xchg */
 			if (opr1 != opr2) {
 				POKE(mem[opr1], ^=, mem[opr2]);
@@ -714,7 +714,7 @@ main(int argc, char *argv[])
 		case 73:	/* les */
 		case 74:	/* lds */
 			oprsz = 1;
-			opr1 = regmap(o1b), opr2 = modrm(mode, o1a, disp);
+			opr1 = regmap(o1b) - mem, opr2 = modrm(mode, o1a, disp);
 			POKE(mem[opr1], =, mem[opr2]);
 			/* oprtype = 16, 22 */
 			POKE(mem[ROMBASE + oprtype], =, mem[opr2 + 2]);
