@@ -351,20 +351,20 @@ main(int argc, char *argv[])
 			case 4:/* mul */
 				optype = 19;
 				if (oprsz) {
-					DX = (AX = newv = *(uint16_t *) &mem[addr] * (uint16_t) *r) >> 16;
+					DX = (AX = newv = *(uint16_t *) &mem[addr] * AX) >> 16;
 					OF = CF = !!(newv - (uint16_t) newv);
 				} else {
-					AX = newv = *(uint8_t *) &mem[addr] * (uint8_t) *r8;
+					AX = newv = *(uint8_t *) &mem[addr] * AL;
 					OF = CF = !!(newv - (uint8_t) newv);
 				}
 				break;
 			case 5:/* imul */
 				optype = 19;
 				if (oprsz) {
-					DX = (AX = newv = *(int16_t *) &mem[addr] * (int16_t) *r) >> 16;
+					DX = (AX = newv = *(int16_t *) &mem[addr] * (int16_t) AX) >> 16;
 					OF = CF = !!(newv - (int16_t) newv);
 				} else {
-					AX = newv = *(int8_t *) &mem[addr] * (int8_t) *r8;
+					AX = newv = *(int8_t *) &mem[addr] * (int8_t) AL;
 					OF = CF = !!(newv - (int8_t) newv);
 				}
 				break;
