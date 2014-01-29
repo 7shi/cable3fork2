@@ -761,13 +761,22 @@ main(int argc, char *argv[])
 			CF ^= 1;
 			break;
 		case 86:	/* clc */
+			CF = 0;
+			break;
 		case 87:	/* stc */
+			CF = 1;
+			break;
 		case 88:	/* cli */
+			IF = 0;
+			break;
 		case 89:	/* sti */
+			IF = 1;
+			break;
 		case 90:	/* cld */
+			DF = 0;
+			break;
 		case 91:	/* std */
-			/* oprtype = 80-81: CF, 92-93: IF, 94-95: DF */
-			r8[oprtype / 2] = oprtype & 1;
+			DF = 1;
 			break;
 		case 35:	/* test */
 			POKE(AL, &, w1);
