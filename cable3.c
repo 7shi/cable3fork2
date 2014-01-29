@@ -192,6 +192,13 @@ main(int argc, char *argv[])
 	uint16_t counter = 0;
 
 	for (;;) {
+		if (!++counter) {
+			kb = 1;
+			if (ioport[0]) {
+				fprintf(stderr, "HGC not supported\n");
+				return 1;
+			}
+		}
 		if (!hassegpfx && !rep && kb && IF) {
 			intr(8);
 #ifdef _WIN32
@@ -832,12 +839,5 @@ main(int argc, char *argv[])
 			break;
 		}
 		ip += (mode % 3 + 2 * !(!mode * o1a - 6)) * table20[optype] + table18[optype] - table19[optype] * ~!!oprsz;
-		if (!++counter) {
-			kb = 1;
-			if (ioport[0]) {
-				fprintf(stderr, "HGC not supported\n");
-				exit(1);
-			}
-		}
 	}
 }
