@@ -238,9 +238,8 @@ main(int argc, char *argv[])
 		if (rep)
 			rep--;
 		int oprlen;
-		uint8_t *addr = modrm(&oprlen, mode, o1a, disp), *opr1,
-		       *opr2;
-		getoprs(dir, o1b, addr, &opr1, &opr2);
+		uint8_t *addr, *opr1, *opr2;
+		getoprs(dir, o1b, addr = modrm(&oprlen, mode, o1a, disp), &opr1, &opr2);
 		optype = table51[ipptr[0]];
 		uint8_t oprtype = table14[optype];
 		switch (optype) {
@@ -326,11 +325,9 @@ main(int argc, char *argv[])
 				setsfzfpf(newv);
 				OF = (oldv + 1 - o1b == 1 << (8 * (oprsz + 1) - 1));
 				if (optype == 6)
-					optype = 19;
-				else {
+					IP += 2 + oprlen;
+				else
 					++IP;
-					optype = 67;
-				}
 			} else if (o1b != 6) {
 				IP += 2 + oprlen;
 				if (o1b == 3)	/* callf */
@@ -341,8 +338,11 @@ main(int argc, char *argv[])
 					CS = *(uint16_t *) &opr2[2];
 				IP = *(uint16_t *) opr2;
 				optype = 67;
-			} else
+			} else {
 				push(*(uint16_t *) addr);
+				IP += 2 + oprlen;
+			}
+			optype = 67;
 			break;
 		case 4:	/* push */
 			push(r[o0]);
@@ -358,7 +358,7 @@ main(int argc, char *argv[])
 			opr1 = opr2;
 			switch (o1b) {
 			case 0:/* test */
-				optype = 21, IP -= ~oprsz;
+				IP -= ~oprsz;
 				POKE(*opr1, &, opr);
 				setsfzfpf(newv);
 				OF = CF = 0;
@@ -368,13 +368,11 @@ main(int argc, char *argv[])
 				break;
 			case 3:/* neg */
 				POKE(*opr1, = -, *opr2);
-				oldv = 0, optype = 22;
-				CF = newv > oldv;
+				CF = newv > (oldv = 0);
 				setafof(srcv, oldv, newv);
 				setsfzfpf(newv);
 				break;
 			case 4:/* mul */
-				optype = 19;
 				if (oprsz) {
 					DX = (AX = utmp = *(uint16_t *) addr * AX) >> 16;
 					OF = CF = (utmp >> 16) != 0;
@@ -385,7 +383,6 @@ main(int argc, char *argv[])
 				setsfzfpf(newv);
 				break;
 			case 5:/* imul */
-				optype = 19;
 				if (oprsz) {
 					DX = (AX = tmp = *(int16_t *) addr * (int16_t) AX) >> 16;
 					OF = CF = (tmp >> 16) != 0;
@@ -434,6 +431,8 @@ main(int argc, char *argv[])
 				}
 				break;
 			}
+			IP += 2 + oprlen;
+			optype = 67;
 			break;
 		case 8:	/* add */
 		case 9:	/* or */
@@ -503,6 +502,8 @@ main(int argc, char *argv[])
 			}
 			if (oprtype != 8)
 				setsfzfpf(newv);
+			IP += 2 + oprlen;
+			optype = 67;
 			break;
 		case 26:	/* mov, lea, pop */
 			if (!oprsz) {
@@ -514,6 +515,8 @@ main(int argc, char *argv[])
 				*(uint16_t *) opr2 = modrm(&oprlen, mode, o1a, disp) - mem;
 			} else
 				*(uint16_t *) addr = pop();
+			IP += 2 + oprlen;
+			optype = 67;
 			break;
 		case 27:	/* mov */
 			getoprs(dir, 0, modrm(&oprlen, 0, 6, w1), &opr1, &opr2);
@@ -525,7 +528,14 @@ main(int argc, char *argv[])
 		case 94:	/* rcl */
 			utmp = (1 & (oprsz ? *(int16_t *) addr : *addr) >> (8 * (oprsz + 1) - 1));
 			/* oprtype = 0, 1 */
-			if (tmp = oprtype ? ++IP, (int8_t) disp : dir ? 31 & CL : 1) {
+			if (oprtype) {
+				++IP;
+				tmp = (int8_t) disp;
+			} else if (dir)
+				tmp = 31 & CL;
+			else
+				tmp = 1;
+			if (tmp) {
 				if (o1b < 4) {
 					tmp %= o1b / 2 + 8 * (oprsz + 1);
 					POKE(utmp, =, *addr);
@@ -534,8 +544,6 @@ main(int argc, char *argv[])
 					POKE(*addr, >>=, tmp);
 				else
 					POKE(*addr, <<=, tmp);
-				if (o1b > 3)
-					optype = 19;
 				if (o1b >= 5)
 					CF = oldv >> tmp - 1 & 1;
 			}
@@ -574,8 +582,12 @@ main(int argc, char *argv[])
 				POKE(*addr, +=, utmp *= ~(((1 << (8 * (oprsz + 1))) - 1) >> tmp));
 				break;
 			}
-			if (optype == 19)
+			if (tmp && o1b > 3) {
 				setsfzfpf(newv);
+				IP += 2 + oprlen;
+			} else
+				IP += 2 + oprlen + (optype == 94);
+			optype = 67;
 			break;
 		case 29:	/* loopnz, loopne, loopz, loope, loop, jcxz */
 			tmp = !!--CX;
@@ -609,6 +621,8 @@ main(int argc, char *argv[])
 			POKE(*opr2, &, *opr1);
 			setsfzfpf(newv);
 			OF = CF = 0;
+			IP += 2 + oprlen;
+			optype = 67;
 			break;
 		case 32:	/* xchg */
 			oprsz = 7, opr1 = r8, opr2 = regmap(o0);
@@ -618,10 +632,11 @@ main(int argc, char *argv[])
 				POKE(*opr2, ^=, *opr1);
 				POKE(*opr1, ^=, *opr2);
 			}
-			if (optype == 32) {
+			if (optype == 32)
 				++IP;
-				optype = 67;
-			}
+			else
+				IP += 2 + oprlen;
+			optype = 67;
 			break;
 		case 33:	/* movsb, movsw */
 		case 36:	/* stosb, stosw */
@@ -688,6 +703,8 @@ main(int argc, char *argv[])
 			break;
 		case 40:	/* mov */
 			POKE(*opr2, =, opr);
+			IP += 3 + oprlen + oprsz;
+			optype = 67;
 			break;
 		case 42:	/* in */
 			++IP;
@@ -791,6 +808,8 @@ main(int argc, char *argv[])
 			POKE(*opr1, =, *opr2);
 			/* oprtype = 16: ES, 22: DS */
 			POKE(r8[oprtype], =, opr2[2]);
+			IP += 2 + oprlen;
+			optype = 67;
 			break;
 		case 75:	/* int3 */
 			++IP;
