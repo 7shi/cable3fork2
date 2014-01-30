@@ -20,7 +20,7 @@ uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 uint8_t ptable[256];
 extern uint8_t table14[], table51[];
 
-uint8_t optype, oprsz;
+uint8_t oprsz;
 int hassegpfx, segpfx;
 
 #define AL r8[0]
@@ -239,7 +239,7 @@ main(int argc, char *argv[])
 		int oprlen;
 		uint8_t *addr, *opr1, *opr2;
 		getoprs(dir, o1b, addr = modrm(&oprlen, mode, o1a, disp), &opr1, &opr2);
-		optype = table51[ipptr[0]];
+		int optype = table51[ipptr[0]];
 		uint8_t oprtype = table14[optype];
 		switch (optype) {
 			int tmp, tmp2;
