@@ -239,8 +239,7 @@ main(int argc, char *argv[])
 		int oprlen;
 		uint8_t *addr, *opr1, *opr2;
 		getoprs(dir, o1b, addr = modrm(&oprlen, mode, o1a, disp), &opr1, &opr2);
-		int optype = table51[ipptr[0]];
-		uint8_t oprtype = table14[optype];
+		int oprtype = table14[table51[ipptr[0]]];
 		switch (ipptr[0]) {
 			int tmp, tmp2;
 			uint32_t utmp;
@@ -341,10 +340,10 @@ main(int argc, char *argv[])
 				setafof(srcv, oldv, newv);
 				setsfzfpf(newv);
 				OF = (oldv + 1 - o1b == 1 << (8 * (oprsz + 1) - 1));
-				if (optype == 6)
-					IP += 2 + oprlen;
-				else
+				if (oprsz == 2)
 					++IP;
+				else
+					IP += 2 + oprlen;
 			} else if (o1b != 6) {
 				IP += 2 + oprlen;
 				if (o1b == 3)	/* callf */
@@ -596,7 +595,7 @@ main(int argc, char *argv[])
 		case 0xd1:
 		case 0xd2:
 		case 0xd3:
-		case 0xc0:	/* rcl */
+		case 0xc0:
 		case 0xc1:
 			utmp = (1 & (oprsz ? *(int16_t *) addr : *addr) >> (8 * (oprsz + 1) - 1));
 			/* oprtype = 0, 1 */
@@ -658,7 +657,7 @@ main(int argc, char *argv[])
 				setsfzfpf(newv);
 				IP += 2 + oprlen;
 			} else
-				IP += 2 + oprlen + (optype == 94);
+				IP += 2 + oprlen + (ipptr[0] < 0xd0);
 			break;
 		case 0xe0:	/* loopnz, loopne, loopz, loope, loop, jcxz */
 		case 0xe1:
@@ -716,7 +715,7 @@ main(int argc, char *argv[])
 				POKE(*opr2, ^=, *opr1);
 				POKE(*opr1, ^=, *opr2);
 			}
-			if (optype == 32)
+			if (oprsz == 7)
 				++IP;
 			else
 				IP += 2 + oprlen;
