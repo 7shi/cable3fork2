@@ -211,9 +211,9 @@ main(int argc, char *argv[])
 			break;
 		ioport[32] = 0;
 		--ioport[64];
-		uint8_t *ipptr = &mem[16 * CS + IP];
-		oprsz = ipptr[0] & 1;
-		int o0 = ipptr[0] & 7, dir = ipptr[0] / 2 & 1;
+		uint8_t *ipptr = &mem[16 * CS + IP], b = *ipptr;
+		oprsz = b & 1;
+		int o0 = b & 7, dir = b / 2 & 1;
 		uint32_t w1 = *(int16_t *) &ipptr[1];
 		uint32_t w2 = *(int16_t *) &ipptr[2];
 		uint32_t w3 = *(int16_t *) &ipptr[3];
@@ -233,7 +233,7 @@ main(int argc, char *argv[])
 		int oprlen;
 		uint8_t *addr, *opr1, *opr2;
 		getoprs(dir, o1b, addr = modrm(&oprlen, mode, o1a, disp), &opr1, &opr2);
-		switch (ipptr[0]) {
+		switch (b) {
 			int tmp, tmp2;
 			uint32_t utmp;
 			uint16_t srcv, oldv, newv;
@@ -301,7 +301,7 @@ main(int argc, char *argv[])
 		case 0xbd:
 		case 0xbe:
 		case 0xbf:
-			oprsz = ipptr[0] & 8;
+			oprsz = b & 8;
 			addr = regmap(o0);
 			POKE(*addr, =, w1);
 			IP += oprsz ? 3 : 2;
@@ -322,7 +322,7 @@ main(int argc, char *argv[])
 		case 0x4d:
 		case 0x4e:
 		case 0x4f:
-			oprsz = 2, o1b = ipptr[0] >= 0x48;
+			oprsz = 2, o1b = b >= 0x48;
 			opr1 = addr = modrm(&oprlen, mode, o1a, disp), opr2 = regmap(o0);
 		case 0xfe:	/* inc, dec, call, callf, jmp, jmpf, push */
 		case 0xff:
@@ -512,7 +512,7 @@ main(int argc, char *argv[])
 		case 0x89:
 		case 0x8a:
 		case 0x8b:
-			tmp = ipptr[0] >> 3;
+			tmp = b >> 3;
 			if (tmp == 16)
 				tmp = o1b;
 			switch (tmp) {
@@ -557,7 +557,7 @@ main(int argc, char *argv[])
 				POKE(*opr1, =, *opr2);
 				break;
 			}
-			if (ipptr[0] < 0x88)
+			if (b < 0x88)
 				setsfzfpf(newv);
 			IP += 2 + oprlen;
 			break;
@@ -591,7 +591,7 @@ main(int argc, char *argv[])
 		case 0xc0:
 		case 0xc1:
 			utmp = (1 & (oprsz ? *(int16_t *) addr : *addr) >> (8 * (oprsz + 1) - 1));
-			if (ipptr[0] < 0xd0) {
+			if (b < 0xd0) {
 				++IP;
 				tmp = (int8_t) disp;
 			} else if (dir)
@@ -649,7 +649,7 @@ main(int argc, char *argv[])
 				setsfzfpf(newv);
 				IP += 2 + oprlen;
 			} else
-				IP += 2 + oprlen + (ipptr[0] < 0xd0);
+				IP += 2 + oprlen + (b < 0xd0);
 			break;
 		case 0xe0:	/* loopnz, loopne, loopz, loope, loop, jcxz */
 		case 0xe1:
@@ -719,7 +719,7 @@ main(int argc, char *argv[])
 		case 0xac:	/* lodsb,lodsw */
 		case 0xad:
 			if (!rep || CX) {
-				tmp2 = (ipptr[0] >> 2) - 41;	/* 0, 1, 2 */
+				tmp2 = (b >> 2) - 41;	/* 0, 1, 2 */
 				opr1 = tmp2 < 2 ? &mem[16 * ES + DI] : r8;
 				opr2 = tmp2 == 1 ? r8 : &mem[16 * (hassegpfx ? r[segpfx] : DS) + SI];
 				POKE(*opr1, =, *opr2);
@@ -743,13 +743,13 @@ main(int argc, char *argv[])
 		case 0xae:	/* scasb, scasw */
 		case 0xaf:
 			if (!rep || CX) {
-				opr1 = ipptr[0] >= 0xae ? r8 : &mem[16 * (hassegpfx ? r[segpfx] : DS) + SI];
+				opr1 = b >= 0xae ? r8 : &mem[16 * (hassegpfx ? r[segpfx] : DS) + SI];
 				opr2 = &mem[16 * ES + DI];
 				POKE(*opr1, -, *opr2);
 				ZF = !newv;
 				CF = newv > oldv;
 				tmp = ~(-2 * DF) * ~oprsz;
-				if (ipptr[0] < 0xae)
+				if (b < 0xae)
 					SI += tmp;
 				DI += tmp;
 				if (rep && --CX && !newv == hasrep) {
@@ -770,9 +770,9 @@ main(int argc, char *argv[])
 		case 0xcf:	/* iret */
 			dir = oprsz;
 			IP = pop();
-			if (ipptr[0] >= 0xca)	/* retf, iret */
+			if (b >= 0xca)	/* retf, iret */
 				CS = pop();
-			if (ipptr[0] == 0xcf)	/* iret */
+			if (b == 0xcf)	/* iret */
 				setflags(pop());
 			else if (!dir)
 				SP += w1;
@@ -788,7 +788,7 @@ main(int argc, char *argv[])
 		case 0xec:	/* in */
 		case 0xed:
 			ioport[0x3da] ^= 9;
-			POKE(AL, =, ioport[ipptr[0] >= 0xec ? DX : (int8_t) w1]);
+			POKE(AL, =, ioport[b >= 0xec ? DX : (int8_t) w1]);
 			++IP;
 			break;
 		case 0xe6:	/* out */
@@ -796,7 +796,7 @@ main(int argc, char *argv[])
 			++IP;
 		case 0xee:	/* out */
 		case 0xef:
-			POKE(ioport[ipptr[0] >= 0xee ? DX : (int8_t) w1], =, AL);
+			POKE(ioport[b >= 0xee ? DX : (int8_t) w1], =, AL);
 			++IP;
 			break;
 		case 0xf2:	/* repnz, repz */
@@ -810,20 +810,20 @@ main(int argc, char *argv[])
 		case 0x0e:	/* push */
 		case 0x16:	/* push */
 		case 0x1e:	/* push */
-			push(r[8 + (ipptr[0] >> 3)]);
+			push(r[8 + (b >> 3)]);
 			++IP;
 			break;
 		case 0x07:	/* pop */
 		case 0x17:	/* pop */
 		case 0x1f:	/* pop */
-			r[8 + (ipptr[0] >> 3)] = pop();
+			r[8 + (b >> 3)] = pop();
 			++IP;
 			break;
 		case 0x26:	/* es: */
 		case 0x2e:	/* cs: */
 		case 0x36:	/* ss: */
 		case 0x3e:	/* ds: */
-			hassegpfx = 2, segpfx = 8 + ((ipptr[0] >> 3) & 3);
+			hassegpfx = 2, segpfx = 8 + ((b >> 3) & 3);
 			if (rep)
 				rep++;
 			++IP;
@@ -870,7 +870,7 @@ main(int argc, char *argv[])
 			oprsz = 1;
 			opr1 = regmap(o1b), opr2 = modrm(&oprlen, mode, o1a, disp);
 			POKE(*opr1, =, *opr2);
-			if (ipptr[0] == 0xc4)
+			if (b == 0xc4)
 				ES = *(uint16_t *) &opr2[2];
 			else
 				DS = *(uint16_t *) &opr2[2];
