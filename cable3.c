@@ -16,11 +16,8 @@ uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
 uint16_t r[13], IP;
 uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
-
 uint8_t ptable[256];
-
-uint8_t oprsz;
-int hassegpfx, segpfx;
+int oprsz, hassegpfx, segpfx;
 
 #define AL r8[0]
 #define AH r8[1]
@@ -48,14 +45,12 @@ int hassegpfx, segpfx;
 void
 push(uint16_t src)
 {
-	oprsz = 4;
 	*(uint16_t *) &mem[16 * SS + (SP -= 2)] = src;
 }
 
 uint16_t
 pop(void)
 {
-	oprsz = 4;
 	uint16_t ret = *(uint16_t *) &mem[16 * SS + SP];
 	SP += 2;
 	return ret;
