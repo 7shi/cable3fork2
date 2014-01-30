@@ -18,7 +18,6 @@ uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 
 uint8_t ptable[256];
-extern uint8_t table14[], table51[];
 
 uint8_t oprsz;
 int hassegpfx, segpfx;
