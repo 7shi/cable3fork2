@@ -817,32 +817,25 @@ main(int argc, char *argv[])
 			++IP;
 			break;
 		case 85:	/* cmc */
-			CF ^= 1;
-			++IP;
+			CF ^= 1, ++IP;
 			break;
 		case 86:	/* clc */
-			CF = 0;
-			++IP;
+			CF = 0, ++IP;
 			break;
 		case 87:	/* stc */
-			CF = 1;
-			++IP;
+			CF = 1, ++IP;
 			break;
 		case 88:	/* cli */
-			IF = 0;
-			++IP;
+			IF = 0, ++IP;
 			break;
 		case 89:	/* sti */
-			IF = 1;
-			++IP;
+			IF = 1, ++IP;
 			break;
 		case 90:	/* cld */
-			DF = 0;
-			++IP;
+			DF = 0, ++IP;
 			break;
 		case 91:	/* std */
-			DF = 1;
-			++IP;
+			DF = 1, ++IP;
 			break;
 		case 35:	/* test */
 			POKE(AL, &, w1);
