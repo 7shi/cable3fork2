@@ -439,7 +439,7 @@ main(int argc, char *argv[])
 		case 16:	/* add, or, adc, sbb, and, sub, xor, cmp */
 			opr1 = addr, opr2 = (uint8_t *) &utmp;
 			utmp = (dir |= !oprsz) ? (int8_t) opr : opr;
-			IP -= ~!dir, optype = 17 + (oprtype = o1b);
+			IP -= ~!dir, oprtype = o1b;
 		case 17:	/* add */
 		case 18:	/* or */
 		case 19:	/* adc */
@@ -653,7 +653,6 @@ main(int argc, char *argv[])
 				opr1 = oprtype ? r8 : &mem[16 * (hassegpfx ? r[segpfx] : DS) + SI];
 				opr2 = &mem[16 * ES + DI];
 				POKE(*opr1, -, *opr2);
-				optype = 92;
 				ZF = !newv;
 				CF = newv > oldv;
 				tmp = ~(-2 * DF) * ~oprsz;
