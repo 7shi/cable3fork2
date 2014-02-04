@@ -17,7 +17,8 @@ uint16_t r[13], IP;
 uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 uint8_t ptable[256];
-int oprsz, hassegpfx, segpfx;
+int oprsz, hassegpfx;
+uint16_t *segpfx;
 
 #define AL r8[0]
 #define AH r8[1]
@@ -116,7 +117,7 @@ intr(int n)
 }
 
 __inline static uint8_t *
-modrm(int *oprlen, int mode, int rm, int16_t disp)
+modrm(int *oprlen, int mode, int rm, int16_t disp, uint16_t *segpfx)
 {
 	if (mode == 3) {
 		*oprlen = 0;
@@ -154,11 +155,9 @@ modrm(int *oprlen, int mode, int rm, int16_t disp)
 		seg = &DS, addr = BX;
 		break;
 	}
-	if (hassegpfx)
-		seg = &r[segpfx];
 	if (mode)
 		addr += disp;
-	return &mem[16 * *seg + addr];
+	return &mem[16 * (segpfx ? *segpfx : *seg) + addr];
 }
 
 __inline static void
@@ -194,11 +193,13 @@ step()
 		opr = *(int16_t *) &ipptr[4];
 	if (hassegpfx)
 		hassegpfx--;
+	if (segpfx && !hassegpfx)
+		segpfx = NULL;
 	if (rep)
 		rep--;
 	int oprlen;
 	uint8_t *addr, *opr1, *opr2;
-	getoprs(dir, o1b, addr = modrm(&oprlen, mode, o1a, disp), &opr1, &opr2);
+	getoprs(dir, o1b, addr = modrm(&oprlen, mode, o1a, disp, segpfx), &opr1, &opr2);
 	switch (b) {
 		int tmp, tmp2;
 		uint32_t utmp;
@@ -289,7 +290,7 @@ step()
 	case 0x4e:
 	case 0x4f:
 		oprsz = 2, o1b = b >= 0x48;
-		opr1 = addr = modrm(&oprlen, mode, o1a, disp), opr2 = regmap(o0);
+		opr1 = addr = modrm(&oprlen, mode, o1a, disp, segpfx), opr2 = regmap(o0);
 	case 0xfe:		/* inc, dec, call, callf, jmp, jmpf, push */
 	case 0xff:
 		if (o1b < 2) {	/* inc, dec */
@@ -533,12 +534,11 @@ step()
 	case 0x8f:
 		if (!oprsz) {
 			oprsz = o1b + 8;
-			getoprs(dir, oprsz, modrm(&oprlen, mode, o1a, disp), &opr1, &opr2);
+			getoprs(dir, oprsz, modrm(&oprlen, mode, o1a, disp, segpfx), &opr1, &opr2);
 			POKE(*opr1, =, *opr2);
-		} else if (!dir) {
-			hassegpfx = 1, segpfx = 12;
-			*(uint16_t *) opr2 = modrm(&oprlen, mode, o1a, disp) - mem;
-		} else
+		} else if (!dir)
+			*(uint16_t *) opr2 = modrm(&oprlen, mode, o1a, disp, &r[12]) - mem;
+		else
 			*(uint16_t *) addr = pop();
 		IP += 2 + oprlen;
 		break;
@@ -546,7 +546,7 @@ step()
 	case 0xa1:
 	case 0xa2:
 	case 0xa3:
-		getoprs(dir, 0, modrm(&oprlen, 0, 6, w1), &opr1, &opr2);
+		getoprs(dir, 0, modrm(&oprlen, 0, 6, w1, segpfx), &opr1, &opr2);
 		POKE(*opr2, =, *opr1);
 		IP += 3;
 		break;
@@ -687,7 +687,7 @@ step()
 		if (!rep || CX) {
 			tmp2 = (b >> 2) - 41;	/* 0, 1, 2 */
 			opr1 = tmp2 < 2 ? &mem[16 * ES + DI] : r8;
-			opr2 = tmp2 == 1 ? r8 : &mem[16 * (hassegpfx ? r[segpfx] : DS) + SI];
+			opr2 = tmp2 == 1 ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
 			POKE(*opr1, =, *opr2);
 			tmp = ~(-2 * DF) * ~oprsz;
 			if (tmp2 != 1)
@@ -709,7 +709,7 @@ step()
 	case 0xae:		/* scasb, scasw */
 	case 0xaf:
 		if (!rep || CX) {
-			opr1 = b >= 0xae ? r8 : &mem[16 * (hassegpfx ? r[segpfx] : DS) + SI];
+			opr1 = b >= 0xae ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
 			opr2 = &mem[16 * ES + DI];
 			POKE(*opr1, -, *opr2);
 			ZF = !newv;
@@ -788,7 +788,7 @@ step()
 	case 0x2e:		/* cs: */
 	case 0x36:		/* ss: */
 	case 0x3e:		/* ds: */
-		hassegpfx = 2, segpfx = 8 + ((b >> 3) & 3);
+		hassegpfx = 2, segpfx = &r[8 + ((b >> 3) & 3)];
 		if (rep)
 			rep++;
 		++IP;
@@ -833,7 +833,7 @@ step()
 	case 0xc4:		/* les */
 	case 0xc5:		/* lds */
 		oprsz = 1;
-		opr1 = regmap(o1b), opr2 = modrm(&oprlen, mode, o1a, disp);
+		opr1 = regmap(o1b), opr2 = modrm(&oprlen, mode, o1a, disp, segpfx);
 		POKE(*opr1, =, *opr2);
 		if (b == 0xc4)
 			ES = *(uint16_t *) &opr2[2];
@@ -875,7 +875,7 @@ step()
 		++IP;
 		break;
 	case 0xd7:		/* xlat */
-		AL = mem[16 * (hassegpfx ? r[segpfx] : DS) + (uint16_t) (AL + BX)];
+		AL = mem[16 * (segpfx ? *segpfx : DS) + (uint16_t) (AL + BX)];
 		++IP;
 		break;
 	case 0xf5:		/* cmc */
