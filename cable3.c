@@ -191,10 +191,6 @@ main(int argc, char *argv[])
 	for (;;) {
 		if (!++counter) {
 			kb = 1;
-			if (ioport[0]) {
-				fprintf(stderr, "HGC not supported\n");
-				return 1;
-			}
 		}
 		if (!hassegpfx && !rep && kb && IF) {
 			intr(8);
@@ -210,8 +206,6 @@ main(int argc, char *argv[])
 		}
 		if (CS == 0 && IP == 0)
 			break;
-		ioport[32] = 0;
-		--ioport[64];
 		uint8_t *ipptr = &mem[16 * CS + IP], b = *ipptr;
 		oprsz = b & 1;
 		int o0 = b & 7, dir = b / 2 & 1;
@@ -788,7 +782,6 @@ main(int argc, char *argv[])
 			++IP;
 		case 0xec:	/* in */
 		case 0xed:
-			ioport[0x3da] ^= 9;
 			POKE(AL, =, ioport[b >= 0xec ? DX : (int8_t) w1]);
 			++IP;
 			break;
