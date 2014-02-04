@@ -106,7 +106,7 @@ intr(int n)
 	push(IP);
 	CS = *(uint16_t *) &mem[4 * n + 2];
 	IP = *(uint16_t *) &mem[4 * n];
-	IF = 0;
+	IF = TF = 0;
 }
 
 uint8_t *
