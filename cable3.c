@@ -65,7 +65,8 @@ regmap(int reg)
 void
 setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 {
-	AF = !!((srcv ^= oldv ^ newv) & 16);
+	srcv ^= oldv ^ newv;
+	/* AF = !!(srcv & 16); */
 	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
 }
 
