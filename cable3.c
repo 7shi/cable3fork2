@@ -168,7 +168,7 @@ FILE *files[3];			/* HD, FD, BIOS */
 int hasrep = 0, rep = 0, kb = 0;
 uint16_t counter = 0;
 
-void
+__inline static void
 step()
 {
 	uint8_t *ipptr = &mem[16 * CS + IP], b = *ipptr;
