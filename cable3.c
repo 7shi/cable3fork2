@@ -164,6 +164,10 @@ getoprs(int dir, int reg, uint8_t *addr, uint8_t **opr1, uint8_t **opr2)
 		*opr1 = regmap(reg), *opr2 = addr;
 }
 
+FILE *files[3];			/* HD, FD, BIOS */
+int hasrep = 0, rep = 0, kb = 0;
+uint16_t counter = 0;
+
 int
 main(int argc, char *argv[])
 {
@@ -178,15 +182,11 @@ main(int argc, char *argv[])
 		ptable[i] = (n & 1) == 0;
 	}
 
-	FILE *files[] = {NULL /* HD */ , NULL /* FD */ , NULL /* BIOS */ };
 	for (int i = 1; i <= 3 && i < argc; ++i)
 		files[3 - i] = fopen(argv[i], "r+b");
 	if (files[0])		/* CX:AX = HDD sectors */
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[ROMBASE + IP], 1, ROMBASE, files[2]);	/* read BIOS */
-
-	int hasrep = 0, rep = 0, kb = 0;
-	uint16_t counter = 0;
 
 	for (;;) {
 		if (!++counter) {
