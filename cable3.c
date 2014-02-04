@@ -42,13 +42,13 @@ int oprsz, hassegpfx, segpfx;
 #define SS r[10]
 #define DS r[11]
 
-void
+__inline static void
 push(uint16_t src)
 {
 	*(uint16_t *) &mem[16 * SS + (SP -= 2)] = src;
 }
 
-uint16_t
+__inline static uint16_t
 pop(void)
 {
 	uint16_t ret = *(uint16_t *) &mem[16 * SS + SP];
@@ -56,13 +56,13 @@ pop(void)
 	return ret;
 }
 
-uint8_t *
+__inline static uint8_t *
 regmap(int reg)
 {
 	return &r8[oprsz ? 2 * reg : (2 * reg + reg / 4) & 7];
 }
 
-void
+__inline static void
 setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 {
 	srcv ^= oldv ^ newv;
@@ -70,7 +70,7 @@ setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
 }
 
-void
+__inline static void
 setsfzfpf(uint16_t newv)
 {
 	SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1));
@@ -78,13 +78,13 @@ setsfzfpf(uint16_t newv)
 	PF = ptable[(uint8_t) newv];
 }
 
-uint16_t
+__inline static uint16_t
 getflags(void)
 {
 	return 0xf002 | CF | (PF << 2) | (AF << 4) | (ZF << 6) | (SF << 7) | (TF << 8) | (IF << 9) | (DF << 10) | (OF << 11);
 }
 
-void
+__inline static void
 setflags(uint16_t flags)
 {
 	CF = flags & 1;
@@ -98,7 +98,7 @@ setflags(uint16_t flags)
 	OF = (flags & 2048) != 0;
 }
 
-void
+__inline static void
 intr(int n)
 {
 	push(getflags());
@@ -109,7 +109,7 @@ intr(int n)
 	IF = TF = 0;
 }
 
-uint8_t *
+__inline static uint8_t *
 modrm(int *oprlen, int mode, int rm, int16_t disp)
 {
 	if (mode == 3) {
@@ -155,7 +155,7 @@ modrm(int *oprlen, int mode, int rm, int16_t disp)
 	return &mem[16 * *seg + addr];
 }
 
-void
+__inline static void
 getoprs(int dir, int reg, uint8_t *addr, uint8_t **opr1, uint8_t **opr2)
 {
 	if (!dir)
