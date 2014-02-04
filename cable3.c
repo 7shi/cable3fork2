@@ -17,8 +17,7 @@ uint16_t r[13], IP;
 uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 uint8_t ptable[256];
-int oprsz, hassegpfx;
-uint16_t *segpfx;
+int oprsz;
 
 #define AL r8[0]
 #define AH r8[1]
@@ -174,7 +173,7 @@ int hasrep = 0, rep = 0, kb = 0;
 uint16_t counter = 0;
 
 __inline static void
-step()
+step(uint16_t *segpfx)
 {
 	uint8_t *ipptr = &mem[16 * CS + IP], b = *ipptr;
 	oprsz = b & 1;
@@ -191,10 +190,6 @@ step()
 			opr = disp;
 	} else
 		opr = *(int16_t *) &ipptr[4];
-	if (hassegpfx)
-		hassegpfx--;
-	if (segpfx && !hassegpfx)
-		segpfx = NULL;
 	if (rep)
 		rep--;
 	int oprlen;
@@ -759,9 +754,8 @@ step()
 	case 0xf2:		/* repnz, repz */
 	case 0xf3:
 		rep = 2, hasrep = oprsz;
-		if (hassegpfx)
-			hassegpfx++;
 		++IP;
+		step(segpfx);
 		break;
 	case 0x06:		/* push */
 	case 0x0e:		/* push */
@@ -780,10 +774,10 @@ step()
 	case 0x2e:		/* cs: */
 	case 0x36:		/* ss: */
 	case 0x3e:		/* ds: */
-		hassegpfx = 2, segpfx = &r[8 + ((b >> 3) & 3)];
 		if (rep)
 			rep++;
 		++IP;
+		step(&r[8 + ((b >> 3) & 3)]);
 		break;
 	case 0x27:		/* daa */
 	case 0x2f:		/* das */
@@ -959,7 +953,7 @@ main(int argc, char *argv[])
 		if (!++counter) {
 			kb = 1;
 		}
-		if (!hassegpfx && !rep && kb && IF) {
+		if (!rep && kb && IF) {
 			intr(8);
 #ifdef _WIN32
 			if (kb = kbhit()) {
@@ -973,6 +967,6 @@ main(int argc, char *argv[])
 		}
 		if (CS == 0 && IP == 0)
 			break;
-		step();
+		step(NULL);
 	}
 }
