@@ -169,11 +169,11 @@ getoprs(int dir, int reg, uint8_t *addr, uint8_t **opr1, uint8_t **opr2)
 }
 
 FILE *files[3];			/* HD, FD, BIOS */
-int hasrep = 0, rep = 0, kb = 0;
+int kb = 0;
 uint16_t counter = 0;
 
 __inline static void
-step(uint16_t *segpfx)
+step(int rep, uint16_t *segpfx)
 {
 	uint8_t *ipptr = &mem[16 * CS + IP], b = *ipptr;
 	oprsz = b & 1;
@@ -190,8 +190,6 @@ step(uint16_t *segpfx)
 			opr = disp;
 	} else
 		opr = *(int16_t *) &ipptr[4];
-	if (rep)
-		rep--;
 	int oprlen;
 	uint8_t *addr, *opr1, *opr2;
 	getoprs(dir, o1b, addr = modrm(&oprlen, mode, o1a, disp, segpfx), &opr1, &opr2);
@@ -710,7 +708,7 @@ step(uint16_t *segpfx)
 				if (b < 0xae)
 					SI += tmp;
 				DI += tmp;
-			} while (rep && --CX && !newv == hasrep);
+			} while (rep && --CX && ZF == rep - 1);
 			setafof(srcv, oldv, newv);
 			setsfzfpf(newv);
 		}
@@ -753,9 +751,8 @@ step(uint16_t *segpfx)
 		break;
 	case 0xf2:		/* repnz, repz */
 	case 0xf3:
-		rep = 2, hasrep = oprsz;
 		++IP;
-		step(segpfx);
+		step(oprsz + 1, segpfx);
 		break;
 	case 0x06:		/* push */
 	case 0x0e:		/* push */
@@ -777,7 +774,7 @@ step(uint16_t *segpfx)
 		if (rep)
 			rep++;
 		++IP;
-		step(&r[8 + ((b >> 3) & 3)]);
+		step(rep, &r[8 + ((b >> 3) & 3)]);
 		break;
 	case 0x27:		/* daa */
 	case 0x2f:		/* das */
@@ -953,7 +950,7 @@ main(int argc, char *argv[])
 		if (!++counter) {
 			kb = 1;
 		}
-		if (!rep && kb && IF) {
+		if (kb && IF) {
 			intr(8);
 #ifdef _WIN32
 			if (kb = kbhit()) {
@@ -967,6 +964,6 @@ main(int argc, char *argv[])
 		}
 		if (CS == 0 && IP == 0)
 			break;
-		step(NULL);
+		step(0, NULL);
 	}
 }
