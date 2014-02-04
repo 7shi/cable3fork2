@@ -18,6 +18,7 @@ uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 uint8_t ptable[256];
 int oprsz;
+FILE *files[3];			/* HD, FD, BIOS */
 
 #define AL r8[0]
 #define AH r8[1]
@@ -167,10 +168,6 @@ getoprs(int dir, int reg, uint8_t *addr, uint8_t **opr1, uint8_t **opr2)
 	else
 		*opr1 = regmap(reg), *opr2 = addr;
 }
-
-FILE *files[3];			/* HD, FD, BIOS */
-int kb = 0;
-uint16_t counter = 0;
 
 __inline static void
 step(int rep, uint16_t *segpfx)
@@ -946,6 +943,8 @@ main(int argc, char *argv[])
 		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
 	fread(&mem[ROMBASE + IP], 1, ROMBASE, files[2]);	/* read BIOS */
 
+	uint16_t counter = 0;
+	int kb = 0;
 	for (;;) {
 		if (!++counter) {
 			kb = 1;
