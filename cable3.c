@@ -9,7 +9,7 @@
 #include <conio.h>
 #endif
 
-#define POKE(dst,opr,src) (oldv=deref(&dst),newv=oprsz?*(uint16_t*)&dst opr(srcv=*(uint16_t*)&src):(dst opr(srcv=*(uint8_t*)&src)))
+#define POKE(dst,opr,src) (oldv=getv(&dst),newv=oprsz?*(uint16_t*)&dst opr(srcv=*(uint16_t*)&src):(dst opr(srcv=*(uint8_t*)&src)))
 
 #define ROMBASE 0xf0000
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
@@ -43,7 +43,7 @@ int oprsz, hassegpfx, segpfx;
 #define DS r[11]
 
 __inline static int
-deref(void *p)
+getv(void *p)
 {
 	return oprsz ? *(uint16_t *) p : *(uint8_t *) p;
 }
