@@ -686,21 +686,17 @@ step()
 	case 0xad:
 		if (!rep || CX) {
 			tmp2 = (b >> 2) - 41;	/* 0, 1, 2 */
-			opr1 = tmp2 < 2 ? &mem[16 * ES + DI] : r8;
-			opr2 = tmp2 == 1 ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
-			POKE(*opr1, =, *opr2);
 			tmp = ~(-2 * DF) * ~oprsz;
-			if (tmp2 != 1)
-				SI += tmp;
-			if (tmp2 != 2) {
-				DI += tmp;
-				if (rep && --CX) {
-					rep++;
-					if (hassegpfx)
-						hassegpfx++;
-					IP--;
-				};
-			}
+			do {
+				opr1 = tmp2 < 2 ? &mem[16 * ES + DI] : r8;
+				opr2 = tmp2 == 1 ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
+				POKE(*opr1, =, *opr2);
+				if (tmp2 != 1)
+					SI += tmp;
+				if (tmp2 != 2) {
+					DI += tmp;
+				}
+			} while (rep && --CX);
 		}
 		++IP;
 		break;
@@ -709,21 +705,17 @@ step()
 	case 0xae:		/* scasb, scasw */
 	case 0xaf:
 		if (!rep || CX) {
-			opr1 = b >= 0xae ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
-			opr2 = &mem[16 * ES + DI];
-			POKE(*opr1, -, *opr2);
-			ZF = !newv;
-			CF = newv > oldv;
 			tmp = ~(-2 * DF) * ~oprsz;
-			if (b < 0xae)
-				SI += tmp;
-			DI += tmp;
-			if (rep && --CX && !newv == hasrep) {
-				rep++;
-				if (hassegpfx)
-					hassegpfx++;
-				IP--;
-			}
+			do {
+				opr1 = b >= 0xae ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
+				opr2 = &mem[16 * ES + DI];
+				POKE(*opr1, -, *opr2);
+				ZF = !newv;
+				CF = newv > oldv;
+				if (b < 0xae)
+					SI += tmp;
+				DI += tmp;
+			} while (rep && --CX && !newv == hasrep);
 			setafof(srcv, oldv, newv);
 			setsfzfpf(newv);
 		}
