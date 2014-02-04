@@ -215,13 +215,13 @@ main(int argc, char *argv[])
 		uint8_t *ipptr = &mem[16 * CS + IP], b = *ipptr;
 		oprsz = b & 1;
 		int o0 = b & 7, dir = b / 2 & 1;
-		uint32_t w1 = *(int16_t *) &ipptr[1];
-		uint32_t w2 = *(int16_t *) &ipptr[2];
-		uint32_t w3 = *(int16_t *) &ipptr[3];
+		int w1 = *(int16_t *) &ipptr[1];
+		int w2 = *(int16_t *) &ipptr[2];
+		int w3 = *(int16_t *) &ipptr[3];
 		int o1a = ipptr[1] & 7, o1b = ipptr[1] / 8 & 7;
 		int mode = ipptr[1] >> 6;
 		int16_t disp = mode != 1 ? w2 : (int8_t) w2;
-		uint32_t opr = w3;
+		int opr = w3;
 		if (!(mode == 0 && o1a == 6) && mode != 2) {
 			if (mode != 1)
 				opr = disp;
