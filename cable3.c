@@ -172,21 +172,21 @@ getoprs(int dir, int reg, uint8_t *addr, uint8_t **opr1, uint8_t **opr2)
 __inline static void
 step(int rep, uint16_t *segpfx)
 {
-	uint8_t *ipptr = &mem[16 * CS + IP], b = *ipptr;
+	uint8_t *p = &mem[16 * CS + IP], b = *p;
 	oprsz = b & 1;
 	int o0 = b & 7, dir = b / 2 & 1;
-	int w1 = *(int16_t *) &ipptr[1];
-	int w2 = *(int16_t *) &ipptr[2];
-	int w3 = *(int16_t *) &ipptr[3];
-	int o1a = ipptr[1] & 7, o1b = ipptr[1] / 8 & 7;
-	int mode = ipptr[1] >> 6;
+	int w1 = *(int16_t *) &p[1];
+	int w2 = *(int16_t *) &p[2];
+	int w3 = *(int16_t *) &p[3];
+	int o1a = p[1] & 7, o1b = p[1] / 8 & 7;
+	int mode = p[1] >> 6;
 	int16_t disp = mode != 1 ? w2 : (int8_t) w2;
 	int opr = w3;
 	if (!(mode == 0 && o1a == 6) && mode != 2) {
 		if (mode != 1)
 			opr = disp;
 	} else
-		opr = *(int16_t *) &ipptr[4];
+		opr = *(int16_t *) &p[4];
 	int oprlen;
 	uint8_t *addr, *opr1, *opr2;
 	getoprs(dir, o1b, addr = modrm(&oprlen, mode, o1a, disp, segpfx), &opr1, &opr2);
@@ -195,52 +195,52 @@ step(int rep, uint16_t *segpfx)
 		uint32_t utmp;
 		uint16_t srcv, oldv, newv;
 	case 0x70:		/* jo */
-		IP += OF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += OF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x71:		/* jno */
-		IP += !OF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += !OF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x72:		/* jb, jnae */
-		IP += CF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += CF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x73:		/* jnb, jae */
-		IP += !CF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += !CF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x74:		/* je, jz */
-		IP += ZF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += ZF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x75:		/* jne, jnz */
-		IP += !ZF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += !ZF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x76:		/* jbe, jna */
-		IP += CF || ZF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += CF || ZF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x77:		/* jnbe, ja */
-		IP += !CF && !ZF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += !CF && !ZF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x78:		/* js */
-		IP += SF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += SF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x79:		/* jns */
-		IP += !SF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += !SF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x7a:		/* jp */
-		IP += PF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += PF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x7b:		/* jnp */
-		IP += !PF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += !PF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x7c:		/* jl, jnge */
-		IP += SF != OF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += SF != OF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x7d:		/* jnl, jge */
-		IP += SF == OF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += SF == OF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x7e:		/* jle, jng */
-		IP += ZF || SF != OF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += ZF || SF != OF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0x7f:		/* jnle, jg */
-		IP += !ZF && SF == OF ? 2 + (int8_t) ipptr[1] : 2;
+		IP += !ZF && SF == OF ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0xb0:		/* mov r8, imm8 */
 	case 0xb1:
@@ -625,7 +625,7 @@ step(int rep, uint16_t *segpfx)
 		}
 		IP += 2;
 		if (tmp)
-			IP += (int8_t) ipptr[1];
+			IP += (int8_t) p[1];
 		break;
 	case 0xe8:		/* call, jmp, jmpf */
 	case 0xe9:
