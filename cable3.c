@@ -778,8 +778,6 @@ step(int rep, uint16_t *segpfx)
 	case 0x2e:		/* cs: */
 	case 0x36:		/* ss: */
 	case 0x3e:		/* ds: */
-		if (rep)
-			rep++;
 		++IP;
 		step(rep, &r[8 + ((b >> 3) & 3)]);
 		return;
