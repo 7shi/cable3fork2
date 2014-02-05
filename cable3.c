@@ -56,6 +56,14 @@ getv(void *src)
 }
 
 static inline int
+setv(void *dst, int src)
+{
+	if (oprsz)
+		return *(uint16_t *) dst = src;
+	return *(uint8_t *) dst = src;
+}
+
+static inline int
 setvp(void *dst, void *src)
 {
 	if (oprsz)
@@ -719,7 +727,7 @@ step(int rep, uint16_t *segpfx)
 		return;
 	case 0xc6:		/* mov */
 	case 0xc7:
-		setvp(opr2, &opr);
+		setv(opr2, opr);
 		IP += 3 + oprlen + oprsz;
 		return;
 	case 0xe4:		/* in */
