@@ -47,6 +47,12 @@ read16(void *p)
 	return *(uint16_t *) p;
 }
 
+static inline void
+write32(void *p, uint32_t v)
+{
+	*(uint32_t *) p = v;
+}
+
 static inline int
 getv(void *src)
 {
@@ -89,6 +95,12 @@ regmap(int reg)
 	return &r8[oprsz ? 2 * reg : (2 * reg + reg / 4) & 7];
 }
 
+static inline int
+isneg(int v)
+{
+	return (oprsz ? (int16_t) v : (int8_t) v) < 0;
+}
+
 static inline void
 setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 {
@@ -97,12 +109,6 @@ setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 	AF = !!(srcv & 16);
 #endif
 	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
-}
-
-static inline int
-isneg(int v)
-{
-	return (oprsz ? (int16_t) v : (int8_t) v) < 0;
 }
 
 static inline void
@@ -229,10 +235,10 @@ step(int rep, uint8_t *segpfx)
 	int oprlen;
 	uint8_t *addr, *opr1, *opr2;
 	getoprs(dir, reg, addr = modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
+	uint16_t srcv, oldv, newv = 0;
 	switch (b) {
 		int tmp, tmp2;
 		uint32_t utmp;
-		uint16_t srcv, oldv, newv;
 	case 0x70:		/* jo */
 		return jumpif(p[1], OF);
 	case 0x71:		/* jno */
@@ -306,7 +312,7 @@ step(int rep, uint8_t *segpfx)
 	case 0xfe:		/* inc, dec, call, callf, jmp, jmpf, push */
 	case 0xff:
 		if (reg < 2) {	/* inc, dec */
-			newv = setv(opr2, (srcv = getv(opr2)) + (1 - 2 * reg));
+			newv = setv(opr2, (oldv = getv(opr2)) + (1 - 2 * reg));
 			srcv = 1;
 			setafof(srcv, oldv, newv);
 			setsfzfpf(newv);
@@ -376,7 +382,6 @@ step(int rep, uint8_t *segpfx)
 				AX = utmp = *addr * AL;
 				OF = CF = (utmp >> 8) != 0;
 			}
-			setsfzfpf(newv);
 			break;
 		case 5:	/* imul */
 			if (oprsz) {
@@ -386,11 +391,10 @@ step(int rep, uint8_t *segpfx)
 				AX = tmp = *(int8_t *) addr *(int8_t) AL;
 				OF = CF = (tmp >> 8) != 0;
 			}
-			setsfzfpf(newv);
 			break;
 		case 6:	/* div */
 			if (oprsz) {
-				if (tmp2 = *(uint16_t *) addr) {
+				if ((tmp2 = *(uint16_t *) addr)) {
 					utmp = (uint32_t) (tmp = (DX << 16) + AX) / tmp2;
 					if (!(utmp - (uint16_t) utmp))
 						DX = tmp - tmp2 * (AX = utmp);
@@ -398,7 +402,7 @@ step(int rep, uint8_t *segpfx)
 						intr(0);
 				}
 			} else {
-				if (tmp2 = *addr) {
+				if ((tmp2 = *addr)) {
 					utmp = (uint16_t) (tmp = (AH << 16) + AX) / tmp2;
 					if (!(utmp - (uint8_t) utmp))
 						AH = tmp - tmp2 * (AL = utmp);
@@ -409,7 +413,7 @@ step(int rep, uint8_t *segpfx)
 			break;
 		case 7:	/* idiv */
 			if (oprsz) {
-				if (tmp2 = *(int16_t *) addr) {
+				if ((tmp2 = *(int16_t *) addr)) {
 					utmp = (int) (tmp = (DX << 16) + AX) / tmp2;
 					if (!(utmp - (int16_t) utmp))
 						DX = tmp - tmp2 * (AX = utmp);
@@ -417,7 +421,7 @@ step(int rep, uint8_t *segpfx)
 						intr(0);
 				}
 			} else {
-				if (tmp2 = *(int8_t *) addr) {
+				if ((tmp2 = *(int8_t *) addr)) {
 					utmp = (int16_t) (tmp = (AH << 16) + AX) / tmp2;
 					if (!(utmp - (int8_t) utmp))
 						AH = tmp - tmp2 * (AL = utmp);
@@ -504,12 +508,12 @@ step(int rep, uint8_t *segpfx)
 			break;
 		case 2:	/* adc */
 			newv = setv(opr1, (oldv = getv(opr1)) + (srcv = getv(opr2)) + CF);
-			CF = !!(CF & newv == oldv | +newv < +(int) oldv);
+			CF = (CF && newv == oldv) || +newv < +(int) oldv;
 			setafof(srcv, oldv, newv);
 			break;
 		case 3:	/* sbb */
 			newv = setv(opr1, (oldv = getv(opr1)) - (srcv = getv(opr2)) - CF);
-			CF = !!(CF & newv == oldv | -newv < -(int) oldv);
+			CF = (CF && newv == oldv) || -newv < -(int) oldv;
 			setafof(srcv, oldv, newv);
 			break;
 		case 4:	/* and */
@@ -584,7 +588,9 @@ step(int rep, uint8_t *segpfx)
 			else
 				newv = setv(addr, oldv << tmp);
 			if (reg >= 5)
-				CF = oldv >> tmp - 1 & 1;
+				CF = oldv >> (tmp - 1) & 1;
+		} else {
+			newv = oldv;
 		}
 		switch (reg) {
 		case 0:	/* rol */
@@ -598,17 +604,17 @@ step(int rep, uint8_t *segpfx)
 			OF = isneg(newv << 1) ^ CF;
 			break;
 		case 2:	/* rcl */
-			newv = setv(addr, getv(addr) + (CF << tmp - 1) + (utmp >> (1 + 8 * (oprsz + 1) - tmp)));
+			newv = setv(addr, getv(addr) + (CF << (tmp - 1)) + (utmp >> (1 + 8 * (oprsz + 1) - tmp)));
 			CF = !!(utmp & 1 << (8 * (oprsz + 1) - tmp));
 			OF = isneg(newv) ^ CF;
 			break;
 		case 3:	/* rcr */
 			newv = setv(addr, getv(addr) + (CF << (8 * (oprsz + 1) - tmp)) + (utmp << (1 + 8 * (oprsz + 1) - tmp)));
-			CF = !!(utmp & 1 << tmp - 1);
+			CF = !!(utmp & 1 << (tmp - 1));
 			OF = isneg(newv) ^ isneg(newv << 1);
 			break;
 		case 4:	/* shl */
-			CF = isneg(oldv << tmp - 1);
+			CF = isneg(oldv << (tmp - 1));
 			OF = isneg(newv) ^ CF;
 			break;
 		case 5:	/* shr */
@@ -840,9 +846,9 @@ step(int rep, uint8_t *segpfx)
 		if (tmp &= 255) {
 			AH = AL / tmp;
 			newv = AL %= tmp;
+			setsfzfpf(newv);
 		} else
 			intr(0);
-		setsfzfpf(newv);
 		OF = CF = 0;
 		IP += 2;
 		return;
@@ -945,7 +951,7 @@ main(int argc, char *argv[])
 	for (int i = 1; i <= 3 && i < argc; ++i)
 		files[3 - i] = fopen(argv[i], "r+b");
 	if (files[0])		/* CX:AX = HDD sectors */
-		*(uint32_t *) r = fseek(files[0], 0, SEEK_END) >> 9;
+		write32(&AX, fseek(files[0], 0, SEEK_END) >> 9);
 	fread(&mem[ROMBASE + IP], 1, ROMBASE, files[2]);	/* read BIOS */
 
 	uint16_t counter = 0;
@@ -957,12 +963,12 @@ main(int argc, char *argv[])
 		if (kb && IF) {
 			intr(8);
 #ifdef _WIN32
-			if (kb = kbhit()) {
+			if ((kb = kbhit())) {
 				mem[0x4a6] = getch();
 				intr(7);
 			}
 #else
-			if (kb = read(0, &mem[0x4a6], 1))
+			if ((kb = read(0, &mem[0x4a6], 1)))
 				intr(7);
 #endif
 		}
