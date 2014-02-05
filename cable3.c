@@ -192,10 +192,12 @@ step(int rep, uint16_t *segpfx)
 	int rm = p[1] & 7, reg = p[1] / 8 & 7;
 	int mode = p[1] >> 6;
 	int16_t disp = mode != 1 ? read16(p + 2) : (int8_t) p[2];
-	int opr = (int16_t) read16(p + 3);
+	int opr;
 	if (!(mode == 0 && rm == 6) && mode != 2) {
 		if (mode != 1)
 			opr = disp;
+		else
+			opr = (int16_t) read16(p + 3);
 	} else
 		opr = *(int16_t *) &p[4];
 	int oprlen;
