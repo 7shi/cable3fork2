@@ -73,7 +73,9 @@ static inline void
 setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 {
 	srcv ^= oldv ^ newv;
-	/* AF = !!(srcv & 16); */
+#ifdef USE_AF
+	AF = !!(srcv & 16);
+#endif
 	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
 }
 
