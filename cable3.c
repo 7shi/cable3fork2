@@ -753,14 +753,6 @@ step(int rep, uint16_t *segpfx)
 		++IP;
 		step(rep, &r[8 + ((b >> 3) & 3)]);
 		return;
-	case 0x27:		/* daa */
-	case 0x2f:		/* das */
-	case 0x37:		/* aaa */
-	case 0x3f:		/* aas */
-		fprintf(stderr, "not implemented: daa/das/aaa/aas\n");
-		exit(1);
-		/* setsfzfpf(newv); ++IP; */
-		return;
 	case 0x98:		/* cbw */
 		AH = -(1 & (oprsz ? (int16_t) AX : AL) >> (8 * (oprsz + 1) - 1));
 		++IP;
