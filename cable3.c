@@ -56,7 +56,7 @@ getv(void *src)
 }
 
 static inline int
-setv(void *dst, void *src)
+setvp(void *dst, void *src)
 {
 	if (oprsz)
 		return *(uint16_t *) dst = *(uint16_t *) src;
@@ -264,7 +264,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xbe:
 	case 0xbf:
 		oprsz = b & 8;
-		setv(regmap(o0), p + 1);
+		setvp(regmap(o0), p + 1);
 		IP += oprsz ? 3 : 2;
 		return;
 	case 0x40:		/* inc */
@@ -515,7 +515,7 @@ step(int rep, uint16_t *segpfx)
 			setafof(srcv, oldv, newv);
 			break;
 		case 17:	/* mov */
-			setv(opr1, opr2);
+			setvp(opr1, opr2);
 			break;
 		}
 		if (b < 0x88)
@@ -529,7 +529,7 @@ step(int rep, uint16_t *segpfx)
 		if (!oprsz) {
 			oprsz = reg + 8;
 			getoprs(dir, oprsz, modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
-			setv(opr1, opr2);
+			setvp(opr1, opr2);
 		} else if (!dir)
 			*(uint16_t *) opr2 = modrm(&oprlen, mode, rm, disp, &r[12]) - mem;
 		else
@@ -541,7 +541,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xa2:
 	case 0xa3:
 		getoprs(dir, 0, modrm(&oprlen, 0, 6, read16(p + 1), segpfx), &opr1, &opr2);
-		setv(opr2, opr1);
+		setvp(opr2, opr1);
 		IP += 3;
 		return;
 	case 0xd0:		/* rol, ror, rcl, rcr, shl, sal, shr, sar */
@@ -561,7 +561,7 @@ step(int rep, uint16_t *segpfx)
 		if (tmp) {
 			if (reg < 4) {
 				tmp %= reg / 2 + 8 * (oprsz + 1);
-				setv(&utmp, addr);
+				setvp(&utmp, addr);
 			}
 			if (reg & 1)
 				POKE(*addr, >>=, tmp);
@@ -672,7 +672,7 @@ step(int rep, uint16_t *segpfx)
 			do {
 				opr1 = tmp2 < 2 ? &mem[16 * ES + DI] : r8;
 				opr2 = tmp2 == 1 ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
-				setv(opr1, opr2);
+				setvp(opr1, opr2);
 				if (tmp2 != 1)
 					SI += tmp;
 				if (tmp2 != 2) {
@@ -719,27 +719,27 @@ step(int rep, uint16_t *segpfx)
 		return;
 	case 0xc6:		/* mov */
 	case 0xc7:
-		setv(opr2, &opr);
+		setvp(opr2, &opr);
 		IP += 3 + oprlen + oprsz;
 		return;
 	case 0xe4:		/* in */
 	case 0xe5:
-		setv(&AX, ioport + p[1]);
+		setvp(&AX, ioport + p[1]);
 		IP += 2;
 		return;
 	case 0xec:		/* in */
 	case 0xed:
-		setv(&AX, ioport + DX);
+		setvp(&AX, ioport + DX);
 		++IP;
 		return;
 	case 0xe6:		/* out */
 	case 0xe7:
-		setv(ioport + p[1], &AX);
+		setvp(ioport + p[1], &AX);
 		IP += 2;
 		return;
 	case 0xee:		/* out */
 	case 0xef:
-		setv(ioport + DX, &AX);
+		setvp(ioport + DX, &AX);
 		++IP;
 		return;
 	case 0xf2:		/* repnz, repz */
@@ -802,7 +802,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xc5:		/* lds */
 		oprsz = 1;
 		opr1 = regmap(reg), opr2 = modrm(&oprlen, mode, rm, disp, segpfx);
-		setv(opr1, opr2);
+		setvp(opr1, opr2);
 		if (b == 0xc4)
 			ES = *(uint16_t *) &opr2[2];
 		else
