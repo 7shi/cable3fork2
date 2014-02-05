@@ -609,25 +609,17 @@ step(int rep, uint16_t *segpfx)
 		} else
 			IP += 2 + oprlen + (b < 0xd0);
 		break;
-	case 0xe0:		/* loopnz, loopne, loopz, loope, loop, jcxz */
-	case 0xe1:
-	case 0xe2:
-	case 0xe3:
-		tmp = !!--CX;
-		switch (o0) {
-		case 0:	/* loopnz, loopne */
-			tmp &= !ZF;
-			break;
-		case 1:	/* loopz, loope */
-			tmp &= ZF;
-			break;
-		case 3:	/* jcxz */
-			tmp = !++CX;
-			break;
-		}
-		IP += 2;
-		if (tmp)
-			IP += (int8_t) p[1];
+	case 0xe0:		/* loopnz, loopne */
+		IP += --CX && !ZF ? 2 + (int8_t) p[1] : 2;
+		break;
+	case 0xe1:		/* loopz, loope */
+		IP += --CX && ZF ? 2 + (int8_t) p[1] : 2;
+		break;
+	case 0xe2:		/* loop */
+		IP += --CX ? 2 + (int8_t) p[1] : 2;
+		break;
+	case 0xe3:		/* jcxz */
+		IP += !CX ? 2 + (int8_t) p[1] : 2;
 		break;
 	case 0xe8:		/* call, jmp, jmpf */
 	case 0xe9:
