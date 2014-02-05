@@ -11,7 +11,7 @@
 
 #define ROMBASE 0xf0000
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
-uint16_t r[13], IP;
+uint16_t r[12], IP;
 uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 uint8_t ptable[256];
@@ -145,47 +145,53 @@ intr(int n)
 }
 
 static inline uint8_t *
-modrm(int *oprlen, int mode, int rm, int16_t disp, uint16_t *segpfx)
+getseg(uint8_t *segpfx, uint16_t sr)
+{
+	return segpfx ? segpfx : mem + (sr << 4);
+}
+
+static inline uint8_t *
+modrm(int *oprlen, int mode, int rm, int16_t disp, uint8_t *segpfx)
 {
 	if (mode == 3) {
 		*oprlen = 0;
 		return regmap(rm);
 	}
 	*oprlen = mode;
-	uint16_t addr, *seg;
+	uint16_t addr, seg;
 	switch (rm) {
 	case 0:
-		seg = &DS, addr = BX + SI;
+		seg = DS, addr = BX + SI;
 		break;
 	case 1:
-		seg = &DS, addr = BX + DI;
+		seg = DS, addr = BX + DI;
 		break;
 	case 2:
-		seg = &SS, addr = BP + SI;
+		seg = SS, addr = BP + SI;
 		break;
 	case 3:
-		seg = &SS, addr = BP + DI;
+		seg = SS, addr = BP + DI;
 		break;
 	case 4:
-		seg = &DS, addr = SI;
+		seg = DS, addr = SI;
 		break;
 	case 5:
-		seg = &DS, addr = DI;
+		seg = DS, addr = DI;
 		break;
 	case 6:
 		if (mode == 0) {
 			*oprlen += 2;
-			seg = &DS, addr = disp;
+			seg = DS, addr = disp;
 		} else
-			seg = &SS, addr = BP;
+			seg = SS, addr = BP;
 		break;
 	case 7:
-		seg = &DS, addr = BX;
+		seg = DS, addr = BX;
 		break;
 	}
 	if (mode)
 		addr += disp;
-	return &mem[16 * (segpfx ? *segpfx : *seg) + addr];
+	return getseg(segpfx, seg) + addr;
 }
 
 static inline void
@@ -204,7 +210,7 @@ jumpif(int8_t offset, int cond)
 }
 
 static inline void
-step(int rep, uint16_t *segpfx)
+step(int rep, uint8_t *segpfx)
 {
 	uint8_t *p = &mem[16 * CS + IP], b = *p;
 	oprsz = b & 1;
@@ -541,7 +547,7 @@ step(int rep, uint16_t *segpfx)
 			getoprs(dir, oprsz, modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
 			setvp(opr1, opr2);
 		} else if (!dir)
-			*(uint16_t *) opr2 = modrm(&oprlen, mode, rm, disp, &r[12]) - mem;
+			*(uint16_t *) opr2 = modrm(&oprlen, mode, rm, disp, mem) - mem;
 		else
 			*(uint16_t *) addr = pop();
 		IP += 2 + oprlen;
@@ -680,7 +686,7 @@ step(int rep, uint16_t *segpfx)
 			tmp = ~(-2 * DF) * ~oprsz;
 			do {
 				opr1 = tmp2 < 2 ? &mem[16 * ES + DI] : r8;
-				opr2 = tmp2 == 1 ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
+				opr2 = tmp2 == 1 ? r8 : getseg(segpfx, DS) + SI;
 				setvp(opr1, opr2);
 				if (tmp2 != 1)
 					SI += tmp;
@@ -698,7 +704,7 @@ step(int rep, uint16_t *segpfx)
 		if (!rep || CX) {
 			tmp = ~(-2 * DF) * ~oprsz;
 			do {
-				opr1 = b >= 0xae ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
+				opr1 = b >= 0xae ? r8 : getseg(segpfx, DS) + SI;
 				opr2 = &mem[16 * ES + DI];
 				newv = (oldv = getv(opr1)) - (srcv = getv(opr2));
 				ZF = !newv;
@@ -774,7 +780,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x36:		/* ss: */
 	case 0x3e:		/* ds: */
 		++IP;
-		step(rep, &r[8 + ((b >> 3) & 3)]);
+		step(rep, &mem[r[8 + ((b >> 3) & 3)] << 4]);
 		return;
 	case 0x98:		/* cbw */
 		AH = -(1 & (oprsz ? (int16_t) AX : AL) >> (8 * (oprsz + 1) - 1));
@@ -851,7 +857,7 @@ step(int rep, uint16_t *segpfx)
 		++IP;
 		return;
 	case 0xd7:		/* xlat */
-		AL = mem[16 * (segpfx ? *segpfx : DS) + (uint16_t) (AL + BX)];
+		AL = getseg(segpfx, DS)[(uint16_t) (AL + BX)];
 		++IP;
 		return;
 	case 0xf5:		/* cmc */
