@@ -43,6 +43,12 @@ FILE *files[3];			/* HD, FD, BIOS */
 #define SS r[10]
 #define DS r[11]
 
+static inline uint16_t
+read16(void *p)
+{
+	return *(uint16_t *) p;
+}
+
 static inline int
 getv(void *p)
 {
@@ -183,13 +189,10 @@ step(int rep, uint16_t *segpfx)
 	uint8_t *p = &mem[16 * CS + IP], b = *p;
 	oprsz = b & 1;
 	int o0 = b & 7, dir = b / 2 & 1;
-	int w1 = *(int16_t *) &p[1];
-	int w2 = *(int16_t *) &p[2];
-	int w3 = *(int16_t *) &p[3];
 	int o1a = p[1] & 7, o1b = p[1] / 8 & 7;
 	int mode = p[1] >> 6;
-	int16_t disp = mode != 1 ? w2 : (int8_t) w2;
-	int opr = w3;
+	int16_t disp = mode != 1 ? read16(p + 2) : (int8_t) p[2];
+	int opr = (int16_t) read16(p + 3);
 	if (!(mode == 0 && o1a == 6) && mode != 2) {
 		if (mode != 1)
 			opr = disp;
@@ -252,7 +255,8 @@ step(int rep, uint16_t *segpfx)
 	case 0xbf:
 		oprsz = b & 8;
 		addr = regmap(o0);
-		POKE(*addr, =, w1);
+		tmp = read16(p + 1);
+		POKE(*addr, =, tmp);
 		IP += oprsz ? 3 : 2;
 		return;
 	case 0x40:		/* inc */
@@ -417,7 +421,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x35:
 	case 0x3c:		/* cmp */
 	case 0x3d:
-		addr = r8, opr = w1, mode = 3, IP--, oprlen = 0;
+		addr = r8, opr = read16(p + 1), mode = 3, IP--, oprlen = 0;
 	case 0x80:		/* add, or, adc, sbb, and, sub, xor, cmp */
 	case 0x81:
 	case 0x82:
@@ -528,7 +532,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xa1:
 	case 0xa2:
 	case 0xa3:
-		getoprs(dir, 0, modrm(&oprlen, 0, 6, w1, segpfx), &opr1, &opr2);
+		getoprs(dir, 0, modrm(&oprlen, 0, 6, read16(p + 1), segpfx), &opr1, &opr2);
 		POKE(*opr2, =, *opr1);
 		IP += 3;
 		return;
@@ -614,11 +618,11 @@ step(int rep, uint16_t *segpfx)
 		IP += 3 - dir;
 		if (!oprsz) {
 			if (dir)
-				CS = w3, IP = 0;
+				CS = read16(p + 3), IP = 0;
 			else
 				push(IP);
 		}
-		IP += dir * oprsz ? (int8_t) w1 : w1;
+		IP += dir * oprsz ? (int8_t) p[1] : read16(p + 1);
 		return;
 	case 0x84:		/* test */
 	case 0x85:
@@ -703,7 +707,7 @@ step(int rep, uint16_t *segpfx)
 		if (b == 0xcf)	/* iret */
 			setflags(pop());
 		else if (!dir)
-			SP += w1;
+			SP += read16(p + 1);
 		return;
 	case 0xc6:		/* mov */
 	case 0xc7:
@@ -715,7 +719,7 @@ step(int rep, uint16_t *segpfx)
 		++IP;
 	case 0xec:		/* in */
 	case 0xed:
-		POKE(AL, =, ioport[b >= 0xec ? DX : (int8_t) w1]);
+		POKE(AL, =, ioport[b >= 0xec ? DX : (int8_t) p[1]]);
 		++IP;
 		return;
 	case 0xe6:		/* out */
@@ -723,7 +727,7 @@ step(int rep, uint16_t *segpfx)
 		++IP;
 	case 0xee:		/* out */
 	case 0xef:
-		POKE(ioport[b >= 0xee ? DX : (int8_t) w1], =, AL);
+		POKE(ioport[b >= 0xee ? DX : (int8_t) p[1]], =, AL);
 		++IP;
 		return;
 	case 0xf2:		/* repnz, repz */
@@ -764,7 +768,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x9a:		/* callf */
 		push(CS);
 		push(IP + 5);
-		CS = w3, IP = w1;
+		CS = read16(p + 3), IP = read16(p + 1);
 		return;
 	case 0x9c:		/* pushf */
 		push(getflags());
@@ -799,7 +803,7 @@ step(int rep, uint16_t *segpfx)
 		return;
 	case 0xcd:		/* int */
 		IP += 2;
-		intr(w1 & 255);
+		intr(read16(p + 1) & 255);
 		return;
 	case 0xce:		/* into */
 		++IP;
@@ -807,9 +811,10 @@ step(int rep, uint16_t *segpfx)
 			intr(4);
 		return;
 	case 0xd4:		/* aam */
-		if (w1 &= 255) {
-			AH = AL / w1;
-			newv = AL %= w1;
+		tmp = read16(p + 1);
+		if (tmp &= 255) {
+			AH = AL / tmp;
+			newv = AL %= tmp;
 		} else
 			intr(0);
 		setsfzfpf(newv);
@@ -817,7 +822,7 @@ step(int rep, uint16_t *segpfx)
 		IP += 2;
 		return;
 	case 0xd5:		/* aad */
-		oprsz = 0, AX = newv = AL + w1 * AH;
+		oprsz = 0, AX = newv = AL + read16(p + 1) * AH;
 		setsfzfpf(newv);
 		OF = CF = 0;
 		IP += 2;
@@ -853,13 +858,14 @@ step(int rep, uint16_t *segpfx)
 		return;
 	case 0xa8:		/* test */
 	case 0xa9:
-		POKE(AL, &, w1);
+		tmp = read16(p + 1);
+		POKE(AL, &, tmp);
 		setsfzfpf(newv);
 		OF = CF = 0;
 		IP += 2 + oprsz;
 		return;
 	case 0x0f:		/* hyper call */
-		switch ((uint8_t) w1) {
+		switch (p[1]) {
 			time_t t;
 #ifdef _WIN32
 			static int skipcnt;
