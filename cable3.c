@@ -189,7 +189,7 @@ step(int rep, uint16_t *segpfx)
 	uint8_t *p = &mem[16 * CS + IP], b = *p;
 	oprsz = b & 1;
 	int o0 = b & 7, dir = b / 2 & 1;
-	int rm = p[1] & 7, o1b = p[1] / 8 & 7;
+	int rm = p[1] & 7, reg = p[1] / 8 & 7;
 	int mode = p[1] >> 6;
 	int16_t disp = mode != 1 ? read16(p + 2) : (int8_t) p[2];
 	int opr = (int16_t) read16(p + 3);
@@ -200,7 +200,7 @@ step(int rep, uint16_t *segpfx)
 		opr = *(int16_t *) &p[4];
 	int oprlen;
 	uint8_t *addr, *opr1, *opr2;
-	getoprs(dir, o1b, addr = modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
+	getoprs(dir, reg, addr = modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
 	switch (b) {
 		int tmp, tmp2;
 		uint32_t utmp;
@@ -275,27 +275,27 @@ step(int rep, uint16_t *segpfx)
 	case 0x4d:
 	case 0x4e:
 	case 0x4f:
-		oprsz = 2, o1b = b >= 0x48;
+		oprsz = 2, reg = b >= 0x48;
 		opr1 = addr = modrm(&oprlen, mode, rm, disp, segpfx), opr2 = regmap(o0);
 	case 0xfe:		/* inc, dec, call, callf, jmp, jmpf, push */
 	case 0xff:
-		if (o1b < 2) {	/* inc, dec */
-			POKE(*opr2, +=1 - 2 * o1b +, r[12]);
+		if (reg < 2) {	/* inc, dec */
+			POKE(*opr2, +=1 - 2 * reg +, r[12]);
 			srcv = 1;
 			setafof(srcv, oldv, newv);
 			setsfzfpf(newv);
-			OF = (oldv + 1 - o1b == 1 << (8 * (oprsz + 1) - 1));
+			OF = (oldv + 1 - reg == 1 << (8 * (oprsz + 1) - 1));
 			if (oprsz == 2)
 				++IP;
 			else
 				IP += 2 + oprlen;
-		} else if (o1b != 6) {
+		} else if (reg != 6) {
 			IP += 2 + oprlen;
-			if (o1b == 3)	/* callf */
+			if (reg == 3)	/* callf */
 				push(CS);
-			if (o1b & 2)	/* call, callf */
+			if (reg & 2)	/* call, callf */
 				push(IP);
-			if (o1b & 1)	/* jmpf */
+			if (reg & 1)	/* jmpf */
 				CS = *(uint16_t *) &opr2[2];
 			IP = *(uint16_t *) opr2;
 		} else {
@@ -328,7 +328,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xf6:		/* test, not, neg, mul, imul, div, idiv */
 	case 0xf7:
 		opr1 = opr2;
-		switch (o1b) {
+		switch (reg) {
 		case 0:	/* test */
 			IP -= ~oprsz;
 			POKE(*opr1, &, opr);
@@ -467,7 +467,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x8b:
 		tmp = b >> 3;
 		if (tmp == 16)
-			tmp = o1b;
+			tmp = reg;
 		switch (tmp) {
 		case 0:	/* add */
 			POKE(*opr1, +=, *opr2);
@@ -519,7 +519,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x8e:
 	case 0x8f:
 		if (!oprsz) {
-			oprsz = o1b + 8;
+			oprsz = reg + 8;
 			getoprs(dir, oprsz, modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
 			POKE(*opr1, =, *opr2);
 		} else if (!dir)
@@ -551,18 +551,18 @@ step(int rep, uint16_t *segpfx)
 		else
 			tmp = 1;
 		if (tmp) {
-			if (o1b < 4) {
-				tmp %= o1b / 2 + 8 * (oprsz + 1);
+			if (reg < 4) {
+				tmp %= reg / 2 + 8 * (oprsz + 1);
 				POKE(utmp, =, *addr);
 			}
-			if (o1b & 1)
+			if (reg & 1)
 				POKE(*addr, >>=, tmp);
 			else
 				POKE(*addr, <<=, tmp);
-			if (o1b >= 5)
+			if (reg >= 5)
 				CF = oldv >> tmp - 1 & 1;
 		}
-		switch (o1b) {
+		switch (reg) {
 		case 0:	/* rol */
 			POKE(*addr, +=, utmp >> 8 * (oprsz + 1) - tmp);
 			OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ (CF = newv & 1);
@@ -597,7 +597,7 @@ step(int rep, uint16_t *segpfx)
 			POKE(*addr, +=, utmp *= ~(((1 << (8 * (oprsz + 1))) - 1) >> tmp));
 			break;
 		}
-		if (tmp && o1b > 3) {
+		if (tmp && reg > 3) {
 			setsfzfpf(newv);
 			IP += 2 + oprlen;
 		} else
@@ -789,7 +789,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xc4:		/* les */
 	case 0xc5:		/* lds */
 		oprsz = 1;
-		opr1 = regmap(o1b), opr2 = modrm(&oprlen, mode, rm, disp, segpfx);
+		opr1 = regmap(reg), opr2 = modrm(&oprlen, mode, rm, disp, segpfx);
 		POKE(*opr1, =, *opr2);
 		if (b == 0xc4)
 			ES = *(uint16_t *) &opr2[2];
