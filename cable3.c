@@ -43,19 +43,19 @@ FILE *files[3];			/* HD, FD, BIOS */
 #define SS r[10]
 #define DS r[11]
 
-__inline static int
+static inline int
 getv(void *p)
 {
 	return oprsz ? *(uint16_t *) p : *(uint8_t *) p;
 }
 
-__inline static void
+static inline void
 push(uint16_t src)
 {
 	*(uint16_t *) &mem[16 * SS + (SP -= 2)] = src;
 }
 
-__inline static uint16_t
+static inline uint16_t
 pop(void)
 {
 	uint16_t ret = *(uint16_t *) &mem[16 * SS + SP];
@@ -63,13 +63,13 @@ pop(void)
 	return ret;
 }
 
-__inline static uint8_t *
+static inline uint8_t *
 regmap(int reg)
 {
 	return &r8[oprsz ? 2 * reg : (2 * reg + reg / 4) & 7];
 }
 
-__inline static void
+static inline void
 setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 {
 	srcv ^= oldv ^ newv;
@@ -77,7 +77,7 @@ setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
 }
 
-__inline static void
+static inline void
 setsfzfpf(uint16_t newv)
 {
 	SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1));
@@ -85,13 +85,13 @@ setsfzfpf(uint16_t newv)
 	PF = ptable[(uint8_t) newv];
 }
 
-__inline static uint16_t
+static inline uint16_t
 getflags(void)
 {
 	return 0xf002 | CF | (PF << 2) | (AF << 4) | (ZF << 6) | (SF << 7) | (TF << 8) | (IF << 9) | (DF << 10) | (OF << 11);
 }
 
-__inline static void
+static inline void
 setflags(uint16_t flags)
 {
 	CF = flags & 1;
@@ -105,7 +105,7 @@ setflags(uint16_t flags)
 	OF = (flags & 2048) != 0;
 }
 
-__inline static void
+static inline void
 intr(int n)
 {
 	push(getflags());
@@ -116,7 +116,7 @@ intr(int n)
 	IF = TF = 0;
 }
 
-__inline static uint8_t *
+static inline uint8_t *
 modrm(int *oprlen, int mode, int rm, int16_t disp, uint16_t *segpfx)
 {
 	if (mode == 3) {
@@ -160,7 +160,7 @@ modrm(int *oprlen, int mode, int rm, int16_t disp, uint16_t *segpfx)
 	return &mem[16 * (segpfx ? *segpfx : *seg) + addr];
 }
 
-__inline static void
+static inline void
 getoprs(int dir, int reg, uint8_t *addr, uint8_t **opr1, uint8_t **opr2)
 {
 	if (!dir)
@@ -169,7 +169,7 @@ getoprs(int dir, int reg, uint8_t *addr, uint8_t **opr1, uint8_t **opr2)
 		*opr1 = regmap(reg), *opr2 = addr;
 }
 
-__inline static void
+static inline void
 step(int rep, uint16_t *segpfx)
 {
 	uint8_t *p = &mem[16 * CS + IP], b = *p;
