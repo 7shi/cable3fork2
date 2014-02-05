@@ -210,7 +210,7 @@ step(int rep, uint16_t *segpfx)
 {
 	uint8_t *p = &mem[16 * CS + IP], b = *p;
 	oprsz = b & 1;
-	int o0 = b & 7, dir = b / 2 & 1;
+	int dir = b / 2 & 1;
 	int rm = p[1] & 7, reg = p[1] / 8 & 7;
 	int mode = p[1] >> 6;
 	int16_t disp = mode != 1 ? read16(p + 2) : (int8_t) p[2];
@@ -278,7 +278,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xbe:
 	case 0xbf:
 		oprsz = b & 8;
-		setvp(regmap(o0), p + 1);
+		setvp(regmap(b & 7), p + 1);
 		IP += oprsz ? 3 : 2;
 		return;
 	case 0x40:		/* inc */
@@ -298,7 +298,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x4e:
 	case 0x4f:
 		oprsz = 2, reg = b >= 0x48;
-		opr1 = addr = modrm(&oprlen, mode, rm, disp, segpfx), opr2 = regmap(o0);
+		opr1 = addr = modrm(&oprlen, mode, rm, disp, segpfx), opr2 = regmap(b & 7);
 	case 0xfe:		/* inc, dec, call, callf, jmp, jmpf, push */
 	case 0xff:
 		if (reg < 2) {	/* inc, dec */
@@ -333,7 +333,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x55:
 	case 0x56:
 	case 0x57:
-		push(r[o0]);
+		push(r[b & 7]);
 		++IP;
 		return;
 	case 0x58:		/* pop */
@@ -344,7 +344,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x5d:
 	case 0x5e:
 	case 0x5f:
-		r[o0] = pop();
+		r[b & 7] = pop();
 		++IP;
 		return;
 	case 0xf6:		/* test, not, neg, mul, imul, div, idiv */
@@ -661,7 +661,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x95:
 	case 0x96:
 	case 0x97:
-		oprsz = 7, opr1 = r8, opr2 = regmap(o0);
+		oprsz = 7, opr1 = r8, opr2 = regmap(b & 7);
 	case 0x86:		/* xchg */
 	case 0x87:
 		if (opr1 != opr2) {
