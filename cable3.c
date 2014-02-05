@@ -50,9 +50,17 @@ read16(void *p)
 }
 
 static inline int
-getv(void *p)
+getv(void *src)
 {
-	return oprsz ? *(uint16_t *) p : *(uint8_t *) p;
+	return oprsz ? *(uint16_t *) src : *(uint8_t *) src;
+}
+
+static inline int
+setv(void *dst, void *src)
+{
+	if (oprsz)
+		return *(uint16_t *) dst = *(uint16_t *) src;
+	return *(uint8_t *) dst = *(uint8_t *) src;
 }
 
 static inline void
@@ -256,9 +264,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xbe:
 	case 0xbf:
 		oprsz = b & 8;
-		addr = regmap(o0);
-		tmp = read16(p + 1);
-		POKE(*addr, =, tmp);
+		setv(regmap(o0), p + 1);
 		IP += oprsz ? 3 : 2;
 		return;
 	case 0x40:		/* inc */
@@ -509,7 +515,7 @@ step(int rep, uint16_t *segpfx)
 			setafof(srcv, oldv, newv);
 			break;
 		case 17:	/* mov */
-			POKE(*opr1, =, *opr2);
+			setv(opr1, opr2);
 			break;
 		}
 		if (b < 0x88)
@@ -523,7 +529,7 @@ step(int rep, uint16_t *segpfx)
 		if (!oprsz) {
 			oprsz = reg + 8;
 			getoprs(dir, oprsz, modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
-			POKE(*opr1, =, *opr2);
+			setv(opr1, opr2);
 		} else if (!dir)
 			*(uint16_t *) opr2 = modrm(&oprlen, mode, rm, disp, &r[12]) - mem;
 		else
@@ -535,7 +541,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xa2:
 	case 0xa3:
 		getoprs(dir, 0, modrm(&oprlen, 0, 6, read16(p + 1), segpfx), &opr1, &opr2);
-		POKE(*opr2, =, *opr1);
+		setv(opr2, opr1);
 		IP += 3;
 		return;
 	case 0xd0:		/* rol, ror, rcl, rcr, shl, sal, shr, sar */
@@ -555,7 +561,7 @@ step(int rep, uint16_t *segpfx)
 		if (tmp) {
 			if (reg < 4) {
 				tmp %= reg / 2 + 8 * (oprsz + 1);
-				POKE(utmp, =, *addr);
+				setv(&utmp, addr);
 			}
 			if (reg & 1)
 				POKE(*addr, >>=, tmp);
@@ -666,7 +672,7 @@ step(int rep, uint16_t *segpfx)
 			do {
 				opr1 = tmp2 < 2 ? &mem[16 * ES + DI] : r8;
 				opr2 = tmp2 == 1 ? r8 : &mem[16 * (segpfx ? *segpfx : DS) + SI];
-				POKE(*opr1, =, *opr2);
+				setv(opr1, opr2);
 				if (tmp2 != 1)
 					SI += tmp;
 				if (tmp2 != 2) {
@@ -713,23 +719,27 @@ step(int rep, uint16_t *segpfx)
 		return;
 	case 0xc6:		/* mov */
 	case 0xc7:
-		POKE(*opr2, =, opr);
+		setv(opr2, &opr);
 		IP += 3 + oprlen + oprsz;
 		return;
 	case 0xe4:		/* in */
 	case 0xe5:
-		++IP;
+		setv(&AX, ioport + p[1]);
+		IP += 2;
+		return;
 	case 0xec:		/* in */
 	case 0xed:
-		POKE(AL, =, ioport[b >= 0xec ? DX : (int8_t) p[1]]);
+		setv(&AX, ioport + DX);
 		++IP;
 		return;
 	case 0xe6:		/* out */
 	case 0xe7:
-		++IP;
+		setv(ioport + p[1], &AX);
+		IP += 2;
+		return;
 	case 0xee:		/* out */
 	case 0xef:
-		POKE(ioport[b >= 0xee ? DX : (int8_t) p[1]], =, AL);
+		setv(ioport + DX, &AX);
 		++IP;
 		return;
 	case 0xf2:		/* repnz, repz */
@@ -792,7 +802,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xc5:		/* lds */
 		oprsz = 1;
 		opr1 = regmap(reg), opr2 = modrm(&oprlen, mode, rm, disp, segpfx);
-		POKE(*opr1, =, *opr2);
+		setv(opr1, opr2);
 		if (b == 0xc4)
 			ES = *(uint16_t *) &opr2[2];
 		else
