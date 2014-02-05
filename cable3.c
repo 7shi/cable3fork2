@@ -203,53 +203,37 @@ step(int rep, uint16_t *segpfx)
 		uint32_t utmp;
 		uint16_t srcv, oldv, newv;
 	case 0x70:		/* jo */
-		jumpif(p[1], OF);
-		break;
+		return jumpif(p[1], OF);
 	case 0x71:		/* jno */
-		jumpif(p[1], !OF);
-		break;
+		return jumpif(p[1], !OF);
 	case 0x72:		/* jb, jnae */
-		jumpif(p[1], CF);
-		break;
+		return jumpif(p[1], CF);
 	case 0x73:		/* jnb, jae */
-		jumpif(p[1], !CF);
-		break;
+		return jumpif(p[1], !CF);
 	case 0x74:		/* je, jz */
-		jumpif(p[1], ZF);
-		break;
+		return jumpif(p[1], ZF);
 	case 0x75:		/* jne, jnz */
-		jumpif(p[1], !ZF);
-		break;
+		return jumpif(p[1], !ZF);
 	case 0x76:		/* jbe, jna */
-		jumpif(p[1], CF || ZF);
-		break;
+		return jumpif(p[1], CF || ZF);
 	case 0x77:		/* jnbe, ja */
-		jumpif(p[1], !CF && !ZF);
-		break;
+		return jumpif(p[1], !CF && !ZF);
 	case 0x78:		/* js */
-		jumpif(p[1], SF);
-		break;
+		return jumpif(p[1], SF);
 	case 0x79:		/* jns */
-		jumpif(p[1], !SF);
-		break;
+		return jumpif(p[1], !SF);
 	case 0x7a:		/* jp */
-		jumpif(p[1], PF);
-		break;
+		return jumpif(p[1], PF);
 	case 0x7b:		/* jnp */
-		jumpif(p[1], !PF);
-		break;
+		return jumpif(p[1], !PF);
 	case 0x7c:		/* jl, jnge */
-		jumpif(p[1], SF != OF);
-		break;
+		return jumpif(p[1], SF != OF);
 	case 0x7d:		/* jnl, jge */
-		jumpif(p[1], SF == OF);
-		break;
+		return jumpif(p[1], SF == OF);
 	case 0x7e:		/* jle, jng */
-		jumpif(p[1], ZF || SF != OF);
-		break;
+		return jumpif(p[1], ZF || SF != OF);
 	case 0x7f:		/* jnle, jg */
-		jumpif(p[1], !ZF && SF == OF);
-		break;
+		return jumpif(p[1], !ZF && SF == OF);
 	case 0xb0:		/* mov r8, imm8 */
 	case 0xb1:
 	case 0xb2:
@@ -270,7 +254,7 @@ step(int rep, uint16_t *segpfx)
 		addr = regmap(o0);
 		POKE(*addr, =, w1);
 		IP += oprsz ? 3 : 2;
-		break;
+		return;
 	case 0x40:		/* inc */
 	case 0x41:
 	case 0x42:
@@ -314,7 +298,7 @@ step(int rep, uint16_t *segpfx)
 			push(*(uint16_t *) addr);
 			IP += 2 + oprlen;
 		}
-		break;
+		return;
 	case 0x50:		/* push */
 	case 0x51:
 	case 0x52:
@@ -325,7 +309,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x57:
 		push(r[o0]);
 		++IP;
-		break;
+		return;
 	case 0x58:		/* pop */
 	case 0x59:
 	case 0x5a:
@@ -336,7 +320,7 @@ step(int rep, uint16_t *segpfx)
 	case 0x5f:
 		r[o0] = pop();
 		++IP;
-		break;
+		return;
 	case 0xf6:		/* test, not, neg, mul, imul, div, idiv */
 	case 0xf7:
 		opr1 = opr2;
@@ -416,7 +400,7 @@ step(int rep, uint16_t *segpfx)
 			break;
 		}
 		IP += 2 + oprlen;
-		break;
+		return;
 	case 0x04:		/* add */
 	case 0x05:
 	case 0x0c:		/* or */
@@ -525,7 +509,7 @@ step(int rep, uint16_t *segpfx)
 		if (b < 0x88)
 			setsfzfpf(newv);
 		IP += 2 + oprlen;
-		break;
+		return;
 	case 0x8c:		/* mov, lea, pop */
 	case 0x8d:
 	case 0x8e:
@@ -539,7 +523,7 @@ step(int rep, uint16_t *segpfx)
 		else
 			*(uint16_t *) addr = pop();
 		IP += 2 + oprlen;
-		break;
+		return;
 	case 0xa0:		/* mov */
 	case 0xa1:
 	case 0xa2:
@@ -547,7 +531,7 @@ step(int rep, uint16_t *segpfx)
 		getoprs(dir, 0, modrm(&oprlen, 0, 6, w1, segpfx), &opr1, &opr2);
 		POKE(*opr2, =, *opr1);
 		IP += 3;
-		break;
+		return;
 	case 0xd0:		/* rol, ror, rcl, rcr, shl, sal, shr, sar */
 	case 0xd1:
 	case 0xd2:
@@ -614,19 +598,15 @@ step(int rep, uint16_t *segpfx)
 			IP += 2 + oprlen;
 		} else
 			IP += 2 + oprlen + (b < 0xd0);
-		break;
+		return;
 	case 0xe0:		/* loopnz, loopne */
-		jumpif(p[1], --CX && !ZF);
-		break;
+		return jumpif(p[1], --CX && !ZF);
 	case 0xe1:		/* loopz, loope */
-		jumpif(p[1], --CX && ZF);
-		break;
+		return jumpif(p[1], --CX && ZF);
 	case 0xe2:		/* loop */
-		jumpif(p[1], --CX);
-		break;
+		return jumpif(p[1], --CX);
 	case 0xe3:		/* jcxz */
-		jumpif(p[1], !CX);
-		break;
+		return jumpif(p[1], !CX);
 	case 0xe8:		/* call, jmp, jmpf */
 	case 0xe9:
 	case 0xea:
@@ -639,14 +619,14 @@ step(int rep, uint16_t *segpfx)
 				push(IP);
 		}
 		IP += dir * oprsz ? (int8_t) w1 : w1;
-		break;
+		return;
 	case 0x84:		/* test */
 	case 0x85:
 		POKE(*opr2, &, *opr1);
 		setsfzfpf(newv);
 		OF = CF = 0;
 		IP += 2 + oprlen;
-		break;
+		return;
 	case 0x90:		/* xchg */
 	case 0x91:
 	case 0x92:
@@ -667,7 +647,7 @@ step(int rep, uint16_t *segpfx)
 			++IP;
 		else
 			IP += 2 + oprlen;
-		break;
+		return;
 	case 0xa4:		/* movsb, movsw */
 	case 0xa5:
 	case 0xaa:		/* stosb, stosw */
@@ -689,7 +669,7 @@ step(int rep, uint16_t *segpfx)
 			} while (rep && --CX);
 		}
 		++IP;
-		break;
+		return;
 	case 0xa6:		/* cmpsb, cmpsw */
 	case 0xa7:
 	case 0xae:		/* scasb, scasw */
@@ -710,7 +690,7 @@ step(int rep, uint16_t *segpfx)
 			setsfzfpf(newv);
 		}
 		++IP;
-		break;
+		return;
 	case 0xc2:		/* ret */
 	case 0xc3:
 	case 0xca:		/* retf */
@@ -724,12 +704,12 @@ step(int rep, uint16_t *segpfx)
 			setflags(pop());
 		else if (!dir)
 			SP += w1;
-		break;
+		return;
 	case 0xc6:		/* mov */
 	case 0xc7:
 		POKE(*opr2, =, opr);
 		IP += 3 + oprlen + oprsz;
-		break;
+		return;
 	case 0xe4:		/* in */
 	case 0xe5:
 		++IP;
@@ -737,7 +717,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xed:
 		POKE(AL, =, ioport[b >= 0xec ? DX : (int8_t) w1]);
 		++IP;
-		break;
+		return;
 	case 0xe6:		/* out */
 	case 0xe7:
 		++IP;
@@ -745,25 +725,25 @@ step(int rep, uint16_t *segpfx)
 	case 0xef:
 		POKE(ioport[b >= 0xee ? DX : (int8_t) w1], =, AL);
 		++IP;
-		break;
+		return;
 	case 0xf2:		/* repnz, repz */
 	case 0xf3:
 		++IP;
 		step(oprsz + 1, segpfx);
-		break;
+		return;
 	case 0x06:		/* push */
 	case 0x0e:		/* push */
 	case 0x16:		/* push */
 	case 0x1e:		/* push */
 		push(r[8 + (b >> 3)]);
 		++IP;
-		break;
+		return;
 	case 0x07:		/* pop */
 	case 0x17:		/* pop */
 	case 0x1f:		/* pop */
 		r[8 + (b >> 3)] = pop();
 		++IP;
-		break;
+		return;
 	case 0x26:		/* es: */
 	case 0x2e:		/* cs: */
 	case 0x36:		/* ss: */
@@ -772,7 +752,7 @@ step(int rep, uint16_t *segpfx)
 			rep++;
 		++IP;
 		step(rep, &r[8 + ((b >> 3) & 3)]);
-		break;
+		return;
 	case 0x27:		/* daa */
 	case 0x2f:		/* das */
 	case 0x37:		/* aaa */
@@ -780,36 +760,36 @@ step(int rep, uint16_t *segpfx)
 		fprintf(stderr, "not implemented: daa/das/aaa/aas\n");
 		exit(1);
 		/* setsfzfpf(newv); ++IP; */
-		break;
+		return;
 	case 0x98:		/* cbw */
 		AH = -(1 & (oprsz ? (int16_t) AX : AL) >> (8 * (oprsz + 1) - 1));
 		++IP;
-		break;
+		return;
 	case 0x99:		/* cwd */
 		DX = -(1 & (oprsz ? (int16_t) AX : AX) >> (8 * (oprsz + 1) - 1));
 		++IP;
-		break;
+		return;
 	case 0x9a:		/* callf */
 		push(CS);
 		push(IP + 5);
 		CS = w3, IP = w1;
-		break;
+		return;
 	case 0x9c:		/* pushf */
 		push(getflags());
 		++IP;
-		break;
+		return;
 	case 0x9d:		/* popf */
 		setflags(pop());
 		++IP;
-		break;
+		return;
 	case 0x9e:		/* sahf */
 		setflags((getflags() & ~255) + AH);
 		++IP;
-		break;
+		return;
 	case 0x9f:		/* lahf */
 		AH = getflags();
 		++IP;
-		break;
+		return;
 	case 0xc4:		/* les */
 	case 0xc5:		/* lds */
 		oprsz = 1;
@@ -820,20 +800,20 @@ step(int rep, uint16_t *segpfx)
 		else
 			DS = *(uint16_t *) &opr2[2];
 		IP += 2 + oprlen;
-		break;
+		return;
 	case 0xcc:		/* int3 */
 		++IP;
 		intr(3);
-		break;
+		return;
 	case 0xcd:		/* int */
 		IP += 2;
 		intr(w1 & 255);
-		break;
+		return;
 	case 0xce:		/* into */
 		++IP;
 		if (OF)
 			intr(4);
-		break;
+		return;
 	case 0xd4:		/* aam */
 		if (w1 &= 255) {
 			AH = AL / w1;
@@ -843,49 +823,49 @@ step(int rep, uint16_t *segpfx)
 		setsfzfpf(newv);
 		OF = CF = 0;
 		IP += 2;
-		break;
+		return;
 	case 0xd5:		/* aad */
 		oprsz = 0, AX = newv = AL + w1 * AH;
 		setsfzfpf(newv);
 		OF = CF = 0;
 		IP += 2;
-		break;
+		return;
 	case 0xd6:		/* salc */
 		AL = -CF;
 		++IP;
-		break;
+		return;
 	case 0xd7:		/* xlat */
 		AL = mem[16 * (segpfx ? *segpfx : DS) + (uint16_t) (AL + BX)];
 		++IP;
-		break;
+		return;
 	case 0xf5:		/* cmc */
 		CF ^= 1, ++IP;
-		break;
+		return;
 	case 0xf8:		/* clc */
 		CF = 0, ++IP;
-		break;
+		return;
 	case 0xf9:		/* stc */
 		CF = 1, ++IP;
-		break;
+		return;
 	case 0xfa:		/* cli */
 		IF = 0, ++IP;
-		break;
+		return;
 	case 0xfb:		/* sti */
 		IF = 1, ++IP;
-		break;
+		return;
 	case 0xfc:		/* cld */
 		DF = 0, ++IP;
-		break;
+		return;
 	case 0xfd:		/* std */
 		DF = 1, ++IP;
-		break;
+		return;
 	case 0xa8:		/* test */
 	case 0xa9:
 		POKE(AL, &, w1);
 		setsfzfpf(newv);
 		OF = CF = 0;
 		IP += 2 + oprsz;
-		break;
+		return;
 	case 0x0f:		/* hyper call */
 		switch ((uint8_t) w1) {
 			time_t t;
@@ -919,7 +899,7 @@ step(int rep, uint16_t *segpfx)
 			break;
 		}
 		IP += 2;
-		break;
+		return;
 	}
 }
 
