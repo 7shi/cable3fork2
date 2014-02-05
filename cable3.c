@@ -47,6 +47,16 @@ struct SReg sr[4];
 #define SS sr[2]
 #define DS sr[3]
 
+void
+debug(FILE * f)
+{
+	fprintf(f,
+	    "%04x %04x %04x %04x-%04x %04x %04x %04x-%c%c%c%c%c%c%c%c%c-%04x %04x %04x-%04x:%04x %02x%02x%02x\n",
+	    AX, BX, CX, DX, SP, BP, SI, DI,
+	    "-O"[OF], "-D"[DF], "-I"[IF], "-T"[TF], "-S"[SF], "-Z"[ZF], "-A"[AF], "-P"[PF], "-C"[CF],
+	    ES.v, SS.v, DS.v, CS.v, IP, CS.p[IP], CS.p[IP + 1], CS.p[IP + 2]);
+}
+
 static inline void
 setsr(struct SReg * sr, uint16_t v)
 {
