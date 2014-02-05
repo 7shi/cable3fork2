@@ -901,6 +901,8 @@ step(int rep, uint16_t *segpfx)
 		IP += 2;
 		return;
 	}
+	fprintf(stderr, "%04x:%04x %02x not implemented\n", CS, p - &mem[CS << 4], b);
+	exit(1);
 }
 
 int
