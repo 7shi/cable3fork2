@@ -11,7 +11,7 @@
 
 #define ROMBASE 0xf0000
 uint8_t mem[0x200000 /* 2MB */ ], ioport[0x10000];
-uint16_t r[12], IP;
+uint16_t r[8], IP;
 uint8_t *const r8 = (uint8_t *) r;
 uint8_t CF, PF, AF, ZF, SF, TF, IF, DF, OF;
 uint8_t ptable[256];
@@ -36,10 +36,22 @@ FILE *files[3];			/* HD, FD, BIOS */
 #define SI r[6]
 #define DI r[7]
 
-#define ES r[8]
-#define CS r[9]
-#define SS r[10]
-#define DS r[11]
+struct SReg {
+	uint8_t *p;
+	uint16_t v;
+};
+struct SReg sr[4];
+
+#define ES sr[0]
+#define CS sr[1]
+#define SS sr[2]
+#define DS sr[3]
+
+static inline void
+setsr(struct SReg * sr, uint16_t v)
+{
+	sr->p = &mem[(sr->v = v) << 4];
+}
 
 static inline uint16_t
 read16(void *p)
@@ -78,13 +90,13 @@ setvp(void *dst, void *src)
 static inline void
 push(uint16_t src)
 {
-	*(uint16_t *) &mem[16 * SS + (SP -= 2)] = src;
+	*(uint16_t *) &SS.p[SP -= 2] = src;
 }
 
 static inline uint16_t
 pop(void)
 {
-	uint16_t ret = *(uint16_t *) &mem[16 * SS + SP];
+	uint16_t ret = *(uint16_t *) &SS.p[SP];
 	SP += 2;
 	return ret;
 }
@@ -143,17 +155,11 @@ static inline void
 intr(int n)
 {
 	push(getflags());
-	push(CS);
+	push(CS.v);
 	push(IP);
-	CS = *(uint16_t *) &mem[4 * n + 2];
+	setsr(&CS, *(uint16_t *) &mem[4 * n + 2]);
 	IP = *(uint16_t *) &mem[4 * n];
 	IF = TF = 0;
-}
-
-static inline uint8_t *
-getseg(uint8_t *segpfx, uint16_t sr)
-{
-	return segpfx ? segpfx : mem + (sr << 4);
 }
 
 static inline uint8_t *
@@ -164,40 +170,41 @@ modrm(int *oprlen, int mode, int rm, int16_t disp, uint8_t *segpfx)
 		return regmap(rm);
 	}
 	*oprlen = mode;
-	uint16_t addr, seg;
+	uint16_t addr;
+	struct SReg *seg;
 	switch (rm) {
 	case 0:
-		seg = DS, addr = BX + SI;
+		seg = &DS, addr = BX + SI;
 		break;
 	case 1:
-		seg = DS, addr = BX + DI;
+		seg = &DS, addr = BX + DI;
 		break;
 	case 2:
-		seg = SS, addr = BP + SI;
+		seg = &SS, addr = BP + SI;
 		break;
 	case 3:
-		seg = SS, addr = BP + DI;
+		seg = &SS, addr = BP + DI;
 		break;
 	case 4:
-		seg = DS, addr = SI;
+		seg = &DS, addr = SI;
 		break;
 	case 5:
-		seg = DS, addr = DI;
+		seg = &DS, addr = DI;
 		break;
 	case 6:
 		if (mode == 0) {
 			*oprlen += 2;
-			seg = DS, addr = disp;
+			seg = &DS, addr = disp;
 		} else
-			seg = SS, addr = BP;
+			seg = &SS, addr = BP;
 		break;
 	case 7:
-		seg = DS, addr = BX;
+		seg = &DS, addr = BX;
 		break;
 	}
 	if (mode)
 		addr += disp;
-	return getseg(segpfx, seg) + addr;
+	return (segpfx ? segpfx : seg->p) + addr;
 }
 
 static inline void
@@ -218,7 +225,7 @@ jumpif(int8_t offset, int cond)
 static inline void
 step(int rep, uint8_t *segpfx)
 {
-	uint8_t *p = &mem[16 * CS + IP], b = *p;
+	uint8_t *p = &CS.p[IP], b = *p;
 	oprsz = b & 1;
 	int dir = b / 2 & 1;
 	int rm = p[1] & 7, reg = p[1] / 8 & 7;
@@ -324,11 +331,11 @@ step(int rep, uint8_t *segpfx)
 		} else if (reg != 6) {
 			IP += 2 + oprlen;
 			if (reg == 3)	/* callf */
-				push(CS);
+				push(CS.v);
 			if (reg & 2)	/* call, callf */
 				push(IP);
 			if (reg & 1)	/* jmpf */
-				CS = *(uint16_t *) &opr2[2];
+				setsr(&CS, *(uint16_t *) &opr2[2]);
 			IP = *(uint16_t *) opr2;
 		} else {
 			push(*(uint16_t *) addr);
@@ -547,9 +554,12 @@ step(int rep, uint8_t *segpfx)
 	case 0x8e:
 	case 0x8f:
 		if (!oprsz) {
-			oprsz = reg + 8;
-			getoprs(dir, oprsz, modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
-			setvp(opr1, opr2);
+			oprsz = 1;
+			addr = modrm(&oprlen, mode, rm, disp, segpfx);
+			if (!dir)
+				setv(addr, sr[reg].v);
+			else
+				setsr(&sr[reg], getv(addr));
 		} else if (!dir)
 			*(uint16_t *) opr2 = modrm(&oprlen, mode, rm, disp, mem) - mem;
 		else
@@ -647,9 +657,10 @@ step(int rep, uint8_t *segpfx)
 	case 0xeb:
 		IP += 3 - dir;
 		if (!oprsz) {
-			if (dir)
-				CS = read16(p + 3), IP = 0;
-			else
+			if (dir) {
+				setsr(&CS, read16(p + 3));
+				IP = 0;
+			} else
 				push(IP);
 		}
 		IP += dir * oprsz ? (int8_t) p[1] : read16(p + 1);
@@ -691,8 +702,8 @@ step(int rep, uint8_t *segpfx)
 			tmp2 = (b >> 2) - 41;	/* 0, 1, 2 */
 			tmp = ~(-2 * DF) * ~oprsz;
 			do {
-				opr1 = tmp2 < 2 ? &mem[16 * ES + DI] : r8;
-				opr2 = tmp2 == 1 ? r8 : getseg(segpfx, DS) + SI;
+				opr1 = tmp2 < 2 ? &ES.p[DI] : r8;
+				opr2 = tmp2 == 1 ? r8 : (segpfx ? segpfx : DS.p) + SI;
 				setvp(opr1, opr2);
 				if (tmp2 != 1)
 					SI += tmp;
@@ -710,8 +721,8 @@ step(int rep, uint8_t *segpfx)
 		if (!rep || CX) {
 			tmp = ~(-2 * DF) * ~oprsz;
 			do {
-				opr1 = b >= 0xae ? r8 : getseg(segpfx, DS) + SI;
-				opr2 = &mem[16 * ES + DI];
+				opr1 = b >= 0xae ? r8 : (segpfx ? segpfx : DS.p) + SI;
+				opr2 = &ES.p[DI];
 				newv = (oldv = getv(opr1)) - (srcv = getv(opr2));
 				ZF = !newv;
 				CF = newv > oldv;
@@ -732,7 +743,7 @@ step(int rep, uint8_t *segpfx)
 		dir = oprsz;
 		IP = pop();
 		if (b >= 0xca)	/* retf, iret */
-			CS = pop();
+			setsr(&CS, pop());
 		if (b == 0xcf)	/* iret */
 			setflags(pop());
 		else if (!dir)
@@ -772,13 +783,13 @@ step(int rep, uint8_t *segpfx)
 	case 0x0e:		/* push */
 	case 0x16:		/* push */
 	case 0x1e:		/* push */
-		push(r[8 + (b >> 3)]);
+		push(sr[b >> 3].v);
 		++IP;
 		return;
 	case 0x07:		/* pop */
 	case 0x17:		/* pop */
 	case 0x1f:		/* pop */
-		r[8 + (b >> 3)] = pop();
+		setsr(&sr[b >> 3], pop());
 		++IP;
 		return;
 	case 0x26:		/* es: */
@@ -786,7 +797,7 @@ step(int rep, uint8_t *segpfx)
 	case 0x36:		/* ss: */
 	case 0x3e:		/* ds: */
 		++IP;
-		step(rep, &mem[r[8 + ((b >> 3) & 3)] << 4]);
+		step(rep, sr[(b >> 3) & 3].p);
 		return;
 	case 0x98:		/* cbw */
 		AH = -(1 & (oprsz ? (int16_t) AX : AL) >> (8 * (oprsz + 1) - 1));
@@ -797,9 +808,10 @@ step(int rep, uint8_t *segpfx)
 		++IP;
 		return;
 	case 0x9a:		/* callf */
-		push(CS);
+		push(CS.v);
 		push(IP + 5);
-		CS = read16(p + 3), IP = read16(p + 1);
+		setsr(&CS, read16(p + 3));
+		IP = read16(p + 1);
 		return;
 	case 0x9c:		/* pushf */
 		push(getflags());
@@ -823,9 +835,9 @@ step(int rep, uint8_t *segpfx)
 		opr1 = regmap(reg), opr2 = modrm(&oprlen, mode, rm, disp, segpfx);
 		setvp(opr1, opr2);
 		if (b == 0xc4)
-			ES = *(uint16_t *) &opr2[2];
+			setsr(&ES, *(uint16_t *) &opr2[2]);
 		else
-			DS = *(uint16_t *) &opr2[2];
+			setsr(&DS, *(uint16_t *) &opr2[2]);
 		IP += 2 + oprlen;
 		return;
 	case 0xcc:		/* int3 */
@@ -863,7 +875,7 @@ step(int rep, uint8_t *segpfx)
 		++IP;
 		return;
 	case 0xd7:		/* xlat */
-		AL = getseg(segpfx, DS)[(uint16_t) (AL + BX)];
+		AL = (segpfx ? segpfx : DS.p)[(uint16_t) (AL + BX)];
 		++IP;
 		return;
 	case 0xf5:		/* cmc */
@@ -912,17 +924,17 @@ step(int rep, uint8_t *segpfx)
 			break;
 		case 1:	/* get time */
 			time(&t);
-			memcpy(&mem[16 * ES + BX], localtime(&t), 36);
+			memcpy(&ES.p[BX], localtime(&t), 36);
 			break;
 		case 2:	/* read disk */
 			if (fseek(files[DL], (256 * SI + BP) << 9, SEEK_SET) != -1)
-				AL = fread(&mem[16 * ES + BX], 1, AX, files[DL]);
+				AL = fread(&ES.p[BX], 1, AX, files[DL]);
 			else
 				AL = 0;
 			break;
 		case 3:	/* write disk */
 			if (fseek(files[DL], (256 * SI + BP) << 9, SEEK_SET) != -1)
-				AL = fwrite(&mem[16 * ES + BX], 1, AX, files[DL]);
+				AL = fwrite(&ES.p[BX], 1, AX, files[DL]);
 			else
 				AL = 0;
 			break;
@@ -930,14 +942,15 @@ step(int rep, uint8_t *segpfx)
 		IP += 2;
 		return;
 	}
-	fprintf(stderr, "%04x:%04x %02x not implemented\n", CS, p - &mem[CS << 4], b);
+	fprintf(stderr, "%04x:%04x %02x not implemented\n", CS.v, p - CS.p, b);
 	exit(1);
 }
 
 int
 main(int argc, char *argv[])
 {
-	CS = ROMBASE >> 4, IP = 0x100;
+	setsr(&CS, ROMBASE >> 4);
+	IP = 0x100;
 
 	for (int i = 0; i < 256; i++) {
 		int n = 0;
@@ -972,7 +985,7 @@ main(int argc, char *argv[])
 				intr(7);
 #endif
 		}
-		if (CS == 0 && IP == 0)
+		if (CS.v == 0 && IP == 0)
 			break;
 		step(0, NULL);
 	}
