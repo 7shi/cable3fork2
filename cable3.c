@@ -101,10 +101,16 @@ setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
 	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
 }
 
+static inline int
+isneg(int v)
+{
+	return (oprsz ? (int16_t) v : (int8_t) v) < 0;
+}
+
 static inline void
 setsfzfpf(uint16_t newv)
 {
-	SF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1));
+	SF = isneg(newv);
 	ZF = !newv;
 	PF = ptable[(uint8_t) newv];
 }
@@ -558,7 +564,7 @@ step(int rep, uint16_t *segpfx)
 	case 0xd3:
 	case 0xc0:
 	case 0xc1:
-		utmp = (1 & (oprsz ? *(int16_t *) addr : *addr) >> (8 * (oprsz + 1) - 1));
+		utmp = isneg(getv(addr));
 		if (b < 0xd0) {
 			++IP;
 			tmp = (int8_t) disp;
@@ -581,30 +587,30 @@ step(int rep, uint16_t *segpfx)
 		switch (reg) {
 		case 0:	/* rol */
 			POKE(*addr, +=, utmp >> 8 * (oprsz + 1) - tmp);
-			OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ (CF = newv & 1);
+			OF = isneg(newv) ^ (CF = newv & 1);
 			break;
 		case 1:	/* ror */
 			utmp &= (1 << tmp) - 1;
 			POKE(*addr, +=, utmp << (8 * (oprsz + 1) - tmp));
-			CF = !!(1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1));
-			OF = (1 & (oprsz ? *(int16_t *) &newv * 2 : newv * 2) >> (8 * (oprsz + 1) - 1)) ^ CF;
+			CF = isneg(newv);
+			OF = isneg(newv << 1) ^ CF;
 			break;
 		case 2:	/* rcl */
 			POKE(*addr, +=(CF << tmp - 1) +, utmp >> (1 + 8 * (oprsz + 1) - tmp));
 			CF = !!(utmp & 1 << (8 * (oprsz + 1) - tmp));
-			OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ CF;
+			OF = isneg(newv) ^ CF;
 			break;
 		case 3:	/* rcr */
 			POKE(*addr, +=(CF << (8 * (oprsz + 1) - tmp)) +, utmp << (1 + 8 * (oprsz + 1) - tmp));
 			CF = !!(utmp & 1 << tmp - 1);
-			OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ (1 & (oprsz ? *(int16_t *) &newv * 2 : newv * 2) >> (8 * (oprsz + 1) - 1));
+			OF = isneg(newv) ^ isneg(newv << 1);
 			break;
 		case 4:	/* shl */
-			CF = !!(1 & (oprsz ? *(int16_t *) &oldv << tmp - 1 : oldv << tmp - 1) >> (8 * (oprsz + 1) - 1));
-			OF = (1 & (oprsz ? *(int16_t *) &newv : newv) >> (8 * (oprsz + 1) - 1)) ^ CF;
+			CF = isneg(oldv << tmp - 1);
+			OF = isneg(newv) ^ CF;
 			break;
 		case 5:	/* shr */
-			OF = (1 & (oprsz ? *(int16_t *) &oldv : oldv) >> (8 * (oprsz + 1) - 1));
+			OF = isneg(oldv);
 			break;
 		case 7:	/* sar */
 			if (tmp >= 8 * (oprsz + 1))
