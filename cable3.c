@@ -51,7 +51,7 @@ void
 debug(FILE * f)
 {
 	fprintf(f,
-	    "%04x %04x %04x %04x-%04x %04x %04x %04x-%c%c%c%c%c%c%c%c%c-%04x %04x %04x-%04x:%04x %02x%02x%02x\n",
+	    "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x %02x%02x%02x\n",
 	    AX, BX, CX, DX, SP, BP, SI, DI,
 	    "-O"[OF], "-D"[DF], "-I"[IF], "-T"[TF], "-S"[SF], "-Z"[ZF], "-A"[AF], "-P"[PF], "-C"[CF],
 	    ES.v, SS.v, DS.v, CS.v, IP, CS.p[IP], CS.p[IP + 1], CS.p[IP + 2]);
