@@ -248,7 +248,7 @@ step(int rep, uint8_t *segpfx)
 		else
 			opr = (int16_t) read16(p + 3);
 	} else
-		opr = *(int16_t *) &p[4];
+		opr = (int16_t) read16(p + 4);
 	int oprlen;
 	uint8_t *addr, *opr1, *opr2;
 	getoprs(dir, reg, addr = modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
@@ -810,11 +810,11 @@ step(int rep, uint8_t *segpfx)
 		step(rep, sr[(b >> 3) & 3].p);
 		return;
 	case 0x98:		/* cbw */
-		AH = -(1 & (oprsz ? (int16_t) AX : AL) >> (8 * (oprsz + 1) - 1));
+		AH = -isneg(AL);
 		++IP;
 		return;
 	case 0x99:		/* cwd */
-		DX = -(1 & (oprsz ? (int16_t) AX : AX) >> (8 * (oprsz + 1) - 1));
+		DX = -isneg(AX);
 		++IP;
 		return;
 	case 0x9a:		/* callf */
