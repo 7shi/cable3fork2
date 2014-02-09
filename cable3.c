@@ -888,6 +888,10 @@ step(int rep, uint8_t *segpfx)
 		AL = (segpfx ? segpfx : DS.p)[(uint16_t) (AL + BX)];
 		++IP;
 		return;
+	case 0xf4:		/* hlt */
+		/* TODO: implement */
+		++IP;
+		return;
 	case 0xf5:		/* cmc */
 		CF ^= 1, ++IP;
 		return;
