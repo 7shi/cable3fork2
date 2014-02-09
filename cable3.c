@@ -124,21 +124,21 @@ isneg(int v)
 }
 
 static inline void
-setafof(uint16_t srcv, uint16_t oldv, uint16_t newv)
+setafof(uint16_t src, uint16_t dst, uint16_t val)
 {
-	srcv ^= oldv ^ newv;
+	src ^= dst ^ val;
 #ifdef USE_AF
-	AF = !!(srcv & 16);
+	AF = !!(src & 16);
 #endif
-	OF = (newv - oldv && 1 & (CF ^ srcv >> (8 * (oprsz + 1) - 1)));
+	OF = (val - dst && 1 & (CF ^ src >> (8 * (oprsz + 1) - 1)));
 }
 
 static inline void
-setsfzfpf(uint16_t newv)
+setsfzfpf(uint16_t val)
 {
-	SF = isneg(newv);
-	ZF = !newv;
-	PF = ptable[(uint8_t) newv];
+	SF = isneg(val);
+	ZF = !val;
+	PF = ptable[(uint8_t) val];
 }
 
 static inline uint16_t
@@ -252,7 +252,7 @@ step(int rep, uint8_t *segpfx)
 	int oprlen;
 	uint8_t *addr, *opr1, *opr2;
 	getoprs(dir, reg, addr = modrm(&oprlen, mode, rm, disp, segpfx), &opr1, &opr2);
-	uint16_t srcv, oldv, newv = 0;
+	uint16_t src, dst, val = 0;
 	switch (b) {
 		int tmp, tmp2;
 		uint32_t utmp;
@@ -329,11 +329,11 @@ step(int rep, uint8_t *segpfx)
 	case 0xfe:		/* inc, dec, call, callf, jmp, jmpf, push */
 	case 0xff:
 		if (reg < 2) {	/* inc, dec */
-			newv = setv(opr2, (oldv = getv(opr2)) + (1 - 2 * reg));
-			srcv = 1;
-			setafof(srcv, oldv, newv);
-			setsfzfpf(newv);
-			OF = (oldv + 1 - reg == 1 << (8 * (oprsz + 1) - 1));
+			val = setv(opr2, (dst = getv(opr2)) + (1 - 2 * reg));
+			src = 1;
+			setafof(src, dst, val);
+			setsfzfpf(val);
+			OF = (dst + 1 - reg == 1 << (8 * (oprsz + 1) - 1));
 			if (oprsz == 2)
 				++IP;
 			else
@@ -386,10 +386,10 @@ step(int rep, uint8_t *segpfx)
 			setv(opr2, ~getv(opr2));
 			break;
 		case 3:	/* neg */
-			newv = setv(opr2, -(oldv = getv(opr2)));
-			CF = newv > (oldv = 0);
-			setafof(oldv, oldv, newv);
-			setsfzfpf(newv);
+			val = setv(opr2, -(dst = getv(opr2)));
+			CF = val > (dst = 0);
+			setafof(dst, dst, val);
+			setsfzfpf(val);
 			break;
 		case 4:	/* mul */
 			if (oprsz) {
@@ -515,48 +515,48 @@ step(int rep, uint8_t *segpfx)
 			tmp = reg;
 		switch (tmp) {
 		case 0:	/* add */
-			newv = setv(opr1, (oldv = getv(opr1)) + (srcv = getv(opr2)));
-			CF = newv < oldv;
-			setafof(srcv, oldv, newv);
+			val = setv(opr1, (dst = getv(opr1)) + (src = getv(opr2)));
+			CF = val < dst;
+			setafof(src, dst, val);
 			break;
 		case 1:	/* or */
-			newv = setv(opr1, getv(opr1) | getv(opr2));
+			val = setv(opr1, getv(opr1) | getv(opr2));
 			OF = CF = 0;
 			break;
 		case 2:	/* adc */
-			newv = setv(opr1, (oldv = getv(opr1)) + (srcv = getv(opr2)) + CF);
-			CF = (CF && newv == oldv) || +newv < +(int) oldv;
-			setafof(srcv, oldv, newv);
+			val = setv(opr1, (dst = getv(opr1)) + (src = getv(opr2)) + CF);
+			CF = (CF && val == dst) || +val < +(int) dst;
+			setafof(src, dst, val);
 			break;
 		case 3:	/* sbb */
-			newv = setv(opr1, (oldv = getv(opr1)) - (srcv = getv(opr2)) - CF);
-			CF = (CF && newv == oldv) || -newv < -(int) oldv;
-			setafof(srcv, oldv, newv);
+			val = setv(opr1, (dst = getv(opr1)) - (src = getv(opr2)) - CF);
+			CF = (CF && val == dst) || -val < -(int) dst;
+			setafof(src, dst, val);
 			break;
 		case 4:	/* and */
-			newv = setv(opr1, getv(opr1) & getv(opr2));
+			val = setv(opr1, getv(opr1) & getv(opr2));
 			OF = CF = 0;
 			break;
 		case 5:	/* sub */
-			newv = setv(opr1, (oldv = getv(opr1)) - (srcv = getv(opr2)));
-			CF = newv > oldv;
-			setafof(srcv, oldv, newv);
+			val = setv(opr1, (dst = getv(opr1)) - (src = getv(opr2)));
+			CF = val > dst;
+			setafof(src, dst, val);
 			break;
 		case 6:	/* xor */
-			newv = setv(opr1, getv(opr1) ^ getv(opr2));
+			val = setv(opr1, getv(opr1) ^ getv(opr2));
 			OF = CF = 0;
 			break;
 		case 7:	/* cmp */
-			newv = (oldv = getv(opr1)) - (srcv = getv(opr2));
-			CF = newv > oldv;
-			setafof(srcv, oldv, newv);
+			val = (dst = getv(opr1)) - (src = getv(opr2));
+			CF = val > dst;
+			setafof(src, dst, val);
 			break;
 		case 17:	/* mov */
 			setvp(opr1, opr2);
 			break;
 		}
 		if (b < 0x88)
-			setsfzfpf(newv);
+			setsfzfpf(val);
 		IP += 2 + oprlen;
 		return;
 	case 0x8c:		/* mov, lea, pop */
@@ -590,7 +590,7 @@ step(int rep, uint8_t *segpfx)
 	case 0xd3:
 	case 0xc0:
 	case 0xc1:
-		utmp = isneg(oldv = getv(addr));
+		utmp = isneg(dst = getv(addr));
 		if (b < 0xd0) {
 			++IP;
 			tmp = (int8_t) disp;
@@ -604,51 +604,51 @@ step(int rep, uint8_t *segpfx)
 				setvp(&utmp, addr);
 			}
 			if (reg & 1)
-				newv = setv(addr, oldv >> tmp);
+				val = setv(addr, dst >> tmp);
 			else
-				newv = setv(addr, oldv << tmp);
+				val = setv(addr, dst << tmp);
 			if (reg >= 5)
-				CF = oldv >> (tmp - 1) & 1;
+				CF = dst >> (tmp - 1) & 1;
 		} else {
-			newv = oldv;
+			val = dst;
 		}
 		switch (reg) {
 		case 0:	/* rol */
-			newv = setv(addr, getv(addr) + (utmp >> (8 * (oprsz + 1) - tmp)));
-			OF = isneg(newv) ^ (CF = newv & 1);
+			val = setv(addr, getv(addr) + (utmp >> (8 * (oprsz + 1) - tmp)));
+			OF = isneg(val) ^ (CF = val & 1);
 			break;
 		case 1:	/* ror */
 			utmp &= (1 << tmp) - 1;
-			newv = setv(addr, getv(addr) + (utmp << (8 * (oprsz + 1) - tmp)));
-			CF = isneg(newv);
-			OF = isneg(newv << 1) ^ CF;
+			val = setv(addr, getv(addr) + (utmp << (8 * (oprsz + 1) - tmp)));
+			CF = isneg(val);
+			OF = isneg(val << 1) ^ CF;
 			break;
 		case 2:	/* rcl */
-			newv = setv(addr, getv(addr) + (CF << (tmp - 1)) + (utmp >> (1 + 8 * (oprsz + 1) - tmp)));
+			val = setv(addr, getv(addr) + (CF << (tmp - 1)) + (utmp >> (1 + 8 * (oprsz + 1) - tmp)));
 			CF = !!(utmp & 1 << (8 * (oprsz + 1) - tmp));
-			OF = isneg(newv) ^ CF;
+			OF = isneg(val) ^ CF;
 			break;
 		case 3:	/* rcr */
-			newv = setv(addr, getv(addr) + (CF << (8 * (oprsz + 1) - tmp)) + (utmp << (1 + 8 * (oprsz + 1) - tmp)));
+			val = setv(addr, getv(addr) + (CF << (8 * (oprsz + 1) - tmp)) + (utmp << (1 + 8 * (oprsz + 1) - tmp)));
 			CF = !!(utmp & 1 << (tmp - 1));
-			OF = isneg(newv) ^ isneg(newv << 1);
+			OF = isneg(val) ^ isneg(val << 1);
 			break;
 		case 4:	/* shl */
-			CF = isneg(oldv << (tmp - 1));
-			OF = isneg(newv) ^ CF;
+			CF = isneg(dst << (tmp - 1));
+			OF = isneg(val) ^ CF;
 			break;
 		case 5:	/* shr */
-			OF = isneg(oldv);
+			OF = isneg(dst);
 			break;
 		case 7:	/* sar */
 			if (tmp >= 8 * (oprsz + 1))
 				CF = !!utmp;
 			OF = 0;
-			newv = setv(addr, getv(addr) + utmp * ~(((1 << (8 * (oprsz + 1))) - 1) >> tmp));
+			val = setv(addr, getv(addr) + utmp * ~(((1 << (8 * (oprsz + 1))) - 1) >> tmp));
 			break;
 		}
 		if (tmp && reg > 3) {
-			setsfzfpf(newv);
+			setsfzfpf(val);
 			IP += 2 + oprlen;
 		} else
 			IP += 2 + oprlen + (b < 0xd0);
@@ -733,15 +733,15 @@ step(int rep, uint8_t *segpfx)
 			do {
 				opr1 = b >= 0xae ? r8 : (segpfx ? segpfx : DS.p) + SI;
 				opr2 = &ES.p[DI];
-				newv = (oldv = getv(opr1)) - (srcv = getv(opr2));
-				ZF = !newv;
-				CF = newv > oldv;
+				val = (dst = getv(opr1)) - (src = getv(opr2));
+				ZF = !val;
+				CF = val > dst;
 				if (b < 0xae)
 					SI += tmp;
 				DI += tmp;
 			} while (rep && --CX && ZF == rep - 1);
-			setafof(srcv, oldv, newv);
-			setsfzfpf(newv);
+			setafof(src, dst, val);
+			setsfzfpf(val);
 		}
 		++IP;
 		return;
@@ -867,16 +867,16 @@ step(int rep, uint8_t *segpfx)
 		tmp = read16(p + 1);
 		if (tmp &= 255) {
 			AH = AL / tmp;
-			newv = AL %= tmp;
-			setsfzfpf(newv);
+			val = AL %= tmp;
+			setsfzfpf(val);
 		} else
 			intr(0);
 		OF = CF = 0;
 		IP += 2;
 		return;
 	case 0xd5:		/* aad */
-		oprsz = 0, AX = newv = AL + read16(p + 1) * AH;
-		setsfzfpf(newv);
+		oprsz = 0, AX = val = AL + read16(p + 1) * AH;
+		setsfzfpf(val);
 		OF = CF = 0;
 		IP += 2;
 		return;
