@@ -35,6 +35,7 @@ struct Debug {
     uint16_t Es, Ss, Ds, Cs, Ip;
     
     void output(FILE *f) {
+        extern uint8_t mem[];
         extern i86::SReg sr[];
         fprintf(f,
             "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
@@ -42,7 +43,7 @@ struct Debug {
             "-O"[Of], "-D"[Df], "-I"[If], "-T"[Tf], "-S"[Sf], "-Z"[Zf], "-A"[Af], "-P"[Pf], "-C"[Cf],
             Es, Ss, Ds, Cs, Ip);
         for (int i = 0; i < 6; ++i)
-            fprintf(f, "%02x", sr[1].p[Ip + i]);
+            fprintf(f, "%02x", mem[(Cs << 4) | (Ip + i)]);
         fprintf(f, "\n");
     }
 };
