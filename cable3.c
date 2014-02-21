@@ -342,7 +342,7 @@ step(int rep, uint8_t *segpfx)
 			src = 1;
 			setafof(src, dst, val);
 			setsfzfpf(val);
-			OF = (dst + 1 - reg == 1 << (8 * (oprsz + 1) - 1));
+			OF = isneg(dst) != isneg(val) && dst && val;
 			if (oprsz == 2)
 				++IP;
 			else
