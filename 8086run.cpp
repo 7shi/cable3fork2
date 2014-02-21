@@ -90,7 +90,7 @@ bool checkreg() {
     for (int i = 0; i < 4; ++i) {
         if (i86::sr[i].v != sr[i].v) return false;
     }
-    return true;
+    return getf() == getflags();
 }
 
 int checkmem() {
