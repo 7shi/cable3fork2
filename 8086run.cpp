@@ -34,7 +34,7 @@ struct Debug {
     uint8_t Of, Df, If, Tf, Sf, Zf, Af, Pf, Cf;
     uint16_t Es, Ss, Ds, Cs, Ip;
     
-    void output(FILE *f) {
+    void output(FILE *f, int len) {
         extern uint8_t mem[];
         extern i86::SReg sr[];
         fprintf(f,
@@ -42,7 +42,7 @@ struct Debug {
             Ax, Bx, Cx, Dx, Sp, Bp, Si, Di,
             "-O"[Of], "-D"[Df], "-I"[If], "-T"[Tf], "-S"[Sf], "-Z"[Zf], "-A"[Af], "-P"[Pf], "-C"[Cf],
             Es, Ss, Ds, Cs, Ip);
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < len; ++i)
             fprintf(f, "%02x", mem[(Cs << 4) | (Ip + i)]);
         fprintf(f, "\n");
     }
@@ -132,7 +132,15 @@ extern "C" void setdbg();
 
 void debug(FILE *f, int len) {
     fprintf(f, " AX   BX   CX   DX   SP   BP   SI   DI    FLAGS    ES   SS   DS   CS   IP  dump\n");
-    for (int i = 0; i < 20; ++i) dbg[(dbgi + i) % 20].output(f);
+    for (int i = 0; i < 20; ++i) {
+        Debug *d0 = &dbg[(dbgi + i) % 20], *d1 = &dbg[(dbgi + i + 1) % 20];
+        int len = 6;
+        if (i < 19 && d0->Cs == d1->Cs) {
+            len = d1->Ip - d0->Ip;
+            if (len < 1 || 6 < len) len = 6;
+        }
+        d0->output(f, len);
+    }
     fprintf(f, "----\n");
     fprintf(f,
             "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
