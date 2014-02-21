@@ -29,6 +29,26 @@ namespace i86 {
 	} sr[4];
 }
 
+struct Debug {
+	uint16_t Ax, Bx, Cx, Dx, Sp, Bp, Si, Di;
+	uint8_t Of, Df, If, Tf, Sf, Zf, Af, Pf, Cf;
+	uint16_t Es, Ss, Ds, Cs, Ip;
+	
+	void output(FILE *f) {
+		extern i86::SReg sr[];
+		fprintf(f,
+		    "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
+		    Ax, Bx, Cx, Dx, Sp, Bp, Si, Di,
+		    "-O"[Of], "-D"[Df], "-I"[If], "-T"[Tf], "-S"[Sf], "-Z"[Zf], "-A"[Af], "-P"[Pf], "-C"[Cf],
+		    Es, Ss, Ds, Cs, Ip);
+		for (int i = 0; i < 6; ++i)
+			fprintf(f, "%02x", sr[1].p[Ip + i]);
+		fprintf(f, "\n");
+	}
+};
+extern Debug dbg[];
+extern int dbgi;
+
 inline uint16_t getf() {
     return 0xf002 | (i86::OF << 11) | (i86::DF << 10) | (i86::IF << 9) | (i86::TF << 8)
         | (i86::SF << 7) | (i86::ZF << 6) | (i86::AF << 4) | (i86::PF << 2) | i86::CF;
@@ -107,8 +127,12 @@ using namespace i86;
 #define SS sr[2]
 #define DS sr[3]
 
-void debug(FILE *f, bool h, int len) {
-    if (h) fprintf(f, " AX   BX   CX   DX   SP   BP   SI   DI    FLAGS    ES   SS   DS   CS   IP  dump\n");
+extern "C" void setdbg();
+
+void debug(FILE *f, int len) {
+    fprintf(f, " AX   BX   CX   DX   SP   BP   SI   DI    FLAGS    ES   SS   DS   CS   IP  dump\n");
+	for (int i = 0; i < 20; ++i) dbg[(dbgi + i) % 20].output(f);
+	fprintf(f, "----\n");
     fprintf(f,
             "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
             AX, BX, CX, DX, SP, BP, SI, DI,
@@ -122,8 +146,8 @@ extern "C" void vmcheck() {
 	static char count;
 	int p = ++count ? -1 : checkmem();
 	if (checkreg() && p < 0) return;
-	debug(stderr, true, 6);
-	p = checkmem();
+	debug(stderr, 6);
+	if (p < 0) p = checkmem();
 	if (p >= 0) printf("memory error: %05x\n", p);
 	exit(1);
 }
@@ -1234,7 +1258,7 @@ extern "C" void step8r(uint8_t rep, SReg *seg) {
 #endif
     }
     IP = p - &CS[0];
-	debug(stderr, true, 3);
+	debug(stderr, 6);
     fprintf(stderr, "not implemented: %02x%02x%02x\n", b, p[1], p[2]);
     exit(1);
 }

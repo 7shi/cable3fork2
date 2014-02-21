@@ -47,17 +47,23 @@ struct SReg sr[4];
 #define SS sr[2]
 #define DS sr[3]
 
+struct Debug {
+	uint16_t Ax, Bx, Cx, Dx, Sp, Bp, Si, Di;
+	uint8_t Of, Df, If, Tf, Sf, Zf, Af, Pf, Cf;
+	uint16_t Es, Ss, Ds, Cs, Ip;
+} dbg[20];
+int dbgi;
+
 void
-debug(FILE * f, int len)
+setdbg()
 {
-	fprintf(f,
-	    "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
-	    AX, BX, CX, DX, SP, BP, SI, DI,
-	    "-O"[OF], "-D"[DF], "-I"[IF], "-T"[TF], "-S"[SF], "-Z"[ZF], "-A"[AF], "-P"[PF], "-C"[CF],
-	    ES.v, SS.v, DS.v, CS.v, IP);
-	for (int i = 0; i < len; ++i)
-		fprintf(f, "%02x", CS.p[IP + i]);
-	fprintf(f, "\n");
+	struct Debug *d = &dbg[dbgi++];
+	if (dbgi == 20) dbgi = 0;
+	d->Ax = AX, d->Bx = BX, d->Cx = CX, d->Dx = DX;
+	d->Sp = SP, d->Bp = BP, d->Si = SI, d->Di = DI;
+	d->Of = OF, d->Df = DF, d->If = IF, d->Tf = TF;
+	d->Sf = SF, d->Zf = ZF, d->Af = AF, d->Pf = PF, d->Cf = CF;
+	d->Es = ES.v, d->Ss = SS.v, d->Ds = DS.v, d->Cs = CS.v, d->Ip = IP;
 }
 
 static inline void
@@ -1026,7 +1032,7 @@ main(int argc, char *argv[])
 		if (b == 0x0f) {
 			vmsync();
 		} else {
-			//debug(stderr, 6);
+			setdbg();
 			step8r(0, NULL);
 			vmcheck();
 			++stp;
