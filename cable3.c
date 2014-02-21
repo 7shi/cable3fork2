@@ -398,6 +398,7 @@ step(int rep, uint8_t *segpfx)
 			val = setv(opr2, -(dst = getv(opr2)));
 			CF = val > (dst = 0);
 			setafof(dst, dst, val);
+			OF = dst == 0x8000;
 			setsfzfpf(val);
 			break;
 		case 4:	/* mul */
