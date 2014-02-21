@@ -431,24 +431,25 @@ inline void shift(Operand *opr, int c, uint8_t *p) {
             if (c > 0) {
                 val <<= c;
                 CF = val & (m << 1);
-                OF = CF != bool(val & m);
                 *opr = opr->setf(val);
+                OF = CF != bool(val & m);
             }
             break;
         case 5: // shr
             if (c > 0) {
+                bool f = val & m;
                 val >>= c - 1;
                 CF = val & 1;
-                OF = val & m;
                 *opr = opr->setf(val >> 1);
+                OF = f;
             }
             break;
         case 7: // sar
             if (c > 0) {
                 val = int8_t(val) >> (c - 1);
                 CF = val & 1;
-                OF = false;
                 *opr = opr->setf(val >> 1);
+                OF = false;
             }
             break;
     }
