@@ -1021,8 +1021,9 @@ main(int argc, char *argv[])
 		uint16_t cs = CS.v, ip = IP;
 		if (cs == 0 && ip == 0)
 			break;
+		uint8_t b = CS.p[IP];
 		step(0, NULL);
-		if (CS.p[ip] == 0x0f) {
+		if (b == 0x0f) {
 			vmsync();
 		} else {
 			//debug(stderr, 6);
