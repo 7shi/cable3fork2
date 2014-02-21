@@ -4,47 +4,47 @@
 #include <stdint.h>
 
 namespace i86 {
-	uint8_t mem[0x200000], io[0x10000];
-	uint16_t IP, r[8];
-	uint8_t *r8[8];
-	bool ptable[256];
-	bool OF, DF, IF, TF, SF, ZF, AF, PF, CF;
+    uint8_t mem[0x200000], io[0x10000];
+    uint16_t IP, r[8];
+    uint8_t *r8[8];
+    bool ptable[256];
+    bool OF, DF, IF, TF, SF, ZF, AF, PF, CF;
 
-	struct SReg {
-		uint8_t *p;
-		uint16_t v;
+    struct SReg {
+        uint8_t *p;
+        uint16_t v;
 
-		inline uint16_t operator *() {
-			return v;
-		}
+        inline uint16_t operator *() {
+            return v;
+        }
 
-		inline uint16_t operator =(uint16_t v) {
-			p = &mem[v << 4];
-			return this->v = v;
-		}
+        inline uint16_t operator =(uint16_t v) {
+            p = &mem[v << 4];
+            return this->v = v;
+        }
 
-		inline uint8_t &operator[](int addr) {
-			return p[addr];
-		}
-	} sr[4];
+        inline uint8_t &operator[](int addr) {
+            return p[addr];
+        }
+    } sr[4];
 }
 
 struct Debug {
-	uint16_t Ax, Bx, Cx, Dx, Sp, Bp, Si, Di;
-	uint8_t Of, Df, If, Tf, Sf, Zf, Af, Pf, Cf;
-	uint16_t Es, Ss, Ds, Cs, Ip;
-	
-	void output(FILE *f) {
-		extern i86::SReg sr[];
-		fprintf(f,
-		    "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
-		    Ax, Bx, Cx, Dx, Sp, Bp, Si, Di,
-		    "-O"[Of], "-D"[Df], "-I"[If], "-T"[Tf], "-S"[Sf], "-Z"[Zf], "-A"[Af], "-P"[Pf], "-C"[Cf],
-		    Es, Ss, Ds, Cs, Ip);
-		for (int i = 0; i < 6; ++i)
-			fprintf(f, "%02x", sr[1].p[Ip + i]);
-		fprintf(f, "\n");
-	}
+    uint16_t Ax, Bx, Cx, Dx, Sp, Bp, Si, Di;
+    uint8_t Of, Df, If, Tf, Sf, Zf, Af, Pf, Cf;
+    uint16_t Es, Ss, Ds, Cs, Ip;
+    
+    void output(FILE *f) {
+        extern i86::SReg sr[];
+        fprintf(f,
+            "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
+            Ax, Bx, Cx, Dx, Sp, Bp, Si, Di,
+            "-O"[Of], "-D"[Df], "-I"[If], "-T"[Tf], "-S"[Sf], "-Z"[Zf], "-A"[Af], "-P"[Pf], "-C"[Cf],
+            Es, Ss, Ds, Cs, Ip);
+        for (int i = 0; i < 6; ++i)
+            fprintf(f, "%02x", sr[1].p[Ip + i]);
+        fprintf(f, "\n");
+    }
 };
 extern Debug dbg[];
 extern int dbgi;
@@ -55,51 +55,51 @@ inline uint16_t getf() {
 } 
 
 inline void setf(uint16_t flags) {
-	i86::CF = flags & 0x001;
-	i86::PF = flags & 0x004;
-	i86::AF = flags & 0x010;
-	i86::ZF = flags & 0x040;
-	i86::SF = flags & 0x080;
-	i86::TF = flags & 0x100;
-	i86::IF = flags & 0x200;
-	i86::DF = flags & 0x400;
-	i86::OF = flags & 0x800;
+    i86::CF = flags & 0x001;
+    i86::PF = flags & 0x004;
+    i86::AF = flags & 0x010;
+    i86::ZF = flags & 0x040;
+    i86::SF = flags & 0x080;
+    i86::TF = flags & 0x100;
+    i86::IF = flags & 0x200;
+    i86::DF = flags & 0x400;
+    i86::OF = flags & 0x800;
 }
 
 extern "C" uint16_t getflags();
 
 extern "C" void vmsync() {
-	extern uint8_t mem[], ioport[];
-	extern uint16_t IP, r[];
-	extern i86::SReg sr[];
-	memcpy(i86::mem, mem, sizeof(i86::mem));
-	memcpy(i86::io, ioport, sizeof(i86::io));
-	memcpy(i86::r, r, sizeof(i86::r));
-	for (int i = 0; i < 4; ++i) i86::sr[i] = sr[i].v;
-	i86::IP = IP;
-	setf(getflags());
+    extern uint8_t mem[], ioport[];
+    extern uint16_t IP, r[];
+    extern i86::SReg sr[];
+    memcpy(i86::mem, mem, sizeof(i86::mem));
+    memcpy(i86::io, ioport, sizeof(i86::io));
+    memcpy(i86::r, r, sizeof(i86::r));
+    for (int i = 0; i < 4; ++i) i86::sr[i] = sr[i].v;
+    i86::IP = IP;
+    setf(getflags());
 }
 
 bool checkreg() {
-	extern uint16_t IP, r[];
-	extern i86::SReg sr[];
-	if (i86::IP != IP) return false;
-	for (int i = 0; i < 8; ++i) {
-		if (i86::r[i] != r[i]) return false;
-	}
-	for (int i = 0; i < 4; ++i) {
-		if (i86::sr[i].v != sr[i].v) return false;
-	}
-	return true;
+    extern uint16_t IP, r[];
+    extern i86::SReg sr[];
+    if (i86::IP != IP) return false;
+    for (int i = 0; i < 8; ++i) {
+        if (i86::r[i] != r[i]) return false;
+    }
+    for (int i = 0; i < 4; ++i) {
+        if (i86::sr[i].v != sr[i].v) return false;
+    }
+    return true;
 }
 
 int checkmem() {
-	extern uint8_t mem[];
-	if (!memcmp(mem, i86::mem, sizeof(i86::mem))) return -1;
-	for (int i = 0; i < sizeof(i86::mem); ++i) {
-		if (mem[i] != i86::mem[i]) return i;
-	}
-	return -1;
+    extern uint8_t mem[];
+    if (!memcmp(mem, i86::mem, sizeof(i86::mem))) return -1;
+    for (int i = 0; i < sizeof(i86::mem); ++i) {
+        if (mem[i] != i86::mem[i]) return i;
+    }
+    return -1;
 }
 
 using namespace i86;
@@ -131,25 +131,25 @@ extern "C" void setdbg();
 
 void debug(FILE *f, int len) {
     fprintf(f, " AX   BX   CX   DX   SP   BP   SI   DI    FLAGS    ES   SS   DS   CS   IP  dump\n");
-	for (int i = 0; i < 20; ++i) dbg[(dbgi + i) % 20].output(f);
-	fprintf(f, "----\n");
+    for (int i = 0; i < 20; ++i) dbg[(dbgi + i) % 20].output(f);
+    fprintf(f, "----\n");
     fprintf(f,
             "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
             AX, BX, CX, DX, SP, BP, SI, DI,
             "-O"[OF], "-D"[DF], "-I"[IF], "-T"[TF], "-S"[SF], "-Z"[ZF], "-A"[AF], "-P"[PF], "-C"[CF],
             *ES, *SS, *DS, *CS, IP);
-	for (int i = 0; i < len; ++i) fprintf(f, "%02x", CS[IP + i]);
-	fprintf(f, "\n");
+    for (int i = 0; i < len; ++i) fprintf(f, "%02x", CS[IP + i]);
+    fprintf(f, "\n");
 }
 
 extern "C" void vmcheck() {
-	static char count;
-	int p = ++count ? -1 : checkmem();
-	if (checkreg() && p < 0) return;
-	debug(stderr, 6);
-	if (p < 0) p = checkmem();
-	if (p >= 0) printf("memory error: %05x\n", p);
-	exit(1);
+    static char count;
+    int p = ++count ? -1 : checkmem();
+    if (checkreg() && p < 0) return;
+    debug(stderr, 6);
+    if (p < 0) p = checkmem();
+    if (p >= 0) printf("memory error: %05x\n", p);
+    exit(1);
 }
 
 inline uint16_t read16(uint8_t *p) {
@@ -166,7 +166,7 @@ void out(uint16_t n, uint8_t v) {
 }
 
 uint8_t in(uint16_t n) {
-	io[0x3da] ^= 9;
+    io[0x3da] ^= 9;
     return io[n];
 }
 
@@ -1258,7 +1258,7 @@ extern "C" void step8r(uint8_t rep, SReg *seg) {
 #endif
     }
     IP = p - &CS[0];
-	debug(stderr, 6);
+    debug(stderr, 6);
     fprintf(stderr, "not implemented: %02x%02x%02x\n", b, p[1], p[2]);
     exit(1);
 }
