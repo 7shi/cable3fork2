@@ -48,13 +48,16 @@ struct SReg sr[4];
 #define DS sr[3]
 
 void
-debug(FILE * f)
+debug(FILE * f, int len)
 {
 	fprintf(f,
-	    "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x %02x%02x%02x\n",
+	    "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
 	    AX, BX, CX, DX, SP, BP, SI, DI,
 	    "-O"[OF], "-D"[DF], "-I"[IF], "-T"[TF], "-S"[SF], "-Z"[ZF], "-A"[AF], "-P"[PF], "-C"[CF],
-	    ES.v, SS.v, DS.v, CS.v, IP, CS.p[IP], CS.p[IP + 1], CS.p[IP + 2]);
+	    ES.v, SS.v, DS.v, CS.v, IP);
+	for (int i = 0; i < len; ++i)
+		fprintf(f, "%02x", CS.p[IP + i]);
+	fprintf(f, "\n");
 }
 
 static inline void
@@ -141,7 +144,7 @@ setsfzfpf(uint16_t val)
 	PF = ptable[(uint8_t) val];
 }
 
-static inline uint16_t
+extern inline uint16_t
 getflags(void)
 {
 	return 0xf002 | CF | (PF << 2) | (AF << 4) | (ZF << 6) | (SF << 7) | (TF << 8) | (IF << 9) | (DF << 10) | (OF << 11);
@@ -393,8 +396,10 @@ step(int rep, uint8_t *segpfx)
 			break;
 		case 4:	/* mul */
 			if (oprsz) {
-				DX = (AX = utmp = *(uint16_t *) addr * AX) >> 16;
-				OF = CF = (utmp >> 16) != 0;
+				utmp = *(uint16_t *) addr * AX;
+				DX = utmp >> 16;
+				AX = utmp;
+				OF = CF = DX != 0;
 			} else {
 				AX = utmp = *addr * AL;
 				OF = CF = (utmp >> 8) != 0;
@@ -402,8 +407,10 @@ step(int rep, uint8_t *segpfx)
 			break;
 		case 5:	/* imul */
 			if (oprsz) {
-				DX = (AX = tmp = *(int16_t *) addr * (int16_t) AX) >> 16;
-				OF = CF = (tmp >> 16) != 0;
+				tmp = *(int16_t *) addr * (int16_t) AX;
+				DX = tmp >> 16;
+				AX = tmp;
+				OF = CF = DX != 0;
 			} else {
 				AX = tmp = *(int8_t *) addr *(int8_t) AL;
 				OF = CF = (tmp >> 8) != 0;
@@ -960,9 +967,19 @@ step(int rep, uint8_t *segpfx)
 	exit(1);
 }
 
+extern void init8086run();
+extern void vmsync();
+extern void vmcheck();
+extern void step8r(uint8_t rep, struct SReg *seg);
+
+int stp;
+
 int
 main(int argc, char *argv[])
 {
+	init8086run();
+	for (int i = 0; i < 4; ++i)
+		setsr(&sr[i], 0);
 	setsr(&CS, ROMBASE >> 4);
 	IP = 0x100;
 
@@ -981,6 +998,7 @@ main(int argc, char *argv[])
 		write32(&AX, fseek(files[0], 0, SEEK_END) >> 9);
 	fread(&mem[ROMBASE + IP], 1, ROMBASE, files[2]);	/* read BIOS */
 
+	vmsync();
 	uint16_t counter = 0;
 	int kb = 0;
 	for (;;) {
@@ -998,9 +1016,19 @@ main(int argc, char *argv[])
 			if ((kb = read(0, &mem[0x4a6], 1)))
 				intr(7);
 #endif
+			vmsync();
 		}
-		if (CS.v == 0 && IP == 0)
+		uint16_t cs = CS.v, ip = IP;
+		if (cs == 0 && ip == 0)
 			break;
 		step(0, NULL);
+		if (CS.p[ip] == 0x0f) {
+			vmsync();
+		} else {
+			//debug(stderr, 6);
+			step8r(0, NULL);
+			vmcheck();
+			++stp;
+		}
 	}
 }
