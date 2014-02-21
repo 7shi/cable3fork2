@@ -1028,11 +1028,11 @@ main(int argc, char *argv[])
 		if (cs == 0 && ip == 0)
 			break;
 		uint8_t b = CS.p[IP];
+		setdbg();
 		step(0, NULL);
 		if (b == 0x0f) {
 			vmsync();
 		} else {
-			setdbg();
 			step8r(0, NULL);
 			vmcheck();
 			++stp;

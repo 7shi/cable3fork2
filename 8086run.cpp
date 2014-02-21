@@ -36,14 +36,13 @@ struct Debug {
     
     void output(FILE *f, int len) {
         extern uint8_t mem[];
-        extern i86::SReg sr[];
         fprintf(f,
             "%04x %04x %04x %04x-%04x %04x %04x %04x %c%c%c%c%c%c%c%c%c %04x %04x %04x %04x:%04x ",
             Ax, Bx, Cx, Dx, Sp, Bp, Si, Di,
             "-O"[Of], "-D"[Df], "-I"[If], "-T"[Tf], "-S"[Sf], "-Z"[Zf], "-A"[Af], "-P"[Pf], "-C"[Cf],
             Es, Ss, Ds, Cs, Ip);
         for (int i = 0; i < len; ++i)
-            fprintf(f, "%02x", mem[(Cs << 4) | (Ip + i)]);
+            fprintf(f, "%02x", mem[(Cs << 4) + (Ip + i)]);
         fprintf(f, "\n");
     }
 };
@@ -132,6 +131,7 @@ extern "C" void setdbg();
 
 void debug(FILE *f, int len) {
     fprintf(f, " AX   BX   CX   DX   SP   BP   SI   DI    FLAGS    ES   SS   DS   CS   IP  dump\n");
+    setdbg();
     for (int i = 0; i < 20; ++i) {
         Debug *d0 = &dbg[(dbgi + i) % 20], *d1 = &dbg[(dbgi + i + 1) % 20];
         int len = 6;
