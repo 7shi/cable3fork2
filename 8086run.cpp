@@ -154,7 +154,7 @@ void debug(FILE *f, int len) {
 extern "C" void vmcheck() {
     static char count;
     int p = ++count ? -1 : checkmem();
-    if (checkreg() && p < 0) return;
+    if (p < 0 && checkreg()) return;
     debug(stderr, 6);
     if (p < 0) p = checkmem();
     if (p >= 0) printf("memory error: %05x\n", p);
