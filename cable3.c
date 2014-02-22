@@ -333,7 +333,7 @@ step(int rep, uint8_t *segpfx)
 			src = 1;
 			setafof(src, dst, val);
 			setsfzfpf(val);
-			OF = (dst + 1 - reg == 1 << (8 * (oprsz + 1) - 1));
+			OF = isneg(dst) != isneg(val) && dst && val;
 			if (oprsz == 2)
 				++IP;
 			else
@@ -389,12 +389,15 @@ step(int rep, uint8_t *segpfx)
 			val = setv(opr2, -(dst = getv(opr2)));
 			CF = val > (dst = 0);
 			setafof(dst, dst, val);
+			OF = dst == 0x8000;
 			setsfzfpf(val);
 			break;
 		case 4:	/* mul */
 			if (oprsz) {
-				DX = (AX = utmp = *(uint16_t *) addr * AX) >> 16;
-				OF = CF = (utmp >> 16) != 0;
+				utmp = *(uint16_t *) addr * AX;
+				DX = utmp >> 16;
+				AX = utmp;
+				OF = CF = DX != 0;
 			} else {
 				AX = utmp = *addr * AL;
 				OF = CF = (utmp >> 8) != 0;
@@ -402,8 +405,10 @@ step(int rep, uint8_t *segpfx)
 			break;
 		case 5:	/* imul */
 			if (oprsz) {
-				DX = (AX = tmp = *(int16_t *) addr * (int16_t) AX) >> 16;
-				OF = CF = (tmp >> 16) != 0;
+				tmp = *(int16_t *) addr * (int16_t) AX;
+				DX = tmp >> 16;
+				AX = tmp;
+				OF = CF = DX != 0;
 			} else {
 				AX = tmp = *(int8_t *) addr *(int8_t) AL;
 				OF = CF = (tmp >> 8) != 0;
@@ -963,6 +968,9 @@ step(int rep, uint8_t *segpfx)
 int
 main(int argc, char *argv[])
 {
+	setsr(&ES, 0);
+	setsr(&SS, 0);
+	setsr(&DS, 0);
 	setsr(&CS, ROMBASE >> 4);
 	IP = 0x100;
 
