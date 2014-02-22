@@ -394,9 +394,8 @@ step(int rep, uint8_t *segpfx)
 			break;
 		case 4:	/* mul */
 			if (oprsz) {
-				utmp = *(uint16_t *) addr * AX;
+				AX = utmp = *(uint16_t *) addr *AX;
 				DX = utmp >> 16;
-				AX = utmp;
 				OF = CF = DX != 0;
 			} else {
 				AX = utmp = *addr * AL;
@@ -405,9 +404,8 @@ step(int rep, uint8_t *segpfx)
 			break;
 		case 5:	/* imul */
 			if (oprsz) {
-				tmp = *(int16_t *) addr * (int16_t) AX;
+				AX = tmp = *(int16_t *) addr *(int16_t) AX;
 				DX = tmp >> 16;
-				AX = tmp;
 				OF = CF = DX != 0;
 			} else {
 				AX = tmp = *(int8_t *) addr *(int8_t) AL;
